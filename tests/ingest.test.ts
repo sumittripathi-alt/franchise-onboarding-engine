@@ -306,3 +306,28 @@ describe("G9.8 skipped example territory covers an applicant", () => {
     expect(included.report.skippedExampleTerritory).toBeNull();
   });
 });
+
+describe("G9.8 included example rows get their own IDs", () => {
+  it("an included example territory never triggers T01 against a real TER-01", () => {
+    const r = parseOk(
+      [
+        templateFile({
+          applications: [appRow("APP-001", { 1: "Asha Rao", 2: "Mysuru", 4: 570002 }), appRow("APP-002")],
+          territories: [
+            ["TER-01", "Bengaluru", "Karnataka", "560041, 560068", "Tier 1", 1, "High"],
+            ["TER-02", "Mysuru", "Karnataka", "570010", "Tier 2", 1, "High"],
+          ],
+        }),
+      ],
+      { includeExampleRow: true },
+    );
+    expect(r.territories.map((t) => t.id)).toEqual(["TER-01 (template example)", "TER-01", "TER-02"]);
+    expect(r.applications.map((a) => a.id)).toEqual(["APP-001 (template example)", "APP-001", "APP-002"]);
+    const checks = runDataChecks(r.applications, r.territories);
+    expect(checks.issues.filter((i) => i.code === "T01" || i.code === "A05")).toEqual([]);
+    const t = Object.fromEntries(checks.territories.map((x) => [x.key, x]));
+    expect(t["TER-01 (template example)"].pins).toEqual(["570001", "570002", "570008"]);
+    expect(t["TER-01"].pins).toEqual(["560041", "560068"]);
+    expect(t["TER-01"].blocked).toBe(false);
+  });
+});

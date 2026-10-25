@@ -245,6 +245,12 @@ function dataRows(sheet: SheetData, headerIdx: number): { rows: DataRow[]; empty
   return { rows, empty };
 }
 
+export const EXAMPLE_ID_SUFFIX = " (template example)";
+
+export function exampleId(id: string): string {
+  return `${id}${EXAMPLE_ID_SUFFIX}`;
+}
+
 function assignKeys<T extends { id: string; row: number }>(items: T[]): (T & { key: string })[] {
   const counts = new Map<string, number>();
   for (const it of items) if (it.id) counts.set(it.id, (counts.get(it.id) ?? 0) + 1);
@@ -416,12 +422,17 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
     };
   }
 
-  const applications = assignKeys(appData.rows.map((r) => buildApplication(r, appMap))).map((a) =>
-    ApplicationSchema.parse(a),
-  );
-  const territories = assignKeys(terData.rows.map((r) => buildTerritory(r, terMap))).map((t) =>
-    TerritorySchema.parse(t),
-  );
+  // An included example row gets its own ID, so it never clashes (A05/T01) with a real APP-001 or TER-01.
+  const included = (sheet: ExampleRowInfo["sheet"]) => exampleRows.some((e) => e.sheet === sheet && !e.skipped);
+  const markExample = <T extends { id: string }>(items: T[], isIncluded: boolean): T[] =>
+    isIncluded && items[0] ? [{ ...items[0], id: exampleId(items[0].id) }, ...items.slice(1)] : items;
+
+  const applications = assignKeys(
+    markExample(appData.rows.map((r) => buildApplication(r, appMap)), included("Applications")),
+  ).map((a) => ApplicationSchema.parse(a));
+  const territories = assignKeys(
+    markExample(terData.rows.map((r) => buildTerritory(r, terMap)), included("Territories")),
+  ).map((t) => TerritorySchema.parse(t));
 
   let skippedExampleTerritory: SkippedExampleTerritory | null = null;
   if (skippedTerritoryRow) {
