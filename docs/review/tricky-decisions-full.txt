@@ -1,0 +1,565 @@
+
+> franchise-onboarding-engine@0.1.0 decide
+> tsx --tsconfig tsconfig.json scripts/decide.ts tests/fixtures/tricky.xlsx --today=2026-10-25 --full
+
+
+tricky.xlsx · Eyewear store (Lenskart-style) · today 2026-10-25 · 38 applications
+
+ID            │ Decision           │ Why                                                            │ Next step                                      │ Pin    │ Flags                   
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-001       │ Approved           │ Wins pin 560041 and one of TER-01's 2 slots (ranked #1 of 5    │ Sign the letter of intent and pay the brand    │ 560041 │                         
+              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-002       │ Waitlisted         │ Waitlisted #3 for Bengaluru: APP-003 ranks higher for pin      │ Tell the partner they are #3 in the Bengaluru  │        │                         
+              │                    │ 560068 (APP-003 has a better space (a rented ground-floor      │ queue for another location                     │        │                         
+              │                    │ space of 550 sq ft, vs a rented upper-floor space of 500 sq    │                                                │        │                         
+              │                    │ ft)), and no Bengaluru territory has a free slot to offer.     │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-003       │ Approved           │ Wins pin 560068 and one of TER-01's 2 slots (ranked #2 of 5    │ Sign the letter of intent and pay the brand    │ 560068 │                         
+              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-004       │ Waitlisted         │ Waitlisted #1 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #1 on the TER-01     │        │                         
+              │                    │ rank higher.                                                   │ waitlist                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-005       │ Waitlisted         │ Waitlisted #1 for Bengaluru: APP-004 ranks higher for pin      │ Tell the partner they are #1 in the Bengaluru  │        │                         
+              │                    │ 560102 (APP-004 has more investment capacity (₹50 lakh vs ₹33  │ queue for another location                     │        │                         
+              │                    │ lakh)), and no Bengaluru territory has a free slot to offer.   │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-006       │ On hold            │ On hold: investment is ₹0 lakh, which can't be right.          │ Call the partner and ask: Please confirm your  │        │                         
+              │                    │                                                                │ investment capacity in ₹ lakh. You entered 0.  │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-007       │ On hold            │ On hold: pin 560011 is in Bengaluru, but the city is Mysuru.   │ Call the partner and ask: Your pin code 560011 │        │                         
+              │                    │                                                                │ is in Bengaluru, but you chose Mysuru. Which   │        │                         
+              │                    │                                                                │ city do you mean?                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-008       │ On hold            │ On hold: investment is ₹2500 lakh, which is probably a unit    │ Call the partner and ask: Please confirm your  │        │                         
+              │                    │ mix-up (rupees vs lakh).                                       │ investment capacity in ₹ lakh. You entered     │        │                         
+              │                    │                                                                │ 2500.                                          │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-009       │ Not approved       │ Not approved: investment of ₹15 lakh is below the hard floor   │ Tell the partner what would need to change:    │        │                         
+              │                    │ of ₹21 lakh (70% of the Tier 1 minimum of ₹30 lakh).           │ reapply with an investment capacity of at      │        │                         
+              │                    │                                                                │ least ₹21 lakh; ₹30 lakh or more avoids a      │        │                         
+              │                    │                                                                │ proof-of-funds condition                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-010       │ Offered another    │ Offered pin 560043 in TER-03 instead, because pin 560038       │ Accept or decline the offer of pin 560043 by 1 │ 560043 │                         
+              │ location           │ already has existing store ST-03. Held until 1 Nov 2026.       │ Nov 2026                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-011       │ Offered another    │ Offered pin 560024 in TER-03 instead, because pin 560010 isn't │ Accept or decline the offer of pin 560024 by 1 │ 560024 │                         
+              │ location           │ in any of our territories. Held until 1 Nov 2026.              │ Nov 2026                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-012       │ Waitlisted         │ Waitlisted #1 for TER-02: it has 1 slot, and 1 applicant ranks │ Tell the partner they are #1 on the TER-02     │        │ target-not-feasible     
+              │                    │ higher.                                                        │ waitlist                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-013       │ Waitlisted         │ Waitlisted #2 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #2 on the TER-01     │        │                         
+              │                    │ rank higher.                                                   │ waitlist                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-014       │ Waitlisted         │ Waitlisted #2 for Bengaluru: APP-013 ranks higher for pin      │ Tell the partner they are #2 in the Bengaluru  │        │                         
+              │                    │ 560029 (everything else is equal, so the earlier application   │ queue for another location                     │        │                         
+              │                    │ wins (APP-013 before APP-014)), and no Bengaluru territory has │                                                │        │                         
+              │                    │ a free slot to offer.                                          │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-015       │ Approved           │ Wins pin 570015 and one of TER-04's 5 slots (ranked #2 of 4    │ Sign the letter of intent and pay the brand    │ 570015 │                         
+              │                    │ for 5 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-016       │ Approved           │ Wins pin 570010 and one of TER-04's 5 slots (ranked #1 of 4    │ Sign the letter of intent and pay the brand    │ 570010 │                         
+              │                    │ for 5 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-017       │ Approved           │ Wins pin 572101 and one of TER-06's 2 slots (ranked #1 of 2    │ Sign the letter of intent and pay the brand    │ 572101 │                         
+              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-018       │ Approved with      │ Wins pin 572106 and one of TER-06's 2 slots (ranked #2 of 2    │ Show proof of funds of at least ₹15 lakh       │ 572106 │ exp-under-reported      
+              │ conditions         │ for 2 slots), if one condition is met: show proof of funds of  │ (declared ₹12 lakh) by 8 Nov 2026              │        │                         
+              │                    │ at least ₹15 lakh (declared ₹12 lakh).                         │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-019       │ Approved with      │ Wins pin 560037 and TER-02's only slot (ranked #1 of 3 for 1   │ Move to a ground-floor space by 9 Dec 2026     │ 560037 │ provisional             
+              │ conditions         │ slot), if one condition is met: move to a ground-floor space   │                                                │        │                         
+              │                    │ within 45 days.                                                │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-020       │ Approved with      │ Wins pin 560032 and one of TER-03's 6 slots (ranked #3 of 4    │ Share proof of funds or a loan sanction letter │ 560032 │                         
+              │ conditions         │ for 6 slots), if one condition is met: share proof of funds or │ by 8 Nov 2026                                  │        │                         
+              │                    │ a loan sanction letter.                                        │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-021       │ Waitlisted         │ Waitlisted #1 for TER-05: it has no open slots right now.      │ Tell the partner they are #1 on the TER-05     │        │                         
+              │                    │                                                                │ waitlist                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-022       │ Waitlisted         │ Waitlisted: Belagavi has no territory in the current plan, so  │ Keep APP-022 in the Belagavi talent pool and   │        │                         
+              │                    │ APP-022 is kept in the talent pool.                            │ contact them when a territory opens            │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-023       │ Approved with      │ Wins pin 560084 and one of TER-03's 6 slots (ranked #4 of 4    │ Confirm the space is at least 400 sq ft by 1   │ 560084 │                         
+              │ conditions         │ for 6 slots), if one condition is met: confirm the space is at │ Nov 2026                                       │        │                         
+              │                    │ least 400 sq ft.                                               │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-024       │ Waitlisted         │ Waitlisted #2 for TER-02: it has 1 slot, and 1 applicant ranks │ Tell the partner they are #2 on the TER-02     │        │ target-not-feasible     
+              │                    │ higher.                                                        │ waitlist                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-025       │ On hold            │ On hold: the form says floor Ground, but the notes suggest an  │ Call the partner and ask: Your form says       │        │                         
+              │                    │ upper floor.                                                   │ Ground, but your notes suggest an upper floor. │        │                         
+              │                    │                                                                │ Which floor is the space on?                   │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-026       │ Approved with      │ Wins pin 570020 and one of TER-04's 5 slots (ranked #4 of 4    │ Find a suitable space by 9 Dec 2026            │ 570020 │ notes≠target,           
+              │ conditions         │ for 5 slots), if one condition is met: find a suitable space   │                                                │        │ target-not-feasible,    
+              │                    │ within 45 days.                                                │                                                │        │ location-uncertain      
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-027       │ Approved with      │ Wins pin 560045 and one of TER-03's 6 slots (ranked #2 of 4    │ Name the store manager who will run the store; │ 560045 │ location-uncertain      
+              │ conditions         │ for 6 slots), if one condition is met: name the store manager  │ they must also complete training by 24 Nov     │        │                         
+              │                    │ who will run the store; they must also complete training.      │ 2026                                           │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-028       │ On hold            │ On hold: the text mentions running a competing brand. A        │ Call the partner and ask: Do you run or hold a │        │                         
+              │                    │ conflict-of-interest check is needed.                          │ stake in a competing brand? We need to         │        │                         
+              │                    │                                                                │ complete a conflict-of-interest check before   │        │                         
+              │                    │                                                                │ deciding.                                      │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-029       │ Waitlisted         │ Waitlisted #3 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #3 on the TER-01     │        │ integrity,              
+              │                    │ rank higher.                                                   │ waitlist                                       │        │ target-not-feasible     
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-030       │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, 34).    │ Call the partner and ask: Application ID       │        │                         
+              │                    │                                                                │ APP-030 appears more than once. Which row is   │        │                         
+              │                    │                                                                │ correct, or should one get a new ID?           │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-030       │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, 34).    │ Call the partner and ask: Application ID       │        │                         
+              │                    │                                                                │ APP-030 appears more than once. Which row is   │        │                         
+              │                    │                                                                │ correct, or should one get a new ID?           │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-031       │ Approved           │ Wins pin 560077 and one of TER-03's 6 slots (ranked #1 of 4    │ Sign the letter of intent and pay the brand    │ 560077 │                         
+              │                    │ for 6 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-032       │ Waitlisted         │ Waitlisted: Ravi Shankar already holds a slot through APP-031; │ Confirm with the applicant whether APP-032 and │        │                         
+              │                    │ one slot per person.                                           │ APP-031 are the same person                    │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-033       │ Approved with      │ Wins pin 570005 and one of TER-04's 5 slots (ranked #3 of 4    │ Get expansion-head sign-off (within 2.5 km of  │ 570005 │ near-store              
+              │ conditions         │ for 5 slots), if one condition is met: get expansion-head      │ ST-06) and inform the existing partner at      │        │                         
+              │                    │ sign-off (within 2.5 km of ST-06) and inform the existing      │ ST-06 before announcing by 1 Nov 2026          │        │                         
+              │                    │ partner at ST-06 before announcing.                            │                                                │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-034       │ Offered another    │ Offered pin 570016 in TER-04 instead, because pin 570009       │ Accept or decline the offer of pin 570016 by 1 │ 570016 │ near-store              
+              │ location           │ already has existing store ST-06. Held until 1 Nov 2026.       │ Nov 2026                                       │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-035       │ On hold            │ On hold: the form says floor Ground, but the notes suggest an  │ Call the partner and ask: Your form says       │        │                         
+              │                    │ upper floor.                                                   │ Ground, but your notes suggest an upper floor. │        │                         
+              │                    │                                                                │ Which floor is the space on?                   │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-036       │ Waitlisted         │ Waitlisted: Davanagere has no territory in the current plan,   │ Keep APP-036 in the Davanagere talent pool and │        │                         
+              │                    │ so APP-036 is kept in the talent pool.                         │ contact them when a territory opens            │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+APP-037       │ Waitlisted         │ Waitlisted: Mangaluru has no territory in the current plan, so │ Keep APP-037 in the Mangaluru talent pool and  │        │                         
+              │                    │ APP-037 is kept in the talent pool.                            │ contact them when a territory opens            │        │                         
+──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+
+Approved: 6 · Approved with conditions: 7 · On hold: 8 · Waitlisted: 13 · Offered another location: 3 · Not approved: 1
+TER-01   Bengaluru         High   slots 2/2  reserved: APP-001@560041, APP-003@560068  waitlist: APP-004, APP-013, APP-029
+TER-02   Bengaluru         Medium slots 1/1  reserved: APP-019@560037  waitlist: APP-012, APP-024
+TER-03   Bengaluru         Low    slots 6/6  reserved: APP-010@560043, APP-011@560024, APP-020@560032, APP-023@560084, APP-027@560045, APP-031@560077  waitlist: —
+TER-04   Mysuru            High   slots 5/5  reserved: APP-015@570015, APP-016@570010, APP-026@570020, APP-033@570005, APP-034@570016  waitlist: —
+TER-05   Hubballi-Dharwad  Medium slots 0/0  reserved: —  waitlist: APP-021
+TER-06   Tumakuru          Medium slots 2/2  reserved: APP-017@572101, APP-018@572106  waitlist: —
+
+✓ All invariants hold (6.7), including a rerun determinism check.
+
+── APP-001 · Ananya Rao · Approved ──
+APP-001 has an owned ground-floor space of 800 sq ft; ₹65 lakh to invest; 8 years of relevant apparel experience. Clear:
+the nearest existing store, ST-05, is 3.7 km away (inner radius 1.5 km). Estimated payback: about 19 months on the
+standard ₹30 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-002 · Mohammed Irfan · Waitlisted ──
+APP-002 has a rented upper-floor space of 500 sq ft; ₹55 lakh to invest; 5 years of relevant mobile shop experience.
+APP-003 also wanted pin 560068 and ranks higher because APP-003 has a better space (a rented ground-floor space of 550
+sq ft, vs a rented upper-floor space of 500 sq ft). APP-011 was offered the last free location ahead of it because
+APP-011 has a better space (a rented ground-floor space of 500 sq ft, vs a rented upper-floor space of 500 sq ft).
+What would change this: It would be offered another Bengaluru location if a slot frees in any Bengaluru territory.
+Next steps:
+  - Tell the partner they are #3 in the Bengaluru queue for another location
+  - Ask whether they would move to another pin in the city if one opens
+Reason codes: LOST_PIN_CONTEST, NO_SLOT_IN_CITY
+
+── APP-003 · Kavya Shetty · Approved ──
+APP-003 has a rented ground-floor space of 550 sq ft; ₹50 lakh to invest; 4 years of relevant footwear experience.
+APP-002 also wanted pin 560068; APP-003 ranks higher because APP-003 has a better space (a rented ground-floor space of
+550 sq ft, vs a rented upper-floor space of 500 sq ft). It ranks above APP-004 (waitlisted) because APP-003 has more
+relevant experience (4 years of relevant footwear experience, vs 1 year of general business experience). It ranks above
+APP-013 (waitlisted) because APP-003 has more investment capacity (₹50 lakh vs ₹33 lakh). It ranks above APP-029
+(waitlisted) because APP-003 has a better space (a rented ground-floor space of 550 sq ft, vs no space yet). Clear: the
+nearest existing store, ST-02, is 2.0 km away (inner radius 1.5 km). Estimated payback: about 19 months on the standard
+₹30 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-004 · Suresh Gowda · Waitlisted ──
+APP-004 wins pin 560102 but not a slot. It has a rented ground-floor space of 600 sq ft; ₹50 lakh to invest; 1 year of
+general business experience. APP-005 also wanted pin 560102; APP-004 ranks higher because APP-004 has more investment
+capacity (₹50 lakh vs ₹33 lakh). To get a slot it would need to outrank APP-003, the last applicant with a slot; APP-003
+has more relevant experience (4 years of relevant footwear experience, vs 1 year of general business experience).
+What would change this: It moves up if a slot frees in TER-01 (a withdrawal, a missed condition or an extra slot).
+Next steps:
+  - Tell the partner they are #1 on the TER-01 waitlist
+  - They move up automatically if a slot frees in TER-01
+Reason codes: NO_SLOT
+
+── APP-005 · Priya Nair · Waitlisted ──
+APP-005 has a rented ground-floor space of 450 sq ft; ₹33 lakh to invest; 6 years of relevant optical experience.
+APP-004 also wanted pin 560102 and ranks higher because APP-004 has more investment capacity (₹50 lakh vs ₹33 lakh).
+APP-011 was offered the last free location ahead of it because APP-011 has more investment capacity (₹52 lakh vs ₹33
+lakh).
+What would change this: It would be offered another Bengaluru location if a slot frees in any Bengaluru territory.
+Next steps:
+  - Tell the partner they are #1 in the Bengaluru queue for another location
+  - Ask whether they would move to another pin in the city if one opens
+Reason codes: LOST_PIN_CONTEST, NO_SLOT_IN_CITY
+
+── APP-006 · Arjun Reddy · On hold ──
+Investment is ₹0 lakh, which can't be right. An on-hold application doesn't take a slot.
+What would change this: Answering the question lets it be decided on its merits.
+Next steps:
+  - Call the partner and ask: Please confirm your investment capacity in ₹ lakh. You entered 0.
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-007 · Nandini Murthy · On hold ──
+Pin 560011 is in Bengaluru, but the city is Mysuru. An on-hold application doesn't take a slot.
+What would change this: Answering the question lets it be decided on its merits.
+Next steps:
+  - Call the partner and ask: Your pin code 560011 is in Bengaluru, but you chose Mysuru. Which city do you mean?
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-008 · Vikram Singh · On hold ──
+Investment is ₹2500 lakh, which is probably a unit mix-up (rupees vs lakh). An on-hold application doesn't take a slot.
+What would change this: Answering the question lets it be decided on its merits.
+Next steps:
+  - Call the partner and ask: Please confirm your investment capacity in ₹ lakh. You entered 2500.
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-009 · Rekha Iyer · Not approved ──
+APP-009 fails a hard requirement for the eyewear store model: investment of ₹15 lakh is below the hard floor of ₹21 lakh
+(70% of the Tier 1 minimum of ₹30 lakh).
+What would change this: Reapply with an investment capacity of at least ₹21 lakh; ₹30 lakh or more avoids a proof-of-funds condition.
+Next steps:
+  - Tell the partner what would need to change: reapply with an investment capacity of at least ₹21 lakh; ₹30 lakh or more avoids a proof-of-funds condition
+Reason codes: BELOW_HARD_FLOOR
+
+── APP-010 · Sanjay Kamath · Offered another location ──
+APP-010 is a good partner (a rented ground-floor space of 600 sq ft; ₹70 lakh to invest; 10 years of relevant optical
+experience), but pin 560038 already has existing store ST-03. Location offers go first to applicants with no space yet,
+then rented space, then owned space; then by the usual ranking. Pin 560043 is 4.4 km from pin 560038. This needs a new
+space; the current lease in 560038 would need to move. Clear: the nearest existing store, ST-03, is 4.4 km away (inner
+radius 1.5 km). Estimated payback: about 19 months on the standard ₹30 lakh investment.
+What would change this: Accepting by 1 Nov 2026 reserves pin 560043. APP-010's own pin isn't possible because pin 560038 already has existing store ST-03. If it declines, the offer goes to APP-005.
+Next steps:
+  - Accept or decline the offer of pin 560043 by 1 Nov 2026
+  - Find a suitable space in pin 560043 by 9 Dec 2026
+Conditions:
+  - Find a suitable space in pin 560043 (by 2026-12-09; if missed: The slot is released to the next applicant in line: APP-005.)
+Reason codes: PIN_HAS_EXISTING_STORE, REDIRECT_OFFERED, SPACE_NOT_IDENTIFIED
+
+── APP-011 · Fatima Begum · Offered another location ──
+APP-011 is a good partner (a rented ground-floor space of 500 sq ft; ₹52 lakh to invest; 2 years of general business
+experience), but pin 560010 isn't in any of our territories. Location offers go first to applicants with no space yet,
+then rented space, then owned space; then by the usual ranking. Pin 560024 is 8.0 km from pin 560010. This needs a new
+space; the current lease in 560010 would need to move. Clear: the nearest existing store, ST-01, is 6.5 km away (inner
+radius 1.5 km). Estimated payback: about 19 months on the standard ₹30 lakh investment.
+What would change this: Accepting by 1 Nov 2026 reserves pin 560024. APP-011's own pin isn't possible because pin 560010 isn't in any of our territories. If it declines, the offer goes to APP-005.
+Next steps:
+  - Accept or decline the offer of pin 560024 by 1 Nov 2026
+  - Find a suitable space in pin 560024 by 9 Dec 2026
+Conditions:
+  - Find a suitable space in pin 560024 (by 2026-12-09; if missed: The slot is released to the next applicant in line: APP-005.)
+Reason codes: PIN_NOT_IN_TERRITORY, REDIRECT_OFFERED, SPACE_NOT_IDENTIFIED
+
+── APP-012 · Lakshmi Prasad · Waitlisted ──
+APP-012 wins pin 560048 but not a slot. It has no space yet; ₹55 lakh to invest; 3 years of relevant apparel experience.
+To get a slot it would need to outrank APP-019, the last applicant with a slot; APP-019 has a better space (a rented
+upper-floor space of 600 sq ft, vs no space yet).
+What would change this: It moves up if a slot frees in TER-02 (a withdrawal, a missed condition or an extra slot). Also, a ready ground-floor space of at least 400 sq ft would improve its position.
+Next steps:
+  - Tell the partner they are #1 on the TER-02 waitlist
+  - A ready ground-floor space of at least 400 sq ft would improve its position.
+Reason codes: NO_SLOT, TARGET_NOT_FEASIBLE
+
+── APP-013 · Harish Bhat · Waitlisted ──
+APP-013 wins pin 560029 but not a slot. It has a rented ground-floor space of 500 sq ft; ₹33 lakh to invest; 2 years of
+retail experience. APP-014 also wanted pin 560029; APP-013 ranks higher because everything else is equal, so the earlier
+application wins (APP-013 before APP-014). To get a slot it would need to outrank APP-003, the last applicant with a
+slot; APP-003 has more investment capacity (₹50 lakh vs ₹33 lakh).
+What would change this: It moves up if a slot frees in TER-01 (a withdrawal, a missed condition or an extra slot). Also, investment capacity of ₹36 lakh or more would improve its position.
+Next steps:
+  - Tell the partner they are #2 on the TER-01 waitlist
+  - Investment capacity of ₹36 lakh or more would improve its position.
+Reason codes: NO_SLOT
+
+── APP-014 · Girish Bhat · Waitlisted ──
+APP-014 has a rented ground-floor space of 500 sq ft; ₹33 lakh to invest; 2 years of retail experience. APP-013 also
+wanted pin 560029 and ranks higher because everything else is equal, so the earlier application wins (APP-013 before
+APP-014). APP-011 was offered the last free location ahead of it because APP-011 has more investment capacity (₹52 lakh
+vs ₹33 lakh).
+What would change this: It would be offered another Bengaluru location if a slot frees in any Bengaluru territory.
+Next steps:
+  - Tell the partner they are #2 in the Bengaluru queue for another location
+  - Ask whether they would move to another pin in the city if one opens
+Reason codes: LOST_PIN_CONTEST, NO_SLOT_IN_CITY
+
+── APP-015 · Meena Kumari · Approved ──
+APP-015 has a rented ground-floor space of 600 sq ft; ₹40 lakh to invest; 5 years of relevant apparel experience. Clear:
+the nearest existing store, ST-07, is 4.4 km away (inner radius 2.5 km). Estimated payback: about 17 months on the
+standard ₹20 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-016 · Manjunath Swamy · Approved ──
+APP-016 has an owned ground-floor space of 450 sq ft; ₹33 lakh to invest; 3 years of relevant footwear experience.
+Clear: the nearest existing store, ST-06, is 3.7 km away (inner radius 2.5 km). Estimated payback: about 17 months on
+the standard ₹20 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-017 · Imran Pasha · Approved ──
+APP-017 has a rented mall unit of 500 sq ft; ₹35 lakh to invest; 3 years of relevant mobile shop experience. Clear: the
+nearest existing store, ST-01, is 65.2 km away (inner radius 4 km). Estimated payback: about 17 months on the standard
+₹15 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-018 · Gangamma · Approved with conditions ──
+APP-018 has an owned ground-floor space of 400 sq ft; ₹12 lakh to invest; 12 years of general business experience.
+Conditions: Show proof of funds of at least ₹15 lakh (declared ₹12 lakh) by 8 Nov 2026. Missing it releases the slot.
+Clear: the nearest existing store, ST-01, is 70.7 km away (inner radius 4 km). Estimated payback: about 17 months on the
+standard ₹15 lakh investment.
+What would change this: If APP-018 meets this condition (show proof of funds of at least ₹15 lakh (declared ₹12 lakh)), it moves to Approved. Missing a deadline releases the slot.
+Next steps:
+  - Show proof of funds of at least ₹15 lakh (declared ₹12 lakh) by 8 Nov 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Jan 2027
+Conditions:
+  - Show proof of funds of at least ₹15 lakh (declared ₹12 lakh) (by 2026-11-08; if missed: The slot is released and offered to the next eligible applicant.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, PROOF_OF_FUNDS, EXPERIENCE_UNDER_REPORTED
+
+── APP-019 · Deepak Hegde · Approved with conditions ──
+APP-019 has a rented upper-floor space of 600 sq ft; ₹33 lakh to invest; 5 years of relevant retail experience. It ranks
+above APP-012 (waitlisted) because APP-019 has a better space (a rented upper-floor space of 600 sq ft, vs no space
+yet). It ranks above APP-024 (waitlisted) because APP-019 has a better space (a rented upper-floor space of 600 sq ft,
+vs no space yet). Conditions: Move to a ground-floor space by 9 Dec 2026. Missing it releases the slot. Clear: the
+nearest existing store, ST-03, is 5.9 km away (inner radius 1.5 km). Provisional for 7 days (until 1 Nov 2026): APP-035
+is on hold but ranks higher for this pin if their details are confirmed. Estimated payback: about 19 months on the
+standard ₹30 lakh investment.
+What would change this: If APP-035's details are confirmed within 7 days, APP-035 takes pin 560037 and this decision changes. Otherwise, meeting the conditions moves APP-019 to Approved.
+Next steps:
+  - Move to a ground-floor space by 9 Dec 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Conditions:
+  - Move to a ground-floor space within 45 days (by 2026-12-09; if missed: The slot is released to the next applicant in line: APP-012.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, PROVISIONAL, FLOOR_NOT_SUITABLE
+
+── APP-020 · Rahul Verma · Approved with conditions ──
+APP-020 has an owned ground-floor space of 900 sq ft; ₹48 lakh to invest; no business experience. Conditions: Share
+proof of funds or a loan sanction letter by 8 Nov 2026. Missing it releases the slot. Clear: the nearest existing store,
+ST-01, is 2.9 km away (inner radius 1.5 km). Estimated payback: about 19 months on the standard ₹30 lakh investment.
+What would change this: If APP-020 meets this condition (share proof of funds or a loan sanction letter), it moves to Approved. Missing a deadline releases the slot to APP-005.
+Next steps:
+  - Share proof of funds or a loan sanction letter by 8 Nov 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 8 Jan 2027
+Conditions:
+  - Share proof of funds or a loan sanction letter (by 2026-11-08; if missed: The slot is released to the next applicant in line: APP-005.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, PROOF_OF_FUNDS
+
+── APP-021 · Basavaraj Patil · Waitlisted ──
+APP-021 wins pin 580021 but not a slot. It has an owned ground-floor space of 600 sq ft; ₹35 lakh to invest; 4 years of
+relevant retail experience.
+What would change this: It moves up if a slot frees in TER-05 (a withdrawal, a missed condition or an extra slot).
+Next steps:
+  - Tell the partner they are #1 on the TER-05 waitlist
+  - They move up automatically if a slot frees in TER-05
+Reason codes: NO_SLOT
+
+── APP-022 · Sunita Desai · Waitlisted ──
+APP-022 has a rented ground-floor space of 500 sq ft; ₹40 lakh to invest; 5 years of relevant apparel experience.
+Belagavi isn't covered by any territory with slots right now.
+What would change this: It would be considered if a territory covering Belagavi (pin 590006) is added.
+Next steps:
+  - Keep APP-022 in the Belagavi talent pool and contact them when a territory opens
+Reason codes: OUTSIDE_PLAN
+
+── APP-023 · Naveen Kumar · Approved with conditions ──
+APP-023 has an owned ground-floor space of unconfirmed size; ₹50 lakh to invest; 4 years of relevant apparel experience.
+Conditions: Confirm the space is at least 400 sq ft by 1 Nov 2026. Missing it releases the slot. Clear: the nearest
+existing store, ST-03, is 4.0 km away (inner radius 1.5 km). Estimated payback: about 19 months on the standard ₹30 lakh
+investment.
+What would change this: If APP-023 meets this condition (confirm the space is at least 400 sq ft), it moves to Approved. Missing a deadline releases the slot to APP-005.
+Next steps:
+  - Confirm the space is at least 400 sq ft by 1 Nov 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Jan 2027
+Conditions:
+  - Confirm the space is at least 400 sq ft (by 2026-11-01; if missed: The slot is released to the next applicant in line: APP-005.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, SIZE_UNCONFIRMED
+
+── APP-024 · Pooja Shenoy · Waitlisted ──
+APP-024 wins pin 560036 but not a slot. It has no space yet; ₹33 lakh to invest; 3 years of relevant retail experience.
+To get a slot it would need to outrank APP-019, the last applicant with a slot; APP-019 has a better space (a rented
+upper-floor space of 600 sq ft, vs no space yet).
+What would change this: It moves up if a slot frees in TER-02 (a withdrawal, a missed condition or an extra slot). Also, a ready ground-floor space of at least 400 sq ft would improve its position.
+Next steps:
+  - Tell the partner they are #2 on the TER-02 waitlist
+  - A ready ground-floor space of at least 400 sq ft would improve its position.
+Reason codes: NO_SLOT, TARGET_NOT_FEASIBLE
+
+── APP-025 · Ramesh Naik · On hold ──
+The form says floor Ground, but the notes suggest an upper floor. The applicant wrote: "first floor". An on-hold
+application doesn't take a slot.
+What would change this: Answering the question lets it be decided on its merits.
+Next steps:
+  - Call the partner and ask: Your form says Ground, but your notes suggest an upper floor. Which floor is the space on?
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-026 · Divya Prakash · Approved with conditions ──
+APP-026 has no space yet; ₹45 lakh to invest; 3 years of relevant apparel experience. Conditions: Find a suitable space
+by 9 Dec 2026. Missing it releases the slot. Location data for this pin is uncertain; only the same-pin rule was
+applied. Estimated payback: about 17 months on the standard ₹20 lakh investment. Notes and target launch disagree: the
+notes say before Diwali (8 Nov 2026, verify), but the target launch is 25 Jan 2027. The earlier date was used. Target
+not feasible: opening before Diwali (8 Nov 2026) isn't possible; the earliest realistic date is 1 Mar 2027. A soft
+launch is possible once the space is fitted out.
+What would change this: If APP-026 meets this condition (find a suitable space within 45 days), it moves to Approved. Missing a deadline releases the slot.
+Next steps:
+  - Find a suitable space by 9 Dec 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Mar 2027
+Conditions:
+  - Find a suitable space within 45 days (by 2026-12-09; if missed: The slot is released and offered to the next eligible applicant.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, SPACE_NOT_IDENTIFIED, NOTES_TARGET_DISAGREE, TARGET_NOT_FEASIBLE, LOCATION_UNCERTAIN
+
+── APP-027 · Abdul Rahman · Approved with conditions ──
+APP-027 has a rented ground-floor space of 500 sq ft; ₹55 lakh to invest; 6 years of relevant mobile shop experience.
+Conditions: Name the store manager who will run the store; they must also complete training by 24 Nov 2026. Missing it
+releases the slot. Location data for this pin is uncertain; only the same-pin rule was applied. Estimated payback: about
+19 months on the standard ₹30 lakh investment.
+What would change this: If APP-027 meets this condition (name the store manager who will run the store; they must also complete training), it moves to Approved. Missing a deadline releases the slot to APP-005.
+Next steps:
+  - Name the store manager who will run the store; they must also complete training by 24 Nov 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Conditions:
+  - Name the store manager who will run the store; they must also complete training (by 2026-11-24; if missed: The slot is released to the next applicant in line: APP-005.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, STORE_MANAGER, LOCATION_UNCERTAIN
+
+── APP-028 · Anil Kumar · On hold ──
+The text mentions running a competing brand. A conflict-of-interest check is needed. The applicant wrote: "Titan Eye+".
+An on-hold application doesn't take a slot. If the questions are resolved and the form details stand, it would rank #2
+in TER-01 (2 slots) and win pin 560078.
+What would change this: Answering the question lets it be decided. If the form details stand, it would rank #2 in TER-01, within the slots, so it would be approved (possibly with conditions).
+Next steps:
+  - Call the partner and ask: Do you run or hold a stake in a competing brand? We need to complete a conflict-of-interest check before deciding.
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-029 · Kiran Rao · Waitlisted ──
+APP-029 wins pin 560047 but not a slot. It has no space yet; ₹30 lakh to invest; no business experience. To get a slot
+it would need to outrank APP-003, the last applicant with a slot; APP-003 has a better space (a rented ground-floor
+space of 550 sq ft, vs no space yet).
+What would change this: It moves up if a slot frees in TER-01 (a withdrawal, a missed condition or an extra slot). Also, a ready ground-floor space of at least 400 sq ft would improve its position.
+Next steps:
+  - Tell the partner they are #3 on the TER-01 waitlist
+  - A ready ground-floor space of at least 400 sq ft would improve its position.
+Reason codes: NO_SLOT, INTEGRITY_CONCERN, TARGET_NOT_FEASIBLE
+
+── APP-030 · Farhan Ali · On hold ──
+Application ID APP-030 is used by 2 rows (33, 34). An on-hold application doesn't take a slot. If the questions are
+resolved and the form details stand, it would rank #3 in TER-01 (2 slots) and win pin 560078.
+What would change this: Answering the question lets it be decided. If the form details stand, it would rank #3 in TER-01, outside the slots, so it would be waitlisted.
+Next steps:
+  - Call the partner and ask: Application ID APP-030 appears more than once. Which row is correct, or should one get a new ID?
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-030 · Sneha Kulkarni · On hold ──
+Application ID APP-030 is used by 2 rows (33, 34). An on-hold application doesn't take a slot. If the questions are
+resolved and the form details stand, it would rank #3 in TER-01 (2 slots) and win pin 560029.
+What would change this: Answering the question lets it be decided. If the form details stand, it would rank #3 in TER-01, outside the slots, so it would be waitlisted.
+Next steps:
+  - Call the partner and ask: Application ID APP-030 appears more than once. Which row is correct, or should one get a new ID?
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-031 · Ravi Shankar · Approved ──
+APP-031 has an owned ground-floor space of 600 sq ft; ₹50 lakh to invest; 5 years of relevant retail experience. Clear:
+the nearest existing store, ST-03, is 9.5 km away (inner radius 1.5 km). Estimated payback: about 19 months on the
+standard ₹30 lakh investment.
+What would change this: Nothing more is needed. It would change only if the details change or onboarding deadlines are missed.
+Next steps:
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 1 Jan 2027
+Reason codes: CLEAN_WIN
+
+── APP-032 · Ravi Shankar · Waitlisted ──
+APP-032 and APP-031 have the same applicant name. A person can hold at most one slot.
+What would change this: If APP-031 is withdrawn, or the two turn out to be different people, APP-032 would be considered on its own merits.
+Next steps:
+  - Confirm with the applicant whether APP-032 and APP-031 are the same person
+Reason codes: PIN_NOT_IN_TERRITORY, DUPLICATE_PERSON
+
+── APP-033 · Shalini Gowda · Approved with conditions ──
+APP-033 has a rented ground-floor space of 500 sq ft; ₹38 lakh to invest; 4 years of relevant retail experience.
+Conditions: Get expansion-head sign-off (within 2.5 km of ST-06) and inform the existing partner at ST-06 before
+announcing by 1 Nov 2026. Missing it releases the slot. Inside the 2.5 km inner radius: existing store ST-06 (pin
+570009) is 0.8 km away. Allowed, but needs expansion-head sign-off. Estimated payback: about 17 months on the standard
+₹20 lakh investment.
+What would change this: If APP-033 meets this condition (get expansion-head sign-off (within 2.5 km of ST-06) and inform the existing partner at ST-06 before announcing), it moves to Approved. Missing a deadline releases the slot.
+Next steps:
+  - Get expansion-head sign-off (within 2.5 km of ST-06) and inform the existing partner at ST-06 before announcing by 1 Nov 2026
+  - Sign the letter of intent and pay the brand fee by 1 Nov 2026
+  - Plan for an earliest realistic launch of 15 Jan 2027
+Conditions:
+  - Get expansion-head sign-off (within 2.5 km of ST-06) and inform the existing partner at ST-06 before announcing (by 2026-11-01; if missed: The slot is released and offered to the next eligible applicant.)
+Reason codes: WON_SLOT_WITH_CONDITIONS, EXPANSION_SIGNOFF, CANNIBALISATION_RISK
+
+── APP-034 · Prakash Hegde · Offered another location ──
+APP-034 is a good partner (an owned ground-floor space of 600 sq ft; ₹40 lakh to invest; 6 years of relevant footwear
+experience), but pin 570009 already has existing store ST-06. Location offers go first to applicants with no space yet,
+then rented space, then owned space; then by the usual ranking. Pin 570016 is 4.6 km from pin 570009. This needs a new
+space. The owned space in 570009 can't host a store because ST-06 is already there. Inside the 2.5 km inner radius:
+existing store ST-07 (pin 570017) is 1.4 km away. Allowed, but needs expansion-head sign-off. Estimated payback: about
+17 months on the standard ₹20 lakh investment.
+What would change this: Accepting by 1 Nov 2026 reserves pin 570016. APP-034's own pin isn't possible because pin 570009 already has existing store ST-06.
+Next steps:
+  - Accept or decline the offer of pin 570016 by 1 Nov 2026
+  - Find a suitable space in pin 570016 by 9 Dec 2026
+  - Get expansion-head sign-off (within 2.5 km of ST-07) and inform the existing partner at ST-07 before announcing by 1 Nov 2026
+Conditions:
+  - Find a suitable space in pin 570016 (by 2026-12-09; if missed: The slot is released and offered to the next eligible applicant.)
+  - Get expansion-head sign-off (within 2.5 km of ST-07) and inform the existing partner at ST-07 before announcing (by 2026-11-01; if missed: The slot is released and offered to the next eligible applicant.)
+Reason codes: PIN_HAS_EXISTING_STORE, REDIRECT_OFFERED, SPACE_NOT_IDENTIFIED, EXPANSION_SIGNOFF, CANNIBALISATION_RISK
+
+── APP-035 · Lokesh Reddy · On hold ──
+The form says floor Ground, but the notes suggest an upper floor. The applicant wrote: "first floor". An on-hold
+application doesn't take a slot. If the questions are resolved and the form details stand, it would rank #1 in TER-02 (1
+slot) and win pin 560037.
+What would change this: Answering the question lets it be decided. If the form details stand, it would rank #1 in TER-02, within the slots, so it would be approved (possibly with conditions).
+Next steps:
+  - Call the partner and ask: Your form says Ground, but your notes suggest an upper floor. Which floor is the space on?
+Reason codes: BLOCKING_DATA_ISSUE
+
+── APP-036 · Ravi Kumar · Waitlisted ──
+APP-036 has a rented ground-floor space of 450 sq ft; ₹30 lakh to invest; 4 years of relevant footwear experience.
+Davanagere isn't covered by any territory with slots right now.
+What would change this: It would be considered if a territory covering Davanagere (pin 577002) is added.
+Next steps:
+  - Keep APP-036 in the Davanagere talent pool and contact them when a territory opens
+Reason codes: OUTSIDE_PLAN
+
+── APP-037 · Ravi K · Waitlisted ──
+APP-037 has a rented ground-floor space of 400 sq ft; ₹28 lakh to invest; 2 years of mobile shop experience. Mangaluru
+isn't covered by any territory with slots right now.
+What would change this: It would be considered if a territory covering Mangaluru (pin 575003) is added.
+Next steps:
+  - Keep APP-037 in the Mangaluru talent pool and contact them when a territory opens
+Reason codes: OUTSIDE_PLAN

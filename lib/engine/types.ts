@@ -73,7 +73,7 @@ export interface TerritoryState {
   reserved: { appKey: string; appId: string; pin: string; status: Status }[];
   /** Slot-contest losers, in rank order. */
   waitlist: string[];
-  /** Territory pins with no reservation and no eligible applicant ("recruit here"). */
+  /** Pins with no applicant, in a territory that still has free slots ("recruit here"). */
   whiteSpacePins: string[];
   /** When locked partners exceed the slots now set. */
   overCommitted: boolean;

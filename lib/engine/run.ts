@@ -279,7 +279,11 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       blocked: t.blocked,
       reserved,
       waitlist: (alloc.waitlists.get(t.key) ?? []).map(idOf),
-      whiteSpacePins: t.pins.filter((p) => !appPins.has(p) && !reserved.some((r) => r.pin === p)),
+      // "Recruit here" (SPEC §10.1): only where the territory still has free slots.
+      whiteSpacePins:
+        !t.blocked && reserved.length < (alloc.slots.get(t.key) ?? t.slots)
+          ? t.pins.filter((p) => !appPins.has(p) && !reserved.some((r) => r.pin === p))
+          : [],
       overCommitted: alloc.overCommitted.has(t.key),
     };
   });

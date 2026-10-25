@@ -109,7 +109,10 @@ describe("G3.7 golden decisions (eyewear)", () => {
     expect(t["TER-03"].reserved.length).toBe(6);
     expect(t["TER-04"].reserved.length).toBe(5);
     expect(t["TER-05"].slots).toBe(0);
-    expect(t["TER-02"].whiteSpacePins).toEqual(["560093", "560017"]);
+    // Every territory is full, so there is nowhere to "recruit here" yet.
+    expect(r.territories.flatMap((x) => x.whiteSpacePins)).toEqual([]);
+    const moreSlots = trickyRun("eyewear", { facts: [{ target: "territory", key: "TER-02", field: "openSlots", value: 4 }] });
+    expect(moreSlots.territories.find((x) => x.id === "TER-02")!.whiteSpacePins).toEqual(["560093", "560017"]);
   });
 });
 
