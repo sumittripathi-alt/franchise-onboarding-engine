@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef } from "react";
+import { useChangePop } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { STATUS_META, type Status } from "@/lib/types";
 
@@ -14,8 +18,11 @@ const STYLE: Record<Status, { chip: string; dot: string }> = {
 
 export function StatusChip({ status, label, className, size = "sm" }: { status: Status; label?: string; className?: string; size?: "sm" | "lg" }) {
   const s = STYLE[status];
+  const ref = useRef<HTMLSpanElement>(null);
+  useChangePop(ref, status);
   return (
     <span
+      ref={ref}
       data-animate="status-chip"
       data-status={status}
       className={cn(

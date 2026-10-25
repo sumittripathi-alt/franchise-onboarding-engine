@@ -1,10 +1,11 @@
 "use client";
 
 import { Download, FileSpreadsheet, MessageSquareText, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Logo } from "@/components/app/logo";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { landingIn, useMotion } from "@/lib/motion";
 import { useStore } from "@/lib/state/store";
 import { RecentWorkspaces } from "./recent-workspaces";
 import { ResumeSession, UploadZone, useUpload } from "./upload";
@@ -19,6 +20,8 @@ export function Landing() {
   const upload = useUpload();
   const hydrate = useStore((s) => s.hydrate);
   useEffect(() => hydrate(), [hydrate]);
+  const main = useRef<HTMLElement>(null);
+  useMotion(() => landingIn(main.current), { scope: main });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,7 +30,7 @@ export function Landing() {
         <ThemeToggle />
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 sm:px-6">
+      <main ref={main} id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 sm:px-6">
         <section data-animate="landing-section" className="mx-auto max-w-2xl pt-8 text-center sm:pt-14">
           <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">From application to an open, trained store, decided and explained.</h1>
           <p className="mt-4 text-pretty text-muted-foreground">

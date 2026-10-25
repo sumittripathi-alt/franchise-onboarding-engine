@@ -1,18 +1,22 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { useRef } from "react";
 import { StatusChip } from "@/components/app/status-chip";
 import { Pill } from "@/components/app/ui-bits";
 import type { DiffSummary } from "@/lib/chat/diff";
+import { cascadeDiff, useMotion } from "@/lib/motion";
 import { useStore } from "@/lib/state/store";
 
 /** What changed and why, with knock-on effects (SPEC §9). */
 export function DiffList({ diff, max = 12 }: { diff: DiffSummary; max?: number }) {
   const openDrawer = useStore((s) => s.openDrawer);
+  const ref = useRef<HTMLDivElement>(null);
+  useMotion(() => cascadeDiff(ref.current), { scope: ref, dependencies: [diff] });
   if (diff.changes.length === 0 && diff.slots.length === 0) return <p className="text-sm text-muted-foreground">No decisions changed.</p>;
   const shown = diff.changes.slice(0, max);
   return (
-    <div data-animate="diff-card" className="space-y-2">
+    <div ref={ref} data-animate="diff-card" className="space-y-2">
       <ul className="space-y-2">
         {shown.map((c) => (
           <li key={c.appKey} data-animate="diff-row" className="rounded-lg border bg-background p-2.5 text-sm">

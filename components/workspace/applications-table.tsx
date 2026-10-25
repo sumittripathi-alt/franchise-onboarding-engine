@@ -37,7 +37,7 @@ export function ApplicationsTable() {
             </thead>
             <tbody className="divide-y">
               {filtered.map((d) => (
-                <tr key={d.appKey} className="cursor-pointer transition-colors hover:bg-accent/60" onClick={() => openDrawer(d.appKey)}>
+                <tr key={d.appKey} data-app-id={d.appId} className="cursor-pointer transition-colors hover:bg-accent/60" onClick={() => openDrawer(d.appKey)}>
                   <td className="px-4 py-2.5">
                     <button
                       className="font-medium underline-offset-2 hover:underline focus-visible:underline"

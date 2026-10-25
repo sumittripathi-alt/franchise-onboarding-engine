@@ -1,12 +1,13 @@
 "use client";
 
 import { CalendarClock, ChevronRight, FileCheck2, Flag, Lightbulb, MapPinned, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Panel, Pill, Section } from "@/components/app/ui-bits";
 import { STATUS_DOT, StatusChip } from "@/components/app/status-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { KIND_LABEL, type ActionItem } from "@/lib/insights/actions";
+import { fillSlots, useMotion } from "@/lib/motion";
 import { formatDate } from "@/lib/planner/dates";
 import { useStore } from "@/lib/state/store";
 import { STATUSES, type Status } from "@/lib/types";
@@ -141,9 +142,25 @@ export function ActionQueuePanel() {
 export function SlotBars() {
   const { result, board } = useWorkspace();
   const setTab = useStore((s) => s.setTab);
+  const ref = useRef<HTMLUListElement>(null);
+  const prev = useRef<Record<string, string> | null>(null);
+  // What each slot looks like now; slots that changed since the last run fill in again.
+  const states: Record<string, string> = {};
+  for (const t of result.territories) for (let i = 0; i < Math.max(t.slots, t.reserved.length); i++) states[`${t.key}:${i}`] = t.reserved[i]?.status ?? "open";
+  const signature = JSON.stringify(states);
+  useMotion(
+    () => {
+      const before = prev.current;
+      prev.current = states;
+      if (!before || !ref.current) return;
+      const changed = Object.keys(states).filter((k) => before[k] !== states[k]);
+      fillSlots(changed.flatMap((k) => [...ref.current!.querySelectorAll<HTMLElement>(`[data-slot="${CSS.escape(k)}"]`)]));
+    },
+    { scope: ref, dependencies: [signature] },
+  );
   return (
     <Section title="Slots by territory" hint="Each square is one slot: filled when reserved, open when free.">
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul ref={ref} className="grid gap-3 sm:grid-cols-2">
         {result.territories.map((t) => {
           const b = board.find((x) => x.id === t.id)!;
           const cells = Math.max(t.slots, t.reserved.length);
@@ -159,7 +176,7 @@ export function SlotBars() {
                 {cells === 0 && <span className="text-xs text-muted-foreground">No open slots</span>}
                 {Array.from({ length: cells }, (_, i) => {
                   const r = t.reserved[i];
-                  return <span key={i} title={r ? `${r.appId}` : "Open"} className={cn("h-3 w-6 rounded-sm border", r ? cn("border-transparent", STATUS_DOT[r.status]) : "border-dashed border-muted-foreground/50")} />;
+                  return <span key={i} data-slot={`${t.key}:${i}`} title={r ? `${r.appId}` : "Open"} className={cn("h-3 w-6 origin-left rounded-sm border", r ? cn("border-transparent", STATUS_DOT[r.status]) : "border-dashed border-muted-foreground/50")} />;
                 })}
               </div>
               <p className="mt-2 text-xs text-muted-foreground tabular-nums">

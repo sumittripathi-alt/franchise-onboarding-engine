@@ -47,7 +47,7 @@ export function DecisionSheet() {
         {/* On a phone each application is a card; the table is for larger screens and for print. */}
         <ul className="space-y-3 md:hidden print:hidden" aria-label="Decision for every application">
           {filtered.map((d) => (
-            <li key={d.appKey}>
+            <li key={d.appKey} data-app-id={d.appId}>
               <button
                 onClick={() => openDrawer(d.appKey)}
                 className="w-full rounded-xl border bg-card p-4 text-left transition-colors hover:bg-accent/60"
@@ -93,6 +93,7 @@ export function DecisionSheet() {
               {filtered.map((d) => (
                 <tr
                   key={d.appKey}
+                  data-app-id={d.appId}
                   className="cursor-pointer align-top transition-colors hover:bg-accent/60"
                   onClick={() => openDrawer(d.appKey)}
                 >
