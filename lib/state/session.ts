@@ -8,9 +8,9 @@ import type { BrandProfile, BrandProfileId, Policy } from "@/lib/policy/types";
 import { runEngineChecked } from "@/lib/engine/run";
 import type { EngineInput, EngineResult, FactPatch, HumanOverride, Lock } from "@/lib/engine/types";
 import { buildDataQualityReport, type DataQualityReport } from "@/lib/ingest/report";
-import { runDataChecks, type DataCheckResult } from "@/lib/ingest/validate";
+import { heuristicSignals, runDataChecks, type DataCheckResult } from "@/lib/ingest/validate";
 import type { ParseReport } from "@/lib/ingest/parseWorkbook";
-import type { Application, Territory } from "@/lib/types";
+import type { Application, Signals, Territory } from "@/lib/types";
 import { z } from "zod";
 import {
   ChangeEntrySchema,
@@ -67,6 +67,8 @@ export function newSession(args: {
 // ---------- Effective state ----------
 
 export interface Effective {
+  /** Signals read from notes after the upload, which replace the uploaded ones for those applications. */
+  signals: Record<string, Signals>;
   settings: Settings;
   facts: FactPatch[];
   locks: Lock[];
@@ -79,14 +81,16 @@ export function effective(session: Session): Effective {
   const facts: FactPatch[] = [];
   const locks: Lock[] = [];
   const overrides: HumanOverride[] = [];
+  const signals: Record<string, Signals> = {};
   for (const e of session.entries) {
     if (e.undone) continue;
+    if (e.signals) Object.assign(signals, e.signals);
     if (e.set) Object.assign(settings, e.set);
     if (e.facts) facts.push(...(e.facts as FactPatch[]));
     if (e.locks) locks.push(...(e.locks as Lock[]));
     if (e.overrides) overrides.push(...(e.overrides as HumanOverride[]));
   }
-  return { settings, facts, locks, overrides };
+  return { signals, settings, facts, locks, overrides };
 }
 
 /** The brand profile in force: the session's stored profile (with edits), or the defaults of another brand type. */
@@ -110,7 +114,7 @@ export function buildEngineInput(session: Session): EngineInput {
   return {
     applications: data.applications,
     territories: data.territories,
-    signals: session.signals,
+    signals: { ...session.signals, ...eff.signals },
     policy: effectivePolicy(session, eff.settings.profileId),
     facts: eff.facts,
     locks: eff.locks,
@@ -170,7 +174,7 @@ export function computeChecks(session: Session): DataCheckResult {
   if (hit) return hit;
   const eff = effective(session);
   const { applications, territories } = effectiveData(session, eff.settings.includeExample);
-  const checks = runDataChecks(applications, territories);
+  const checks = runDataChecks(applications, territories, { ...heuristicSignals(applications), ...session.signals, ...eff.signals });
   checksCache.set(session, checks);
   return checks;
 }
@@ -199,6 +203,8 @@ export interface ChangeSpec {
   locks?: Lock[];
   overrides?: HumanOverride[];
   set?: Partial<Settings>;
+  /** AI reading of notes, by application key (source "ai_notes"). */
+  signals?: Record<string, Signals>;
   /** Applications the change is about; everything else that moves is a knock-on effect. */
   directKeys?: string[];
 }
@@ -225,6 +231,7 @@ function entryFrom(session: Session, spec: ChangeSpec, now: string): ChangeEntry
   if (spec.locks?.length) entry.locks = spec.locks;
   if (spec.overrides?.length) entry.overrides = spec.overrides;
   if (spec.set && Object.keys(spec.set).length) entry.set = spec.set;
+  if (spec.signals && Object.keys(spec.signals).length) entry.signals = spec.signals;
   return entry;
 }
 

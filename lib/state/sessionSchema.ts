@@ -113,6 +113,8 @@ export const ChangeEntrySchema = z.object({
   locks: z.array(LockSchema).optional(),
   overrides: z.array(HumanOverrideSchema).optional(),
   set: SettingsSchema.partial().optional(),
+  /** What the AI read from applicants' notes (a retry of "Read notes with AI"), by application key. */
+  signals: z.record(z.string(), SignalsSchema).optional(),
   diff: diffSummary,
 });
 

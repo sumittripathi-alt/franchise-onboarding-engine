@@ -9,7 +9,7 @@ The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC
 2. **Same input, same output.** No randomness; every tie-break ends with Application ID.
 3. **Invariants (SPEC §6.7) are checked after every run.** On failure show a red banner and keep the last valid result.
 4. Every application gets exactly one status, at least one reason code, and a plain-English explanation.
-5. **No shared server state.** Data lives in the judge's browser session; API routes are stateless.
+5. **Shared state is workspaces only (SPEC §16).** Decisions are never stored; AI routes are stateless and only see the minimum (notes text, or the engine's own facts with names removed).
 6. **Assumptions are visible.** Business numbers live in `lib/policy/brandProfiles.ts` and show in the Policy panel.
 
 ## Safety

@@ -274,7 +274,7 @@ describe("G10.6 opening and re-uploading never modify an existing workspace", ()
 
 describe("rate limit", () => {
   it("allows up to the limit in a minute, then asks the caller to wait, per bucket and per address", () => {
-    const limits = { read: 3, write: 2, create: 1 };
+    const limits = { read: 3, write: 2, create: 1, ai: 1 };
     const t = 1_000_000;
     expect([1, 2, 3].map(() => checkRate("1.1.1.1", "read", t, limits))).toEqual([0, 0, 0]);
     expect(checkRate("1.1.1.1", "read", t + 1000, limits)).toBeGreaterThan(0);

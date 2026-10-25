@@ -394,6 +394,7 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       payback: reservedStatus ? payback : null,
       launch: view.launch,
       evidence: a.issues.filter((i) => i.evidence).map((i) => ({ code: i.code, quote: i.evidence! })),
+      aiReading: a.signals.ai ?? null,
       locked: o.locked ? { date: o.locked.date } : null,
       override: o.override ? { status: o.override.status, reason: o.override.reason, time: o.override.time } : null,
       onboarding,

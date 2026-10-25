@@ -72,4 +72,5 @@ export const SignalsSchema = z.object({
       injection_attempt: z.string(),
     })
     .partial(),
+  ai: z.object({ model: z.string(), at: z.string() }).optional(),
 });

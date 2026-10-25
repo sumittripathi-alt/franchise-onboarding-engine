@@ -68,6 +68,7 @@ export function replayEntries(base: BaseData, log: LogEvent[], window = DIFF_WIN
       ...(p.locks ? { locks: p.locks } : {}),
       ...(p.overrides ? { overrides: p.overrides } : {}),
       ...(p.set ? { set: p.set } : {}),
+      ...(p.signals ? { signals: p.signals } : {}),
     };
     if (i >= log.length - window) {
       const before = run(entries);

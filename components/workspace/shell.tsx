@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Download, FileDown, History, LayoutDashboard, MapPinned, Scale, Table2, Upload } from "lucide-react";
+import { ClipboardList, Download, FileDown, History, LayoutDashboard, MapPinned, MessageSquareText, Scale, Table2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/app/logo";
@@ -14,6 +14,7 @@ import { ApplicationsTable } from "./applications-table";
 import { Banners } from "./banners";
 import { ShareButton, SyncBanner } from "./sync-notices";
 import { ChangeLog } from "./change-log";
+import { Chat } from "./chat";
 import { CompareDialog } from "./compare-dialog";
 import { useWorkspace } from "./context";
 import { DecisionSheet } from "./decision-sheet";
@@ -26,6 +27,7 @@ import { Territories } from "./territories";
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "sheet", label: "Decision sheet", icon: ClipboardList },
+  { id: "chat", label: "Ask", icon: MessageSquareText },
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "applications", label: "Applications", icon: Table2 },
   { id: "territories", label: "Territories", icon: MapPinned },
@@ -107,6 +109,7 @@ export function Shell() {
           <SyncBanner />
           <Banners />
           {tab === "sheet" && <DecisionSheet />}
+          {tab === "chat" && <Chat />}
           {tab === "overview" && <Overview />}
           {tab === "applications" && <ApplicationsTable />}
           {tab === "territories" && <Territories />}
