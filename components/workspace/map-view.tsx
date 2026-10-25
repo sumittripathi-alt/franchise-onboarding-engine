@@ -7,6 +7,7 @@ import type * as Leaflet from "leaflet";
 import { StatusChip } from "@/components/app/status-chip";
 import { Panel } from "@/components/app/ui-bits";
 import { CITY_CENTRES, KARNATAKA_VIEW } from "@/lib/geo/cities";
+import { haversineKm } from "@/lib/geo/distance";
 import { buildMapModel, type MapModel, type MapPoint } from "@/lib/insights/map";
 import { STATUSES, type Status } from "@/lib/types";
 import { useStore } from "@/lib/state/store";
@@ -115,17 +116,22 @@ export function MapTab() {
     const ll = (p: MapPoint) => [p.lat, p.lng] as [number, number];
     const bounds: [number, number][] = [];
     const inFocus = (city: string | null | undefined) => focus === "all" || city === focus;
+    const focusCentre = focus !== "all" ? CITY_CENTRES[focus as keyof typeof CITY_CENTRES] : null;
+    // Zooming to a city fits the points near it. One applicant whose pin is in another city is still drawn, but doesn't pull the view away.
+    const fit = (p: MapPoint) => {
+      if (!focusCentre || haversineKm(p, focusCentre) <= 40) bounds.push(ll(p));
+    };
 
     for (const s of model.stores) {
       if (!inFocus(s.city)) continue;
-      bounds.push(ll(s.point));
+      fit(s.point);
       L.circleMarker(ll(s.point), { radius: 7, color: "#111827", weight: 2, fillColor: "#ffffff", fillOpacity: 1, dashArray: s.point.approximate ? "3 2" : undefined }).bindTooltip(tip([s.id, s.text]), { direction: "top" }).addTo(groups.stores);
       if (s.radiusKm !== null && !s.point.approximate) L.circle(ll(s.point), { radius: s.radiusKm * 1000, color: "#6b7280", weight: 1.5, dashArray: "6 4", fillColor: "#6b7280", fillOpacity: 0.08 }).addTo(groups.stores);
     }
     for (const a of model.applicants) {
       const city = result.decisions.find((d) => d.appKey === a.appKey)?.city;
       if (!inFocus(city)) continue;
-      bounds.push(ll(a.point));
+      fit(a.point);
       const m = L.circleMarker(ll(a.point), {
         radius: 6,
         color: STATUS_COLOUR[a.status],
@@ -153,7 +159,7 @@ export function MapTab() {
     for (const w of model.whiteSpace) {
       const city = result.territories.find((x) => x.id === w.territoryId)?.city;
       if (!inFocus(city)) continue;
-      bounds.push(ll(w.point));
+      fit(w.point);
       L.marker(ll(w.point), {
         keyboard: false,
         icon: L.divIcon({ className: "", html: "", iconSize: [0, 0] }),
@@ -167,7 +173,7 @@ export function MapTab() {
       if (layers[k]) groups[k].addTo(map);
       else groups[k].remove();
     });
-    const centre = focus !== "all" ? CITY_CENTRES[focus as keyof typeof CITY_CENTRES] : null;
+    const centre = focusCentre;
     if (bounds.length) map.fitBounds(bounds, { padding: [32, 32], maxZoom: 14 });
     else if (centre) map.setView([centre.lat, centre.lng], 11);
     else map.setView([KARNATAKA_VIEW.lat, KARNATAKA_VIEW.lng], KARNATAKA_VIEW.zoom);
