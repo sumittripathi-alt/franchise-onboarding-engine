@@ -1,13 +1,14 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, FileText, Quote } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pill } from "@/components/app/ui-bits";
 import { StatusChip } from "@/components/app/status-chip";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { REASON_TEXT } from "@/lib/engine/reasons";
 import { draftPartnerMessage } from "@/lib/insights/messages";
+import { drawerIn, useMotion } from "@/lib/motion";
 import { formatDate } from "@/lib/planner/dates";
 import { useStore } from "@/lib/state/store";
 import type { DecisionRecord } from "@/lib/types";
@@ -65,6 +66,8 @@ function DrawerBody({ d }: { d: DecisionRecord }) {
   const focus = useStore((s) => s.drawerFocus);
   const lastChangeId = useStore((s) => s.lastChangeId);
   const [msg, setMsg] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useMotion(() => drawerIn(bodyRef.current), { scope: bodyRef, dependencies: [d.appKey] });
   // After a change made here, bring "what changed" into view.
   useEffect(() => {
     if (lastChangeId) document.getElementById("last-change-inline")?.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -74,7 +77,7 @@ function DrawerBody({ d }: { d: DecisionRecord }) {
   const language = languages[d.appKey] ?? "English";
 
   return (
-    <div className="space-y-4 px-4 pb-8 pt-3">
+    <div ref={bodyRef} className="space-y-4 px-4 pb-8 pt-3">
       <LastChangeCard inline />
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

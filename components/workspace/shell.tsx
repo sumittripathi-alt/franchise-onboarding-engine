@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { ApplicationsTable } from "./applications-table";
 import { Banners } from "./banners";
 import { ShareButton, SyncBanner } from "./sync-notices";
+import { Cascade } from "./cascade";
 import { ChangeLog } from "./change-log";
 import { Chat } from "./chat";
 import { CompareDialog } from "./compare-dialog";
@@ -122,6 +123,7 @@ export function Shell() {
         </main>
       </div>
 
+      <Cascade />
       <Drawer />
       <CompareDialog />
       <LastChangeCard />

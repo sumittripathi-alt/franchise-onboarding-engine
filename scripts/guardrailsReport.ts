@@ -32,8 +32,6 @@ const RULES: Record<string, Rule> = {
   "G7.2": { unit: ["a refresh restores the workspace"], e2e: ["G7.2"] },
   "G7.5": { unit: ["every AI route answers 503 with no key"], e2e: ["G7.5"], manual: "The UptimeRobot monitor on /api/health is not set up yet: it needs an account only you can create (https://uptimerobot.com, HTTP monitor on https://onboarding-engine-dun.vercel.app/api/health, every 5 minutes)." },
   "G7.7": { e2e: ["G7.7"], note: "Checked from a fresh browser with no cookies: the page loads with no login. Vercel's protection is on its standard setting, which leaves the production URL open and asks for a login only on the long per-deployment URLs." },
-  "G8.4": { pending: "Phase 7 (the map) is not built yet." },
-  "G8.5": { pending: "Phase 10 (motion) is not built yet." },
   "G9.1": { unit: ["the evidence rule (SPEC §15.3)"] },
   "G9.4": { unit: ["corrects a wrong premise first"] },
   "G9.5": { unit: ["IDs and names (SPEC §15.6)"] },
