@@ -179,7 +179,7 @@ for (const id of planIds) {
   if (t.teamPreparation) console.log(`  ${t.teamPreparation.heading}: ${t.teamPreparation.text}`);
   if (t.shifted) console.log(`  ${t.shifted.text}`);
   const cohort = result.cohorts.find((c) => c.id === t.cohortId);
-  console.log(`  Cohort: ${cohort ? cohort.label : "none yet (no other partner with the same language and city launching within 30 days)"}`);
+  console.log(`  Cohort: ${cohort ? cohort.label : "none (no other partner in the same city and language starts training within 10 days, or has the slack to move)"}`);
   console.log(`  Readiness check: ${t.readinessCheck.map((r) => `${r.item} by ${r.due}`).join("; ")}.`);
 }
 

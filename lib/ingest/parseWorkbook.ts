@@ -84,8 +84,14 @@ export interface SkippedExampleTerritory {
   covers: { applicationId: string; pin: string }[];
 }
 
+/** The template's example rows when they were skipped, ready to be added with their own IDs. */
+export interface SkippedExample {
+  application: Application | null;
+  territory: Territory | null;
+}
+
 export type ParseResult =
-  | { ok: true; applications: Application[]; territories: Territory[]; report: ParseReport }
+  | { ok: true; applications: Application[]; territories: Territory[]; report: ParseReport; skippedExample: SkippedExample }
   | { ok: false; errors: string[] };
 
 interface SheetData {
@@ -247,6 +253,11 @@ function dataRows(sheet: SheetData, headerIdx: number): { rows: DataRow[]; empty
 
 export const EXAMPLE_ID_SUFFIX = " (template example)";
 
+function withExampleId<T extends { id: string }>(item: T): T & { key: string } {
+  const id = exampleId(item.id);
+  return { ...item, id, key: id };
+}
+
 export function exampleId(id: string): string {
   return `${id}${EXAMPLE_ID_SUFFIX}`;
 }
@@ -396,9 +407,10 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
 
   const exampleRows: ExampleRowInfo[] = [];
   const includeExample = options.includeExampleRow ?? false;
+  let skippedApplicationRow: DataRow | null = null;
   if (appData.rows[0] && matchesExample(appData.rows[0].row, appMap, APP_ORDER, APPLICATION_EXAMPLE_ROW)) {
     exampleRows.push({ sheet: "Applications", row: appData.rows[0].excelRow, skipped: !includeExample });
-    if (!includeExample) appData.rows.shift();
+    if (!includeExample) skippedApplicationRow = appData.rows.shift()!;
   }
   let skippedTerritoryRow: DataRow | null = null;
   if (terData.rows[0] && matchesExample(terData.rows[0].row, terMap, TER_ORDER, TERRITORY_EXAMPLE_ROW)) {
@@ -433,6 +445,14 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
   const territories = assignKeys(
     markExample(terData.rows.map((r) => buildTerritory(r, terMap)), included("Territories")),
   ).map((t) => TerritorySchema.parse(t));
+
+  // The skipped example rows are kept (with their own IDs), so including them later needs no re-upload.
+  const skippedExample: SkippedExample = {
+    application: skippedApplicationRow
+      ? ApplicationSchema.parse(withExampleId({ ...buildApplication(skippedApplicationRow, appMap) }))
+      : null,
+    territory: skippedTerritoryRow ? TerritorySchema.parse(withExampleId({ ...buildTerritory(skippedTerritoryRow, terMap) })) : null,
+  };
 
   let skippedExampleTerritory: SkippedExampleTerritory | null = null;
   if (skippedTerritoryRow) {
@@ -476,5 +496,6 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
       warnings,
       skippedExampleTerritory,
     },
+    skippedExample,
   };
 }
