@@ -1,16 +1,16 @@
 "use client";
 
-import { ArrowRight, Download, FileSpreadsheet, MessageSquareText, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Download, FileSpreadsheet, MessageSquareText, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { Logo } from "@/components/app/logo";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/state/store";
+import { RecentWorkspaces } from "./recent-workspaces";
 import { ResumeSession, UploadZone, useUpload } from "./upload";
 
 const STEPS = [
-  { icon: FileSpreadsheet, title: "Upload your applications", text: "Drop in the Excel template. We read it in your browser, check it, and tell you what looks wrong before deciding anything." },
+  { icon: FileSpreadsheet, title: "Upload your applications", text: "Drop in the Excel template. We check it and tell you what looks wrong before deciding anything. It becomes a workspace you can share by link." },
   { icon: Sparkles, title: "See every decision explained", text: "Each application gets a clear outcome, the reason, what the partner does next, and how they will be trained." },
   { icon: MessageSquareText, title: "Change a fact, watch it ripple", text: "Tell us a partner found a shop, or change the brand type. The decisions that move, and why, show up straight away." },
 ];
@@ -18,9 +18,6 @@ const STEPS = [
 export function Landing() {
   const upload = useUpload();
   const hydrate = useStore((s) => s.hydrate);
-  const session = useStore((s) => s.session);
-  const hydrated = useStore((s) => s.hydrated);
-  const reset = useStore((s) => s.reset);
   useEffect(() => hydrate(), [hydrate]);
 
   return (
@@ -38,26 +35,12 @@ export function Landing() {
           </p>
         </section>
 
-        <section data-animate="landing-section" className="mx-auto mt-10 max-w-2xl space-y-4">
-          {hydrated && session && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
-              <div className="text-sm">
-                <p className="font-medium">You have a session in progress</p>
-                <p className="text-muted-foreground">{session.files.join(", ")}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" onClick={reset}>
-                  Start over
-                </Button>
-                <Link href="/workspace" className="contents">
-                  <Button>
-                    Continue <ArrowRight />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
+        <div data-animate="landing-section">
+          <RecentWorkspaces />
+        </div>
 
+        <section data-animate="landing-section" aria-label="Start a new workspace" className="mx-auto mt-10 max-w-2xl space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Start new</h2>
           <UploadZone upload={upload} />
 
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -73,7 +56,9 @@ export function Landing() {
             </a>
             <ResumeSession />
           </div>
-          <p className="text-center text-xs text-muted-foreground">Your file is read in this browser. Nothing is uploaded to a server.</p>
+          <p className="text-center text-xs text-muted-foreground">
+            Your file is saved as a shareable workspace; anyone with the link can view and change it. Don&apos;t upload real personal data.
+          </p>
         </section>
 
         <section data-animate="landing-section" aria-labelledby="how" className="mx-auto mt-20 max-w-4xl">

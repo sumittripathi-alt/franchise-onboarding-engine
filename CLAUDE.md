@@ -2,7 +2,7 @@
 
 # Franchise Partner Onboarding Engine
 
-The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC §15 (operator review) wins wherever it conflicts with earlier sections.** Client state goes in `localStorage`; no H3/h3-js. Check `docs/BACKLOG.md` for agreed items to build in each phase. Build in the phases in SPEC §14; after each phase run all tests, commit, summarise, and wait for the user's go-ahead.
+The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC §15 (operator review) wins wherever it conflicts with earlier sections.** **SPEC §16 (shared workspaces) overrides the "no database" note**: each upload is a workspace at `/w/<uuid>` stored in Supabase through server routes only (`lib/server/*`, `app/api/*`); decisions are never stored, only base data plus events replayed in seq order. `localStorage` is a per-workspace cache. Never put a secret in the browser or behind `NEXT_PUBLIC_`; never print `.env.local`. Local development without a database key: `FPE_MEMORY_DB=1 npm run dev` (in-memory, dev only). No H3/h3-js. Check `docs/BACKLOG.md` for agreed items to build in each phase. Build in the phases in SPEC §14; after each phase run all tests, commit, summarise, and wait for the user's go-ahead.
 
 ## Principles (SPEC §0)
 1. **Rules decide, the LLM explains.** Decisions come only from the deterministic engine in `lib/engine`. Gemini only extracts signals from free text, routes chat to tools, and phrases explanations. The app must work fully with `GEMINI_API_KEY` unset.

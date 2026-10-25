@@ -12,6 +12,7 @@ import { useStore, type Tab } from "@/lib/state/store";
 import { cn } from "@/lib/utils";
 import { ApplicationsTable } from "./applications-table";
 import { Banners } from "./banners";
+import { ShareButton, SyncBanner } from "./sync-notices";
 import { ChangeLog } from "./change-log";
 import { CompareDialog } from "./compare-dialog";
 import { useWorkspace } from "./context";
@@ -39,6 +40,7 @@ export function Shell() {
   const tab = useStore((s) => s.tab);
   const setTab = useStore((s) => s.setTab);
   const reset = useStore((s) => s.reset);
+  const id = useStore((s) => s.workspaceId);
   const exportSessionText = useStore((s) => s.exportSessionText);
 
   function downloadSession() {
@@ -51,7 +53,7 @@ export function Shell() {
       <header className="no-print sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-[92rem] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-4">
-            <Logo href="/workspace" />
+            <Logo href={`/w/${id}`} />
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {w.session.files.join(", ")} · {w.policy.profile.label} · {formatDate(w.settings.today)}
             </span>
@@ -62,6 +64,7 @@ export function Shell() {
                 <Upload /> <span className="hidden sm:inline">Upload another file</span>
               </Button>
             </Link>
+            <ShareButton />
             <Button variant="ghost" size="sm" onClick={downloadSession}>
               <Download /> <span className="hidden sm:inline">Download session</span>
             </Button>
@@ -73,7 +76,7 @@ export function Shell() {
                 router.push("/");
               }}
             >
-              Start over
+              Leave
             </Button>
             <ThemeToggle />
           </div>
@@ -101,6 +104,7 @@ export function Shell() {
         </nav>
 
         <main id="main" className="min-w-0 flex-1 space-y-4 pb-24">
+          <SyncBanner />
           <Banners />
           {tab === "sheet" && <DecisionSheet />}
           {tab === "overview" && <Overview />}
