@@ -289,7 +289,16 @@ export interface DecisionRecord {
   competitors: Competitor[];
   bands: Bands | null;
   /** One waitlist per city with a single rank; shows the territory the applicant wanted. */
-  waitlist: { city: string; rank: number; wantedTerritoryId: string | null } | null;
+  waitlist: {
+    city: string;
+    rank: number;
+    wantedTerritoryId: string | null;
+    /** Territories with an at-risk slot (approved with conditions, or provisional) this applicant would get if it frees. */
+    nextInLineFor: string[];
+    preOnboarding: boolean;
+  } | null;
+  /** City whose talent pool this applicant is in (no territory covers the city); unranked. */
+  talentPool: string | null;
   waitlistRank: number | null;
   /** For HOLD: where it would stand once clarified. */
   ifClarified: { territoryId: string; rank: number; winsPin: boolean; pin: string } | null;

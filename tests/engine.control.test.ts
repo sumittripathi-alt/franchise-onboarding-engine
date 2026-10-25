@@ -36,7 +36,7 @@ describe("G9.2 decisions sent to the partner are never displaced", () => {
     const d12 = decision(r, "APP-012");
     expect(d12.status).toBe("WAITLIST");
     expect(d12.reasonCodes).toContain("SLOT_COMMITTED");
-    expect(d12.headline).toMatch(/^Waitlisted #\d+ in Bengaluru: slot already committed to APP-019 on 25 Oct 2026\.$/);
+    expect(d12.headline).toMatch(/^Waitlisted #\d+ in Bengaluru(, next in line for TER-\d+)?: slot already committed to APP-019 on 25 Oct 2026\.$/);
   });
 
   it("a locked partner keeps its slot when the territory's slots are cut, and the territory is flagged", () => {
@@ -74,30 +74,32 @@ describe("provisional wins (SPEC §15.4)", () => {
 
 describe("G9.3 human overrides", () => {
   it("needs a reason", () => {
-    const r = trickyRun("eyewear", { overrides: [override({ appKey: "APP-004", status: "APPROVED", reason: "  " })] });
+    const r = trickyRun("eyewear", { overrides: [override({ appKey: "APP-013", status: "APPROVED", reason: "  " })] });
     expect(r.rejectedOverrides[0].message).toMatch(/needs a reason/);
-    expect(decision(r, "APP-004").status).toBe("WAITLIST");
+    expect(decision(r, "APP-013").status).toBe("WAITLIST");
   });
 
-  it("shows who would be bumped and waits for confirmation", () => {
-    const r = trickyRun("eyewear", { overrides: [override({ appKey: "APP-004", status: "APPROVED" })] });
-    expect(r.pendingOverrides).toEqual([
-      expect.objectContaining({ appKey: "APP-004", wouldBump: ["APP-003"] }),
-    ]);
-    expect(r.pendingOverrides[0].message).toMatch(/would take the slot from APP-003. Confirm/);
-    expect(decision(r, "APP-004").status).toBe("WAITLIST");
+  it("shows everyone the cascade would move and waits for confirmation", () => {
+    // APP-013 takes APP-003's TER-01 slot; APP-003 then takes TER-03's free slot, which APP-004 loses.
+    const r = trickyRun("eyewear", { overrides: [override({ appKey: "APP-013", status: "APPROVED" })] });
+    expect(r.pendingOverrides).toEqual([expect.objectContaining({ appKey: "APP-013", wouldBump: ["APP-003", "APP-004"] })]);
+    expect(r.pendingOverrides[0].message).toBe(
+      "Overriding APP-013 to Approved would change APP-003 (Approved → Offered another location), APP-004 (Offered another location → Waitlisted). Confirm to go ahead.",
+    );
+    expect(decision(r, "APP-013").status).toBe("WAITLIST");
   });
 
-  it("applies once the bump is confirmed, labelled as a human override", () => {
+  it("applies once the bumps are confirmed, labelled as a human override", () => {
     const r = trickyRun("eyewear", {
-      overrides: [override({ appKey: "APP-004", status: "APPROVED", confirmedBumps: ["APP-003"] })],
+      overrides: [override({ appKey: "APP-013", status: "APPROVED", confirmedBumps: ["APP-003", "APP-004"] })],
     });
     expect(r.invariantViolations).toEqual([]);
-    const d = decision(r, "APP-004");
+    const d = decision(r, "APP-013");
     expect(d.status).toBe("APPROVED");
     expect(d.reasonCodes).toContain("HUMAN_OVERRIDE");
     expect(d.headline).toMatch(/^Human override: Approved\. Reason: Ops lead decision/);
-    expect(decision(r, "APP-003").status).toBe("WAITLIST");
+    expect(decision(r, "APP-003").status).toBe("REDIRECT");
+    expect(decision(r, "APP-004").status).toBe("WAITLIST");
   });
 
   it("can never break one store per pin", () => {
@@ -109,7 +111,7 @@ describe("G9.3 human overrides", () => {
   it("can't take a slot from partners already sent a decision", () => {
     const r = trickyRun("eyewear", {
       locks: [lockOf("APP-001"), lockOf("APP-003")],
-      overrides: [override({ appKey: "APP-004", status: "APPROVED", confirmedBumps: ["APP-001", "APP-003"] })],
+      overrides: [override({ appKey: "APP-013", status: "APPROVED", confirmedBumps: ["APP-001", "APP-003"] })],
     });
     expect(r.rejectedOverrides[0].message).toMatch(/Every slot in TER-01 is committed/);
     expect(decision(r, "APP-001").status).toBe("APPROVED");
@@ -120,7 +122,8 @@ describe("G9.3 human overrides", () => {
     expect(r.pendingOverrides).toEqual([]);
     expect(decision(r, "APP-003").status).toBe("WAITLIST");
     expect(decision(r, "APP-003").reasonCodes).toContain("HUMAN_OVERRIDE");
-    expect(decision(r, "APP-004").status).toBe("APPROVED");
+    expect(decision(r, "APP-004").status).toBe("APPROVED"); // takes the freed TER-01 slot, releasing its TER-03 offer
+    expect(decision(r, "APP-005").status).toBe("REDIRECT"); // which goes to the next in Bengaluru
     expect(r.invariantViolations).toEqual([]);
   });
 });

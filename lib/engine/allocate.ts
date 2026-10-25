@@ -21,7 +21,7 @@ import type { HumanOverride, Lock } from "./types";
 /** Blocking checks that question the location or the investment, so no "if clarified" rank is shown. */
 const UNRANKABLE = new Set(["A01", "A02", "A03", "A04", "A07"]);
 
-export type HomeReason = "store" | "notInTerritory" | "lostPin";
+export type HomeReason = "store" | "notInTerritory" | "lostPin" | "noSlot";
 
 export interface Outcome {
   key: string;
@@ -37,6 +37,8 @@ export interface Outcome {
   waitlist: { city: string; rank: number } | null;
   /** For location-queue losers: the lowest-ranked applicant who did get an offer, and why they ranked higher. */
   passedOverBy: { key: string; text: string; factor: string } | null;
+  /** Passed over because free slots went to applicants who had to move anyway: where those offers went. */
+  passedOverForMovers: { territoryKey: string; pins: string[] }[] | null;
   lostTo: { key: string; text: string; factor: string } | null;
   committedTo: { key: string; date: string } | null;
   duplicateOf: string | null;
@@ -99,6 +101,7 @@ function newOutcome(key: string): Outcome {
     competitors: [],
     waitlist: null,
     passedOverBy: null,
+    passedOverForMovers: null,
     lostTo: null,
     committedTo: null,
     duplicateOf: null,
@@ -372,23 +375,44 @@ export function allocate(input: AllocationInput): Allocation {
   }
 
   // ---- 5. Location offers, per city ----
+  // Candidates are ALL eligible applicants without a slot in the city: first those who must move anyway
+  // (their pin has an existing store or isn't in any territory), in offer order (no space → Rented → Owned,
+  // SPEC §15.5); then everyone else (pin-contest and slot-contest losers) in city-waitlist order.
   const holdPins = new Set(
     input.assessments.filter((a) => outcomes.get(a.key)!.status === "HOLD" && a.app.pin.value).map((a) => a.app.pin.value!),
   );
   const offeredInCity = new Map<string, string[]>();
-  const byCity = new Map<string, typeof candidates>();
-  for (const c of candidates) {
+  const slotLosers = sorted
+    .filter((a) => {
+      const o = outcomes.get(a.key)!;
+      return o.status === "WAITLIST" && o.codes.includes("NO_SLOT");
+    })
+    .map((a) => ({ a, home: terByKey.get(outcomes.get(a.key)!.homeTerritoryKey ?? "") ?? null, reason: "noSlot" as HomeReason }));
+  const all = [...candidates, ...slotLosers];
+  const byCity = new Map<string, typeof all>();
+  for (const c of all) {
     const city = c.a.app.city.value!;
     byCity.set(city, [...(byCity.get(city) ?? []), c]);
   }
+  const withPriority = (c: (typeof all)[number]): Ranked => ({
+    ...ranked(c.a),
+    territoryPriority: c.home ? PRIORITY_RANK[c.home.priority] : 9,
+  });
   for (const city of [...byCity.keys()].sort()) {
     const list = byCity.get(city)!;
-    const cmp = makeComparator(list.map((c) => ranked(c.a)), { bySpaceType: true });
-    const order = sortRanked(list.map((c) => ranked(c.a)), cmp);
+    const mustMove = list.filter((c) => c.reason === "store" || c.reason === "notInTerritory");
+    const others = list.filter((c) => c.reason === "lostPin" || c.reason === "noSlot");
+    const cmpMove = makeComparator(mustMove.map((c) => ranked(c.a)), { bySpaceType: true });
+    const cmpOthers = makeComparator(others.map(withPriority), { byTerritoryPriority: true });
+    const order: { r: Ranked; group: "move" | "other"; cmp: Comparator }[] = [
+      ...sortRanked(mustMove.map((c) => ranked(c.a)), cmpMove).map((r) => ({ r, group: "move" as const, cmp: cmpMove })),
+      ...sortRanked(others.map(withPriority), cmpOthers).map((r) => ({ r, group: "other" as const, cmp: cmpOthers })),
+    ];
     const homeOf = new Map(list.map((c) => [c.a.key, c]));
     const offered: string[] = [];
-    let lastOffered: Ranked | null = null;
-    for (const r of order) {
+    const lastOffered: Record<"move" | "other", Ranked | null> = { move: null, other: null };
+    const mustMoveOffers = new Map<string, string[]>(); // territory key → pins offered to must-movers
+    for (const { r, group, cmp } of order) {
       const c = homeOf.get(r.a.key)!;
       const o = outcomes.get(r.a.key)!;
       const holder = r.a.person ? personHolds.get(r.a.person) : undefined;
@@ -404,11 +428,14 @@ export function allocate(input: AllocationInput): Allocation {
       const t = targets[0];
       if (!t) {
         o.status = "WAITLIST";
-        o.codes.push("NO_SLOT_IN_CITY");
-        if (lastOffered) {
-          const { text: diff, factor } = cmp.firstDifference(lastOffered, r);
-          o.competitors.push({ appId: lastOffered.a.id, appKey: lastOffered.a.key, relation: "offer", won: false, firstDifferingFactor: diff, factor });
-          o.passedOverBy = { key: lastOffered.a.key, text: diff, factor };
+        if (c.reason !== "noSlot") o.codes.push("NO_SLOT_IN_CITY");
+        const bar = lastOffered[group];
+        if (bar) {
+          const { text: diff, factor } = cmp.firstDifference(bar, r);
+          o.competitors.push({ appId: bar.a.id, appKey: bar.a.key, relation: "offer", won: false, firstDifferingFactor: diff, factor });
+          o.passedOverBy = { key: bar.a.key, text: diff, factor };
+        } else if (group === "other" && mustMoveOffers.size) {
+          o.passedOverForMovers = [...mustMoveOffers].map(([territoryKey, pins]) => ({ territoryKey, pins }));
         }
         continue;
       }
@@ -423,18 +450,19 @@ export function allocate(input: AllocationInput): Allocation {
       });
       o.codes.push("REDIRECT_OFFERED");
       offered.push(r.a.key);
-      lastOffered = r;
+      lastOffered[group] = r;
+      if (group === "move") mustMoveOffers.set(t.key, [...(mustMoveOffers.get(t.key) ?? []), pin]);
     }
     offeredInCity.set(city, offered);
   }
 
-  // ---- 6. One waitlist per city, a single rank ----
+  // ---- 6. One waitlist per city, a single rank (cities with no territory keep an unranked talent pool) ----
   // The wanted territory's priority comes first (SPEC §6.3, "when comparing across territories"); applicants
   // whose pin is in no territory rank after those who wanted one, then the usual ranking key applies.
   const cityWaitlists = new Map<string, string[]>();
   const waiting = sorted.filter((a) => {
     const o = outcomes.get(a.key)!;
-    return o.status === "WAITLIST" && o.kind !== "forced" && a.app.city.value;
+    return o.status === "WAITLIST" && o.kind !== "forced" && a.app.city.value && activeCities.has(a.app.city.value);
   });
   for (const city of [...new Set(waiting.map((a) => a.app.city.value!))].sort()) {
     const group = waiting

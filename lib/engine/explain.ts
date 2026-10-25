@@ -26,6 +26,11 @@ export interface ExplainContext {
   lineFor: (key: string, territoryKey: string) => number | null;
   cityHasTerritory: (city: string) => boolean;
   storeAt: (pin: string) => string | null;
+  /** Territory IDs with an at-risk slot this applicant is next in line for. */
+  nextInLineFor: (key: string) => string[];
+  preOnboard: (key: string) => boolean;
+  /** Next waitlist review date (ISO). */
+  reviewDate: string;
 }
 
 export interface Explained {
@@ -308,7 +313,7 @@ export function explain(
       lines.push(sentence(`${id} fails a hard requirement for the ${ctx.profile.label.toLowerCase()} model: ${gate.text}`));
       tail();
       counterfactual = sentence(gate.fix);
-      partner.push(sentence(gate.fix).replace(/\.$/, ""), ...a.suggestions);
+      partner.push([sentence(gate.fix), ...a.suggestions.map((x) => `Or: ${lcFirst(x)}`)].join(" ").replace(/\.$/, ""));
       team.push("Send the decision with what would need to change", ...a.suggestions.map((s) => `Offer the suggestion: "${s}"`));
       break;
     }
@@ -318,18 +323,22 @@ export function explain(
       const tid = ctx.territoryId(offer.territoryKey);
       const home = a.app.pin.value;
       const store = home ? ctx.storeAt(home) : null;
+      const wantedId = o.homeTerritoryKey ? ctx.territoryId(o.homeTerritoryKey) : null;
       const shortWhy =
         offer.homeReason === "store"
           ? `pin ${home} already has store ${store}`
           : offer.homeReason === "notInTerritory"
             ? `pin ${home} isn't in any territory`
-            : `${ctx.idOf(o.lostTo!.key)} won pin ${home} (${FACTOR_SHORT[o.lostTo!.factor] ?? "ranked higher"})`;
+            : offer.homeReason === "noSlot"
+              ? `${wantedId}'s slots went to higher-ranked applicants`
+              : `${ctx.idOf(o.lostTo!.key)} won pin ${home} (${FACTOR_SHORT[o.lostTo!.factor] ?? "ranked higher"})`;
       const expires = addDays(ctx.today, OFFER_HOLD_DAYS);
       headline = `Offered pin ${offer.pin} in ${tid} because ${shortWhy}. Offer held until ${dShort(expires)}.`;
       lines.push(`${id} is a good partner: ${profileText(a)}.`);
       if (offer.homeReason === "lostPin") lines.push(`${ctx.idOf(o.lostTo!.key)} ranks higher for pin ${home} because ${o.lostTo!.text}.`);
+      if (offer.homeReason === "noSlot") lines.push(`${id} won pin ${home} but ranked below ${wantedId}'s slot holders; it was the highest-ranked in ${city} for a free slot elsewhere.`);
       lines.push(
-        `Location offers go first to applicants with no space yet, then rented space, then owned space, then by the usual ranking. Pin ${offer.pin} is ${offer.distanceKm !== null ? `${offer.distanceKm.toFixed(1)} km from pin ${home}` : `in ${tid}`}.`,
+        `Free slots go first to applicants who must move anyway (their pin has a store or is in no territory), no space before rented before owned; then to everyone else by ${city} waitlist rank. Pin ${offer.pin} is ${offer.distanceKm !== null ? `${offer.distanceKm.toFixed(1)} km from pin ${home}` : `in ${tid}`}.`,
       );
       if (a.spaceType === "Owned") {
         const cause =
@@ -337,7 +346,9 @@ export function explain(
             ? `${store ?? "an existing store"} is already there`
             : offer.homeReason === "notInTerritory"
               ? "it is outside our planned territories"
-              : `${ctx.idOf(o.lostTo!.key)} was chosen for that pin`;
+              : offer.homeReason === "noSlot"
+                ? `${wantedId} has no slot left`
+                : `${ctx.idOf(o.lostTo!.key)} was chosen for that pin`;
         lines.push(`This needs a new space. The owned space in ${home} can't host a store because ${cause}.`);
       } else if (a.spaceType === "Rented") {
         lines.push(`This needs a new space; the current lease in ${home} would need to move.`);
@@ -353,49 +364,72 @@ export function explain(
     }
 
     case "WAITLIST": {
-      const rank = o.waitlist?.rank ?? 1;
-      const at = `#${rank} in ${city}`;
       const home = a.app.pin.value;
       const wantedKey = o.homeTerritoryKey;
       const wanted = wantedKey ? ctx.territoryId(wantedKey) : null;
-      const plannedCity = a.app.city.value ? ctx.cityHasTerritory(a.app.city.value) : false;
+      const review = formatDate(ctx.reviewDate);
+      const keepSpace = `Keep your space available if you can. We'll review the waitlist on ${review}`;
+
+      // Talent pool: the city has no territory, so there is no rank.
+      if (o.codes.includes("OUTSIDE_PLAN") && !o.waitlist) {
+        headline = `In the ${city} talent pool: no territory covers ${city} in the current plan.`;
+        lines.push(`${id} has ${profileText(a)}. ${city} isn't covered by any territory with slots right now, so the talent pool isn't ranked.`);
+        tail();
+        counterfactual = `It would be considered if a territory covering ${city}, pin ${home}, is added.`;
+        partner.push(`Keep your space available if you can. We'll review the ${city} talent pool on ${review}`);
+        team.push(`Keep ${id} in the ${city} talent pool and contact them when a territory opens`);
+        break;
+      }
+
+      const rank = o.waitlist?.rank ?? 1;
+      const at = `#${rank} in ${city}`;
+      const nextFor = ctx.nextInLineFor(a.key);
+      const tag = nextFor.length ? `next in line for ${listIds(nextFor)}` : null;
+      const lead = tag ? `Waitlisted ${at}, ${tag}` : `Waitlisted ${at}`;
       const lostPin = o.lostTo ? `lost pin ${home} to ${ctx.idOf(o.lostTo.key)} (${FACTOR_SHORT[o.lostTo.factor] ?? "ranked higher"})` : null;
+      const movers = o.passedOverForMovers?.map((m) => ctx.territoryId(m.territoryKey)) ?? [];
       const passed = o.passedOverBy
         ? `the last free location went to ${ctx.idOf(o.passedOverBy.key)} (${FACTOR_SHORT[o.passedOverBy.factor] ?? "ranked higher"})`
-        : `no ${city} territory had a free slot to offer`;
+        : movers.length
+          ? `free slots in ${listIds(movers)} went to applicants who had to move anyway`
+          : null;
 
       if (o.committedTo) {
-        headline = `Waitlisted ${at}: slot already committed to ${ctx.idOf(o.committedTo.key)} on ${formatDate(o.committedTo.date)}.`;
+        headline = `${lead}: slot already committed to ${ctx.idOf(o.committedTo.key)} on ${formatDate(o.committedTo.date)}.`;
         lines.push(`${id} would rank higher, but ${ctx.idOf(o.committedTo.key)} was already sent a decision, and a yes already given isn't taken back.`);
         counterfactual = `It would get a slot if ${ctx.idOf(o.committedTo.key)} withdraws or another slot opens.`;
       } else if (o.duplicateOf) {
         headline = `Waitlisted: ${ctx.nameOf(a.key)} already holds a slot through ${ctx.idOf(o.duplicateOf)}; one slot per person.`;
         lines.push(`${id} and ${ctx.idOf(o.duplicateOf)} look like the same person, who can hold at most one slot.`);
         counterfactual = `If they turn out to be different people, ${id} would be considered on its own merits.`;
-      } else if (o.codes.includes("OUTSIDE_PLAN")) {
-        headline = `Waitlisted ${at}: no territory covers ${city} in the current plan, so it stays in the talent pool.`;
-        lines.push(`${id} has ${profileText(a)}. ${city} isn't covered by any territory with slots right now.`);
-        counterfactual = `It would be considered if a territory covering ${city}, pin ${home}, is added.`;
       } else if (o.codes.includes("NO_SLOT") && wantedKey) {
         const slots = ctx.slotsOf(wantedKey);
         const holders = ctx.slotHolders(wantedKey);
-        headline =
+        const slotText =
           slots === 0
-            ? `Waitlisted ${at}, wanted ${wanted}: it has no open slots right now.`
+            ? `${wanted} has no open slots right now`
             : holders.length && holders.length <= 2
-              ? `Waitlisted ${at}, wanted ${wanted}: ${slots === 1 ? "its only slot" : `its ${slots} slots`} went to higher-ranked ${listIds(holders)}.`
-              : `Waitlisted ${at}, wanted ${wanted}: its ${plural(slots, "slot")} went to higher-ranked applicants.`;
+              ? `${wanted}'s ${slots === 1 ? "only slot" : `${slots} slots`} went to ${listIds(holders)}`
+              : `${wanted}'s ${slots} slots went to higher-ranked applicants`;
+        headline = `${lead}: ${slotText}${passed ? `; ${passed}` : ""}.`;
         lines.push(`${id} wins pin ${home} but not a slot. It has ${profileText(a)}.`);
         competitorLines();
       } else {
         const why =
           lostPin ??
           (o.codes.includes("PIN_HAS_EXISTING_STORE") ? `pin ${home} already has store ${home ? ctx.storeAt(home) : ""}` : `pin ${home} isn't in any territory`);
-        headline = `Waitlisted ${at}: ${why}, and ${passed}.`;
+        const sameWinner = o.lostTo && o.passedOverBy && o.lostTo.key === o.passedOverBy.key;
+        headline = sameWinner
+          ? `${lead}: lost pin ${home} to ${ctx.idOf(o.lostTo!.key)}, who also took the last free location (${FACTOR_SHORT[o.passedOverBy!.factor] ?? "ranked higher"}).`
+          : `${lead}: ${why}, and ${passed ?? `no ${city} territory had a free slot to offer`}.`;
         lines.push(`${id} has ${profileText(a)}.`);
         competitorLines();
-        if (!o.passedOverBy) lines.push(`No ${city} territory had a free slot left to offer.`);
+        if (!passed) lines.push(`No ${city} territory had a free slot left to offer.`);
       }
+      if (movers.length) {
+        lines.push(`Free slots in ${listIds(movers)} went first to applicants who had to move anyway, because their own pin has an existing store or isn't in any territory.`);
+      }
+      if (tag) lines.push(`${id} is ${tag}: if that slot frees, it is offered to ${id} first.`);
       tail();
 
       if (!counterfactual) {
@@ -409,19 +443,18 @@ export function explain(
           (imp ? ` Also, ${imp}.` : "");
       }
 
-      const preOnboard = plannedCity && rank <= ctx.profile.preOnboarding.topN && !o.duplicateOf && !o.codes.includes("OUTSIDE_PLAN");
-      if (preOnboard) partner.push(ctx.profile.preOnboarding.step);
-      partner.push(
-        o.codes.includes("OUTSIDE_PLAN")
-          ? `No action needed; we'll contact you if a territory opens in ${city}`
-          : `${preOnboard ? "Otherwise no action needed" : "No action needed"}; you're ${at} and we'll call you if a slot frees`,
-      );
-      team.push(
-        o.codes.includes("OUTSIDE_PLAN")
-          ? `Keep ${id} in the ${city} talent pool and contact them when a territory opens`
-          : `Tell the partner they're #${rank} on the ${city} waitlist${wanted ? `, wanting ${wanted}` : ""}`,
-      );
-      if (preOnboard) team.push("Start their pre-onboarding so they can open quickly if a slot frees");
+      const where = tag ? `you're ${tag} and ${at}` : `you're ${at}`;
+      if (ctx.preOnboard(a.key)) {
+        partner.push(`${ctx.profile.preOnboarding.step}: ${where}`, keepSpace);
+      } else {
+        partner.push(`${sentence(where).replace(/\.$/, "")}. ${keepSpace}`);
+      }
+      team.push(`Tell the partner they're #${rank} on the ${city} waitlist${wanted ? `, wanting ${wanted}` : ""}${tag ? `, and ${tag}` : ""}`);
+      if (movers.length) {
+        const pins = o.passedOverForMovers!.map((m) => `pin ${m.pins.join(" or ")} in ${ctx.territoryId(m.territoryKey)}`);
+        team.push(`Ask whether they'd consider ${pins.join(" or ")}, in case an offer is declined`);
+      }
+      if (ctx.preOnboard(a.key)) team.push("Start their pre-onboarding so they can open quickly if a slot frees");
       break;
     }
   }

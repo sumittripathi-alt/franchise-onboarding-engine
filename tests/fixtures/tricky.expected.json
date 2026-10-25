@@ -15,11 +15,11 @@
         "LOST_PIN_CONTEST",
         "NO_SLOT_IN_CITY"
       ],
-      "rank": 5,
+      "rank": 4,
       "lostTo": "APP-003",
       "factor": "space",
       "wanted": "TER-01",
-      "passedOverBy": "APP-011"
+      "passedOverBy": "APP-004"
     },
     "APP-003": {
       "status": "APPROVED",
@@ -29,12 +29,12 @@
       ]
     },
     "APP-004": {
-      "status": "WAITLIST",
+      "status": "REDIRECT",
+      "pin": "560024",
       "codes": [
-        "NO_SLOT"
-      ],
-      "rank": 1,
-      "wanted": "TER-01"
+        "NO_SLOT",
+        "REDIRECT_OFFERED"
+      ]
     },
     "APP-005": {
       "status": "WAITLIST",
@@ -42,11 +42,14 @@
         "LOST_PIN_CONTEST",
         "NO_SLOT_IN_CITY"
       ],
-      "rank": 2,
+      "rank": 1,
       "lostTo": "APP-004",
       "factor": "capital",
       "wanted": "TER-01",
-      "passedOverBy": "APP-011"
+      "passedOverBy": "APP-004",
+      "nextInLineFor": [
+        "TER-03"
+      ]
     },
     "APP-006": {
       "status": "HOLD",
@@ -83,7 +86,7 @@
     },
     "APP-011": {
       "status": "REDIRECT",
-      "pin": "560024",
+      "pin": "560058",
       "codes": [
         "PIN_NOT_IN_TERRITORY",
         "REDIRECT_OFFERED"
@@ -95,15 +98,18 @@
         "NO_SLOT",
         "TIGHT_TIMELINE"
       ],
-      "rank": 7,
-      "wanted": "TER-02"
+      "rank": 6,
+      "wanted": "TER-02",
+      "nextInLineFor": [
+        "TER-02"
+      ]
     },
     "APP-013": {
       "status": "WAITLIST",
       "codes": [
         "NO_SLOT"
       ],
-      "rank": 3,
+      "rank": 2,
       "wanted": "TER-01"
     },
     "APP-014": {
@@ -112,11 +118,11 @@
         "LOST_PIN_CONTEST",
         "NO_SLOT_IN_CITY"
       ],
-      "rank": 4,
+      "rank": 3,
       "lostTo": "APP-013",
       "factor": "id",
       "wanted": "TER-01",
-      "passedOverBy": "APP-011"
+      "passedOverBy": "APP-004"
     },
     "APP-015": {
       "status": "APPROVED",
@@ -176,8 +182,7 @@
       "codes": [
         "OUTSIDE_PLAN"
       ],
-      "rank": 1,
-      "wanted": null
+      "talentPool": "Belagavi"
     },
     "APP-023": {
       "status": "CONDITIONAL",
@@ -192,7 +197,7 @@
         "NO_SLOT",
         "TIGHT_TIMELINE"
       ],
-      "rank": 8,
+      "rank": 7,
       "wanted": "TER-02"
     },
     "APP-025": {
@@ -232,7 +237,7 @@
         "INTEGRITY_CONCERN",
         "TARGET_NOT_FEASIBLE"
       ],
-      "rank": 6,
+      "rank": 5,
       "wanted": "TER-01"
     },
     "APP-030@row33": {
@@ -295,16 +300,14 @@
       "codes": [
         "OUTSIDE_PLAN"
       ],
-      "rank": 1,
-      "wanted": null
+      "talentPool": "Davanagere"
     },
     "APP-037": {
       "status": "WAITLIST",
       "codes": [
         "OUTSIDE_PLAN"
       ],
-      "rank": 1,
-      "wanted": null
+      "talentPool": "Mangaluru"
     }
   },
   "delivery": {
@@ -341,7 +344,7 @@
         },
         "APP-019": {
           "status": "WAITLIST",
-          "rank": 7,
+          "rank": 6,
           "wanted": "TER-02"
         }
       }
@@ -365,6 +368,10 @@
           "codes": [
             "NO_SLOT"
           ]
+        },
+        "APP-005": {
+          "status": "REDIRECT",
+          "pin": "560024"
         }
       }
     },
@@ -391,7 +398,7 @@
         },
         "APP-024": {
           "status": "WAITLIST",
-          "rank": 7,
+          "rank": 6,
           "wanted": "TER-02"
         }
       }
@@ -412,7 +419,36 @@
         },
         "APP-013": {
           "status": "WAITLIST",
-          "rank": 2,
+          "rank": 1,
+          "wanted": "TER-01"
+        },
+        "APP-005": {
+          "status": "REDIRECT",
+          "pin": "560024"
+        }
+      }
+    },
+    "TER-03 has only 6 slots: both free slots go to applicants who must move anyway": {
+      "facts": [
+        {
+          "target": "territory",
+          "key": "TER-03",
+          "field": "openSlots",
+          "value": 6
+        }
+      ],
+      "expect": {
+        "APP-010": {
+          "status": "REDIRECT",
+          "pin": "560043"
+        },
+        "APP-011": {
+          "status": "REDIRECT",
+          "pin": "560058"
+        },
+        "APP-004": {
+          "status": "WAITLIST",
+          "rank": 1,
           "wanted": "TER-01"
         }
       }

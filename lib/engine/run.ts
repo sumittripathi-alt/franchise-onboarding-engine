@@ -119,11 +119,16 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
   };
   // A slot freed in a territory goes first to the highest-ranked waitlisted applicant whose pin is in it,
   // then to the highest-ranked in the city.
-  const nextInLine = (territoryKey: string | null, city: string | null) => {
+  const nextInLineKey = (territoryKey: string | null, city: string | null) => {
     const t = territoryKey ? terByKey.get(territoryKey) : undefined;
-    const k = (territoryKey ? inTerritoryLine(territoryKey)[0] : undefined) ?? alloc.cityWaitlists.get(city ?? t?.city ?? "")?.[0];
+    return (territoryKey ? inTerritoryLine(territoryKey)[0] : undefined) ?? alloc.cityWaitlists.get(city ?? t?.city ?? "")?.[0] ?? null;
+  };
+  const nextInLine = (territoryKey: string | null, city: string | null) => {
+    const k = nextInLineKey(territoryKey, city);
     return k ? idOf(k) : null;
   };
+  // Filled after statuses are known: who is next in line for an at-risk slot, and who pre-onboards.
+  const tags = { nextInLine: new Map<string, string[]>(), preOnboard: new Set<string>() };
   const activeCities = new Set(resolved.territories.filter((t) => !t.blocked).map((t) => t.city));
 
   const reservedPins = [...alloc.outcomes.values()].filter((o) => o.pin).map((o) => ({ key: o.key, appId: idOf(o.key), pin: o.pin! }));
@@ -143,13 +148,31 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     },
     cityHasTerritory: (city) => activeCities.has(city as never),
     storeAt: (pin) => stores.find((s) => s.pin === pin)?.id ?? null,
+    nextInLineFor: (key) => tags.nextInLine.get(key) ?? [],
+    preOnboard: (key) => tags.preOnboard.has(key),
+    reviewDate: addDays(today, profile.waitlistReviewDays),
   };
 
-  const decisions: DecisionRecord[] = applications.map((app) => {
-    const a = byKey.get(app.key)!;
-    const o = alloc.outcomes.get(app.key)!;
-    return finalise(a, o);
-  });
+  // Two passes: the first settles every status (conditions depend on cannibalisation, not on tags);
+  // tags for at-risk slots are then derived, and the second pass writes the final explanations.
+  const firstPass = applications.map((app) => finalise(byKey.get(app.key)!, alloc.outcomes.get(app.key)!));
+  const atRisk = new Set(
+    firstPass
+      .filter((d) => d.status === "CONDITIONAL" || d.provisional)
+      .map((d) => alloc.outcomes.get(d.appKey)!.slotTerritoryKey)
+      .filter((k): k is string => !!k),
+  );
+  for (const t of resolved.territories) {
+    if (!atRisk.has(t.key)) continue;
+    const k = nextInLineKey(t.key, t.city);
+    if (k) tags.nextInLine.set(k, [...(tags.nextInLine.get(k) ?? []), t.id]);
+  }
+  // Pre-onboarding: next-in-line applicants first, then the top of each city's waitlist, up to the limit.
+  for (const list of alloc.cityWaitlists.values()) {
+    const ordered = [...list.filter((k) => tags.nextInLine.has(k)), ...list.filter((k) => !tags.nextInLine.has(k))];
+    for (const k of ordered.slice(0, profile.preOnboarding.topN)) tags.preOnboard.add(k);
+  }
+  const decisions: DecisionRecord[] = applications.map((app) => finalise(byKey.get(app.key)!, alloc.outcomes.get(app.key)!));
 
   function finalise(a: Assessment, o: Outcome): DecisionRecord {
     const slotT = o.slotTerritoryKey ? terByKey.get(o.slotTerritoryKey) : undefined;
@@ -271,8 +294,15 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       bands: a.bands,
       waitlist:
         status === "WAITLIST" && o.waitlist
-          ? { city: o.waitlist.city, rank: o.waitlist.rank, wantedTerritoryId: o.homeTerritoryKey ? (terByKey.get(o.homeTerritoryKey)?.id ?? null) : null }
+          ? {
+              city: o.waitlist.city,
+              rank: o.waitlist.rank,
+              wantedTerritoryId: o.homeTerritoryKey ? (terByKey.get(o.homeTerritoryKey)?.id ?? null) : null,
+              nextInLineFor: tags.nextInLine.get(a.key) ?? [],
+              preOnboarding: tags.preOnboard.has(a.key),
+            }
           : null,
+      talentPool: status === "WAITLIST" && o.codes.includes("OUTSIDE_PLAN") ? a.app.city.value : null,
       waitlistRank: status === "WAITLIST" ? (o.waitlist?.rank ?? null) : null,
       ifClarified: o.ifClarified
         ? { territoryId: terByKey.get(o.ifClarified.territoryKey)?.id ?? "", rank: o.ifClarified.rank, winsPin: o.ifClarified.winsPin, pin: o.ifClarified.pin }
@@ -367,17 +397,33 @@ export function runEngine(input: EngineInput): EngineResult {
       rejected.push({ appKey: o.appKey, status: o.status, message: refusal.message });
       continue;
     }
+    // Bumped = anyone holding a slot now who would lose it, drop from their own slot to an offer, or be moved
+    // to a different pin (a cascade can move several). Promotions don't need confirmation.
     const before = reservedKeys(current.result);
-    const after = reservedKeys(trial.result);
-    const bumped = [...before].filter((k) => !after.has(k) && k !== o.appKey).sort();
+    const find = (r: EngineResult, k: string) => r.decisions.find((d) => d.appKey === k);
+    const level = (st: Status | undefined) => (st === "APPROVED" || st === "CONDITIONAL" ? 2 : st === "REDIRECT" ? 1 : 0);
+    const bumped = [...before]
+      .filter((k) => k !== o.appKey)
+      .filter((k) => {
+        const b = find(current.result, k)!;
+        const t = find(trial.result, k);
+        const lb = level(b.status);
+        const lt = level(t?.status);
+        return lt < lb || (lt === lb && t!.pin !== b.pin);
+      })
+      .sort();
     const confirmed = new Set(o.confirmedBumps ?? []);
     if (bumped.some((k) => !confirmed.has(k))) {
-      const ids = bumped.map((k) => current.result.decisions.find((d) => d.appKey === k)?.appId ?? k);
+      const changes = bumped.map((k) => {
+        const b = find(current.result, k)!;
+        const t = find(trial.result, k);
+        return `${b.appId} (${b.label} → ${t ? t.label : "removed"})`;
+      });
       pending.push({
         appKey: o.appKey,
         status: o.status,
         wouldBump: bumped,
-        message: `Overriding ${id} to ${STATUS_META[o.status].label} would take the slot from ${ids.join(", ")}. Confirm to go ahead.`,
+        message: `Overriding ${id} to ${STATUS_META[o.status].label} would change ${changes.join(", ")}. Confirm to go ahead.`,
       });
       continue;
     }

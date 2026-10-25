@@ -39,6 +39,7 @@ const eyewear: BrandProfile = {
     topN: 2,
     step: "Start pre-onboarding now (documents, KYC, store design brief) so you can open quickly if a slot frees",
   },
+  waitlistReviewDays: 14,
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh:
@@ -56,7 +57,8 @@ const eyewear: BrandProfile = {
     baseTrainingDays: "Product, eye-test workflow and POS before launch.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
-    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
+    preOnboarding: "Up to 2 waitlisted per city prepare early (next in line for an at-risk slot first), so a freed slot opens fast.",
+    waitlistReviewDays: "The waitlist is reviewed every two weeks, as conditions fall due.",
   },
 };
 
@@ -100,6 +102,7 @@ const delivery: BrandProfile = {
     topN: 2,
     step: "Start pre-onboarding now (documents, KYC, hub layout brief) so you can open quickly if a slot frees",
   },
+  waitlistReviewDays: 14,
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Racking, sorting area, deposits and working capital.",
@@ -116,7 +119,8 @@ const delivery: BrandProfile = {
     baseTrainingDays: "Operations-focused training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
-    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
+    preOnboarding: "Up to 2 waitlisted per city prepare early (next in line for an at-risk slot first), so a freed slot opens fast.",
+    waitlistReviewDays: "The waitlist is reviewed every two weeks, as conditions fall due.",
   },
 };
 
@@ -149,6 +153,7 @@ const partnerPoint: BrandProfile = {
     topN: 2,
     step: "Start pre-onboarding now (documents, KYC, partner app set-up) so you can open quickly if a slot frees",
   },
+  waitlistReviewDays: 14,
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Only a shelf, scanner and signage are needed.",
@@ -164,7 +169,8 @@ const partnerPoint: BrandProfile = {
     baseTrainingDays: "Self-serve app training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
-    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
+    preOnboarding: "Up to 2 waitlisted per city prepare early (next in line for an at-risk slot first), so a freed slot opens fast.",
+    waitlistReviewDays: "The waitlist is reviewed every two weeks, as conditions fall due.",
   },
 };
 
