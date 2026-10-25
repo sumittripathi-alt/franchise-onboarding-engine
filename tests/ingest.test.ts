@@ -119,7 +119,7 @@ describe("G1.4 loose headers", () => {
 describe("G1.5 template example row", () => {
   it("skips the exact example row and reports it", () => {
     const r = parseOk([trickyFile()]);
-    expect(r.applications.some((a) => a.name === "Ravi Kumar")).toBe(false);
+    expect(r.applications.some((a) => a.row === 3)).toBe(false);
     expect(r.report.exampleRows).toEqual([
       { sheet: "Applications", row: 3, skipped: true },
       { sheet: "Territories", row: 3, skipped: true },
@@ -268,5 +268,41 @@ describe("G1.12 row numbers in messages", () => {
     }
     // Fixture data starts at row 4, in order.
     expect(r.applications.map((a) => a.row)).toEqual(TRICKY_APPLICATIONS.map((_, i) => i + 4));
+  });
+});
+
+describe("G9.8 skipped example territory covers an applicant", () => {
+  it("warns prominently when an applicant's pin is in the skipped example territory", async () => {
+    const { buildDataQualityReport } = await import("@/lib/ingest/report");
+    const r = parseOk([
+      templateFile({
+        applications: [appRow("APP-002", { 2: "Mysuru", 4: 570002 }), appRow("APP-003")],
+        territories: [["TER-02", "Mysuru", "Karnataka", "570010", "Tier 2", 1, "High"]],
+      }),
+    ]);
+    expect(r.report.skippedExampleTerritory).toEqual({
+      row: 3,
+      id: "TER-01",
+      pins: ["570001", "570002", "570008"],
+      covers: [{ applicationId: "APP-002", pin: "570002" }],
+    });
+    const rep = buildDataQualityReport(r.report, r.applications, runDataChecks(r.applications, r.territories));
+    expect(rep.exampleTerritoryWarning).toMatch(/example territory \(TER-01, row 3: 570001, 570002, 570008\) was skipped/);
+    expect(rep.exampleTerritoryWarning).toMatch(/APP-002 \(570002\)/);
+    expect(rep.warnings[0]).toBe(rep.exampleTerritoryWarning);
+  });
+
+  it("stays quiet when no applicant is covered, or when the row was included", async () => {
+    const { buildDataQualityReport } = await import("@/lib/ingest/report");
+    const quiet = parseOk([templateFile({ applications: [appRow("APP-002")], territories: [TER_ROW] })]);
+    expect(quiet.report.skippedExampleTerritory?.covers).toEqual([]);
+    const rep = buildDataQualityReport(quiet.report, quiet.applications, runDataChecks(quiet.applications, quiet.territories));
+    expect(rep.exampleTerritoryWarning).toBeNull();
+
+    const included = parseOk(
+      [templateFile({ applications: [appRow("APP-002", { 2: "Mysuru", 4: 570002 })], territories: [TER_ROW] })],
+      { includeExampleRow: true },
+    );
+    expect(included.report.skippedExampleTerritory).toBeNull();
   });
 });

@@ -73,6 +73,15 @@ export interface ParseReport {
   exampleRows: ExampleRowInfo[];
   extraColumns: { sheet: string; columns: string[] }[];
   warnings: string[];
+  /** Set when the example territory row was skipped (G9.8): its pins and the applicants it would have covered. */
+  skippedExampleTerritory: SkippedExampleTerritory | null;
+}
+
+export interface SkippedExampleTerritory {
+  row: number;
+  id: string;
+  pins: string[];
+  covers: { applicationId: string; pin: string }[];
 }
 
 export type ParseResult =
@@ -385,9 +394,10 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
     exampleRows.push({ sheet: "Applications", row: appData.rows[0].excelRow, skipped: !includeExample });
     if (!includeExample) appData.rows.shift();
   }
+  let skippedTerritoryRow: DataRow | null = null;
   if (terData.rows[0] && matchesExample(terData.rows[0].row, terMap, TER_ORDER, TERRITORY_EXAMPLE_ROW)) {
     exampleRows.push({ sheet: "Territories", row: terData.rows[0].excelRow, skipped: !includeExample });
-    if (!includeExample) terData.rows.shift();
+    if (!includeExample) skippedTerritoryRow = terData.rows.shift()!;
   }
 
   if (appData.rows.length > MAX_APPLICATION_ROWS) {
@@ -412,6 +422,15 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
   const territories = assignKeys(terData.rows.map((r) => buildTerritory(r, terMap))).map((t) =>
     TerritorySchema.parse(t),
   );
+
+  let skippedExampleTerritory: SkippedExampleTerritory | null = null;
+  if (skippedTerritoryRow) {
+    const t = buildTerritory(skippedTerritoryRow, terMap);
+    const covers = applications
+      .filter((a) => a.pin.value && t.pins.includes(a.pin.value))
+      .map((a) => ({ applicationId: a.id || a.key, pin: a.pin.value! }));
+    skippedExampleTerritory = { row: t.row, id: t.id, pins: t.pins, covers };
+  }
 
   const warnings: string[] = [];
   if (territories.length === 0) {
@@ -444,6 +463,7 @@ function parseWorkbooksUnsafe(files: UploadFile[], options: ParseOptions): Parse
       exampleRows,
       extraColumns,
       warnings,
+      skippedExampleTerritory,
     },
   };
 }

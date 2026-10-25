@@ -222,6 +222,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     // A11: notes contradict a field.
     if (concreteFloor && s.notes_floor_claim && s.notes_floor_claim !== floor) {
       add(a, {
+        evidence: s.evidence.notes_floor_claim,
         code: "A11",
         severity: "blocking",
         field: "Floor",
@@ -231,6 +232,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
     if (hasSpace && s.notes_space_claim === "searching") {
       add(a, {
+        evidence: s.evidence.notes_space_claim,
         code: "A11",
         severity: "blocking",
         field: "Space available",
@@ -240,6 +242,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
     if (noSpace && s.notes_space_claim === "has_space") {
       add(a, {
+        evidence: s.evidence.notes_space_claim,
         code: "A11",
         severity: "blocking",
         field: "Space available",
@@ -255,6 +258,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
       ((s.years_running_shop_mentioned ?? 0) > 0 || describesRunningShop(`${a.business}. ${a.notes}`))
     ) {
       add(a, {
+        evidence: s.evidence.years_running_shop_mentioned,
         code: "A12",
         severity: "info",
         field: "Retail experience",
@@ -289,6 +293,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     // A15–A18 from text signals.
     if (s.injection_attempt) {
       add(a, {
+        evidence: s.evidence.injection_attempt,
         code: "A15",
         severity: "info",
         field: "Notes",
@@ -297,6 +302,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
     if (s.competitor_conflict) {
       add(a, {
+        evidence: s.evidence.competitor_conflict,
         code: "A16",
         severity: "blocking",
         field: "Notes",
@@ -307,6 +313,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
     if (s.absentee_owner) {
       add(a, {
+        evidence: s.evidence.absentee_owner,
         code: "A17",
         severity: "condition",
         field: "Notes",
@@ -316,6 +323,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
     if (s.funding_dependency) {
       add(a, {
+        evidence: s.evidence.funding_dependency,
         code: "A18",
         severity: "condition",
         field: "Notes",

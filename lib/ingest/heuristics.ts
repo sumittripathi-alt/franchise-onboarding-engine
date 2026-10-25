@@ -2,7 +2,7 @@
 // first pass before Gemini answers. English plus common Hinglish/Kanglish and native-script words.
 // Applicant text is data only: nothing here is ever executed or obeyed.
 
-import type { Signals } from "@/lib/types";
+import type { EvidenceKey, SignalEvidence, Signals } from "@/lib/types";
 
 const UPPER_FLOOR =
   /\b(first|1st|second|2nd|third|3rd|upper|top)[\s-]*floor\b|\bupstairs\b|\bfloor\s*(1|2|3)\b|\bmele\s+(maḍi|madi|mahadi)\b|ಮೊದಲ\s*ಮಹಡಿ|ಮೇಲಿನ\s*ಮಹಡಿ|ಮೇಲ್ಮಹಡಿ|पहली\s*मंज़?िल|ऊपरी\s*मंज़?िल/iu;
@@ -52,38 +52,55 @@ export function describesRunningShop(textIn: string): boolean {
   return RUNNING_SHOP.test(textIn);
 }
 
+/** First match of `re` in any of the texts, as the exact substring of that text (the evidence). */
+function quote(re: RegExp, ...texts: string[]): string | null {
+  for (const t of texts) {
+    const m = t.match(re);
+    if (m) return m[0].trim();
+  }
+  return null;
+}
+
 export function extractSignalsHeuristic(input: { business: string; notes: string }): Signals {
+  const business = input.business ?? "";
   const notes = input.notes ?? "";
-  const all = `${input.business ?? ""}. ${notes}`;
+  const evidence: SignalEvidence = {};
+  const note = (key: EvidenceKey, q: string | null) => {
+    if (q) evidence[key] = q;
+    return q;
+  };
 
   // Floor claims come from the notes only: the business column describes past work, not this space.
   let floor: Signals["notes_floor_claim"] = null;
-  if (UPPER_FLOOR.test(notes)) floor = "Upper";
-  else if (GROUND_FLOOR.test(notes)) floor = "Ground";
-  else if (MALL.test(notes)) floor = "Mall unit";
+  if (note("notes_floor_claim", quote(UPPER_FLOOR, notes))) floor = "Upper";
+  else if (note("notes_floor_claim", quote(GROUND_FLOOR, notes))) floor = "Ground";
+  else if (note("notes_floor_claim", quote(MALL, notes))) floor = "Mall unit";
 
   let space: Signals["notes_space_claim"] = null;
-  if (SEARCHING.test(notes)) space = "searching";
-  else if (HAS_SPACE.test(notes)) space = "has_space";
+  if (note("notes_space_claim", quote(SEARCHING, notes))) space = "searching";
+  else if (note("notes_space_claim", quote(HAS_SPACE, notes))) space = "has_space";
 
-  const festival = FESTIVALS.find(([re]) => re.test(notes))?.[1] ?? null;
-  const sector = SECTORS.find(([re]) => re.test(all))?.[1] ?? null;
-  const yearsMatch = describesRunningShop(all) ? all.match(YEARS) : null;
+  const festival = FESTIVALS.find(([re]) => note("festival_deadline", quote(re, notes)))?.[1] ?? null;
+  const sector = SECTORS.find(([re]) => note("relevant_sector", quote(re, business, notes)))?.[1] ?? null;
+  const running = quote(RUNNING_SHOP, business, notes);
+  const years = running ? quote(YEARS, business, notes) : null;
+  note("years_running_shop_mentioned", years);
 
   const other: string[] = [];
-  if (/<[a-z/!][^>]*>/i.test(all)) other.push("contains_markup");
+  if (/<[a-z/!][^>]*>/i.test(`${business} ${notes}`)) other.push("contains_markup");
 
   return {
     relevant_sector: sector,
-    years_running_shop_mentioned: yearsMatch ? Number(yearsMatch[1]) : null,
+    years_running_shop_mentioned: years ? Number(years.match(/\d+/)![0]) : null,
     notes_floor_claim: floor,
     notes_space_claim: space,
     festival_deadline: festival,
-    absentee_owner: ABSENTEE.test(notes),
-    competitor_conflict: COMPETITORS.test(all),
-    funding_dependency: FUNDING.test(notes),
-    injection_attempt: INJECTION.test(all),
+    absentee_owner: !!note("absentee_owner", quote(ABSENTEE, notes)),
+    competitor_conflict: !!note("competitor_conflict", quote(COMPETITORS, business, notes)),
+    funding_dependency: !!note("funding_dependency", quote(FUNDING, notes)),
+    injection_attempt: !!note("injection_attempt", quote(INJECTION, business, notes)),
     other_flags: other,
     confidence: 0.5,
+    evidence,
   };
 }

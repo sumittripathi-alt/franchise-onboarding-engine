@@ -37,10 +37,10 @@ Judges score how well it solves the problem and how clearly it explains its reas
 - **Tailwind CSS** + **shadcn/ui** for components. Keep it clean and dense, like an ops tool.
 - **SheetJS (`xlsx`)**, installed from the official CDN tarball (`https://cdn.sheetjs.com/`), not the outdated npm version. **Parse files in the browser**, so you avoid Vercel's request body limit and keep data private.
 - **Zod** to validate every parsed row, every LLM output and every API payload.
-- **Zustand** for client state, saved to `sessionStorage` so a refresh doesn't lose work.
+- **Zustand** for client state, saved to `localStorage` so a refresh or a new tab doesn't lose work (each browser is still separate from every other judge's).
 - **Gemini** through the official `@google/genai` SDK, **server-side only** (`/app/api/*`). Model name comes from the env var `GEMINI_MODEL` (use a current fast Flash-class model), and the key from `GEMINI_API_KEY`. Never expose the key to the client. Use structured JSON output (response schema) and function calling.
 - **react-leaflet + Leaflet** for maps. Load the map component with `dynamic(..., { ssr: false })`, because Leaflet breaks server rendering. Use OSM or CARTO light tiles, with attribution shown.
-- **h3-js** for the hexagon heatmap layer only. Distances use the haversine formula.
+- Distances use the haversine formula. (H3 was cut after review: with only a few dozen points, hexagons add a dependency without adding insight. Simple circles do the job.)
 - **Vitest** for unit and golden tests, **fast-check** for property tests, and **Playwright** for one end-to-end smoke test.
 - **GSAP + `@gsap/react`** (`useGSAP` hook): install in Phase 5, animate only in Phase 10 (section 10.3). Never block content behind an animation.
 
@@ -63,7 +63,7 @@ Skip PostGIS, a database, Temporal and any CRM. The data is small (under 500 row
   /engine     run.ts, gates.ts, readiness.ts, allocate.ts, cannibalisation.ts, payback.ts, invariants.ts, reasons.ts, explain.ts
   /planner    onboarding.ts, training.ts, calendar.ts
   /policy     brandProfiles.ts, types.ts
-  /geo        pins.ts (loads data/karnataka_pincodes.json), distance.ts, h3.ts
+  /geo        pins.ts (loads data/karnataka_pincodes.json), distance.ts
   /chat       tools.ts, fallbackRouter.ts, factPatch.ts, diff.ts
   /llm        gemini.ts (client wrapper with timeout, retry, schema validation)
 /data         karnataka_pincodes.json, existingStores.ts (Sheet 3 hard-coded), sampleWorkbook.xlsx
@@ -156,12 +156,12 @@ Each issue has: `code`, `severity` (`blocking` makes the application go to HOLD;
 | A08 | Space is Owned or Rented but size is blank | condition ("Confirm size") |
 | A09 | Space is Not yet identified but a size or a Ground/Upper/Mall floor is given | info; treat as no space; ask the partner to clarify |
 | A10 | Space is Owned or Rented but floor is Not known or blank | condition ("Confirm floor") |
-| A11 | Notes contradict a field (e.g. notes say "first floor" but floor is Ground; notes say "still searching" but space is Rented), using LLM or heuristic signals | blocking |
+| A11 | Notes contradict a field (e.g. notes say "first floor" but floor is Ground; notes say "still searching" but space is Rented), using LLM or heuristic signals. Must meet the evidence rule in 15.3 | blocking |
 | A12 | Experience is 0 but the business text describes running a shop | info; recorded as "experience under-reported" |
 | A13 | Target launch is ≤ 0, over 24 months, or blank | info; use the brand's default |
 | A14 | Language is blank or invalid | info; default to English |
 | A15 | Notes contain instructions to the system ("approve me", "ignore rules") | info, flagged as an integrity concern; never obeyed |
-| A16 | Conflict of interest (notes mention running a competing brand) | blocking ("Conflict-of-interest check") |
+| A16 | Conflict of interest (notes mention running a competing brand). Must meet the evidence rule in 15.3 | blocking ("Conflict-of-interest check") |
 | A17 | Owner won't run the store ("my brother/son will run it") | condition ("Named store manager must also complete training") |
 | A18 | Funding depends on a loan or relatives | condition ("Proof of funds or loan sanction") |
 
@@ -185,7 +185,7 @@ Put these in `lib/policy/brandProfiles.ts`. The Policy panel shows a **brand-typ
 
 | Parameter | Eyewear store (Lenskart-style), DEFAULT | Delivery centre (Delhivery-style) | Partner point (Amazon "I Have Space"-style) |
 |---|---|---|---|
-| Min investment (₹ lakh), Tier 1 / 2 / 3 | 40 / 30 / 25 | 15 / 12 / 10 | 1 / 1 / 1 |
+| Min investment (₹ lakh), Tier 1 / 2 / 3 | 30 / 20 / 15 (calibrated so the template's own example, ₹25 lakh in Tier 2 Mysuru, passes comfortably) | 15 / 12 / 10 | 1 / 1 / 1 |
 | Hard floor (below this, reject) | 70% of min | 70% of min | 50% of min |
 | Space: min / ideal (sq ft) | 400 / 500–1000 | 600 / 800–2000 | 100 / 150–400 |
 | Ground | ✓ | ✓ | ✓ |
@@ -213,14 +213,16 @@ The brand-wide rule "one store per pin code" applies in **every** profile.
 
 ### 6.1 Statuses (exactly one per application)
 
-| Status | Meaning | Way out (always shown) |
-|---|---|---|
-| `APPROVED` | Slot and pin reserved, no conditions | Complete onboarding milestones |
-| `CONDITIONAL` | Slot reserved **if** the conditions are met by deadlines | Meet each condition, or the slot is released |
-| `HOLD` | Can't decide because of blocking data issues | Answer the listed clarifying questions |
-| `WAITLIST` | Eligible, but lost on slots, or the city is outside the current plan | Wait for a slot to free up (show their rank) |
-| `REDIRECT` | Good partner, but their pin is taken or unavailable; offered a specific alternative pin with a free slot (soft-reserved for 7 days) | Accept the offered pin |
-| `REJECT` | Fails a hard requirement | What would need to change to reapply |
+| Status (code) | Label shown to users | Meaning | Way out (always shown) |
+|---|---|---|---|
+| `APPROVED` | Approved | Slot and pin reserved, no conditions | Complete onboarding milestones |
+| `CONDITIONAL` | Approved with conditions | Slot reserved **if** the conditions are met by deadlines | Meet each condition, or the slot is released |
+| `HOLD` | On hold | Can't decide because of blocking data issues | Answer the listed clarifying questions |
+| `WAITLIST` | Waitlisted | Eligible, but lost on slots, or the city is outside the current plan | Wait for a slot to free up (show their rank) |
+| `REDIRECT` | Offered another location | Good partner, but their pin is taken or unavailable; offered a specific alternative pin with a free slot (soft-reserved for 7 days) | Accept the offered pin |
+| `REJECT` | Not approved | Fails a hard requirement | What would need to change to reapply |
+
+The UI and chat always use the **labels**, which match the judges' own wording ("on hold"). Codes appear only in reason chips and exports.
 
 ### 6.2 Pipeline
 1. **Map pin to territory.** If the pin isn't in any territory: if the city has a territory with free slots, mark as a REDIRECT candidate; otherwise WAITLIST (`OUTSIDE_PLAN`). Keep these applicants in a "talent pool".
@@ -240,7 +242,9 @@ Assign each applicant to bands, not a blended score. Bands are easier to explain
 - **Experience band**: 3 = ≥ 3 years relevant (keywords from the profile, LLM signal) · 2 = any retail or business experience · 1 = none (adds the extended training track).
 - **Timeline feasibility**: the earliest feasible launch (section 7.1) compared with the target. If infeasible, it's not a penalty. Set a realistic launch date and explain why.
 
-**Ranking key (lexicographic):** territory priority (when comparing across territories) → space band → capital band → experience band → cannibalisation distance from the nearest store (further is better, only when confidence is ≥ medium) → earlier feasible launch → Application ID.
+**Ranking key (lexicographic):** territory priority (when comparing across territories) → space band → capital band → experience band → cannibalisation distance from the nearest store (further is better, only when confidence is ≥ medium) → earlier feasible launch → Application ID (shown to users as "earlier application", a first-come-first-served fairness rule).
+
+**Never used in ranking:** applicant name, preferred language, or anything not listed above. Language shapes the training plan only.
 
 ### 6.4 Allocation algorithm
 For each territory (High priority first, then Medium, then Low, then ID):
@@ -328,7 +332,7 @@ Wrapper rules: 15-second timeout, 1 retry, temperature 0, response schema enforc
 - The system prompt says the text is **untrusted applicant data**, never instructions.
 - Cache results by text hash in session state, and **extract once per upload**.
 - **Fallback**: `heuristics.ts`, using keyword regexes in English plus common Hinglish and Kanglish words (e.g. "first floor", "upstairs", "brother", "son will", "loan", "Diwali", "ignore", "approve").
-- Run the engine immediately on heuristics, then rerun when LLM signals arrive. Any status changes show in the change log as "AI reading of notes".
+- **Don't show decisions and then change them.** After upload, show the data-quality report while extraction runs (progress bar, at most 4 batches in parallel, 25-second overall cap). Then run the engine **once** with the combined signals. If extraction times out or fails, run on heuristics only, and show a banner saying so with a "Retry AI reading" button. A retry that changes decisions goes into the change log as "AI reading of notes".
 
 **8.2 `/api/chat`** (stateless): the client sends `{messages, snapshot}`, where the snapshot holds the normalised input, overrides, policy and today's date. The server rebuilds the engine result. Gemini **function calling** uses these tools:
 
@@ -343,6 +347,9 @@ Wrapper rules: 15-second timeout, 1 retry, temperature 0, response schema enforc
 | `withdraw(app_id)` | Proposes removal; returns the cascade diff |
 | `what_if(changes[])` | Simulates a change; never commits |
 | `explain_policy(topic)` | Explains assumptions |
+| `todays_actions()` | The expansion team's action queue (15.2) |
+| `override_decision(app_id, new_status, reason)` | Human override, reason required, invariants enforced (15.4) |
+| `lock_decision(app_id)` | Marks a decision as sent to the partner (15.4) |
 
 **Fact-update fields allowed** (validate against the allowed values): space available, space size, floor, investment, experience, target launch, language, city + pin (relocation), notes (append), withdrawn. Territory: open slots, priority.
 
@@ -396,7 +403,6 @@ Show reason codes as small chips. After generating, check that every APP ID, TER
    - applicants coloured by status
    - lines between competitors
    - territory pins
-   - H3 hex density of applicants
    - **white space**: territory pins with free slots and no applicant, marked "recruit here"
    - a low-confidence marker style for uncertain pin locations
 5. **Policy**: brand switch, editable assumptions with rationale, today's date, a toggle for including the example row, and "Reset to defaults".
@@ -491,7 +497,7 @@ Every item has an ID. Each needs at least one automated test (or a manual check 
 
 ### G7. Sessions and reliability
 - **G7.1** No shared server state. Two browsers testing at once never see each other's data **[manual + e2e]**.
-- **G7.2** State persists in `sessionStorage` across refresh. A "Start over" button clears it.
+- **G7.2** State persists in `localStorage` across refresh and new tabs. A "Start over" button clears it.
 - **G7.3** Engine reruns are debounced, so rapid edits don't race each other.
 - **G7.4** "Today" defaults to the current date in IST (Asia/Kolkata) and can be changed in Settings.
 - **G7.5** `/api/health` returns `{ ok, geminiConfigured }`. The UptimeRobot monitor is set up **[manual]**.
@@ -504,6 +510,20 @@ Every item has an ID. Each needs at least one automated test (or a manual check 
 - **G8.3** Works at 375 px width **[e2e at mobile viewport]**.
 - **G8.4** Map failure (tiles blocked or offline) doesn't break the rest of the app; the Map tab shows a fallback message.
 - **G8.5** Motion respects `prefers-reduced-motion`, never blocks content, and is cleaned up on unmount.
+
+### G9. Operator-review guardrails (from section 15)
+- **G9.1** LLM evidence rule: a signal that creates a HOLD or condition without an exact quote from the applicant's text, or below 0.8 confidence, is downgraded to an info flag (test with made-up evidence).
+- **G9.2** Decisions marked "Sent to partner" are never displaced by later changes.
+- **G9.3** Human overrides need a reason, are logged and labelled, and can never break the one-store-per-pin rule or exceed slots without an explicit confirmation of who gets bumped.
+- **G9.4** Chat corrects wrong premises ("APP-007 isn't on hold; it's waitlisted because…").
+- **G9.5** ID and name lookup: "APP-7", "app 07", "APP007", "application 7" and applicant names all resolve; ambiguous names prompt a choice.
+- **G9.6** Several facts in one message become one commit with one diff.
+- **G9.7** The threshold sanity banner appears when a single rule affects more than 40% of applicants.
+- **G9.8** If the skipped example territory would have covered any applicant's pin, warn prominently with a one-click "Include it".
+- **G9.9** Fairness: shuffling names and preferred languages never changes any status (property test).
+- **G9.10** Reproducibility: the same file in two fresh sessions (LLM mocked) gives identical decisions.
+- **G9.11** Performance budgets in 15.10 are met on a 500-row file.
+- **G9.12** Every application has next steps, whatever its status: questions for On hold, rank and what would improve it for Waitlisted, what to change for Not approved.
 
 ---
 
@@ -537,6 +557,10 @@ Build it with SheetJS **in the exact template layout** (banner row 1, headers ro
 - A territory with a pin listed twice across territories
 - A territory with 0 slots
 - A territory with more slots than available pins
+- An applicant who **owns** space in a pin with an existing store (location offer must explain the owned space can't be used)
+- Target launch 3 months + "before Diwali" (the template's own contradiction)
+- An On-hold applicant who would win a pin if clarified (provisional win)
+- Two applicants with similar names ("Ravi Kumar", "Ravi K") for chat name lookup
 
 Write **golden expected statuses** for each case in `tests/fixtures/tricky.expected.json`, and a Vitest test that checks them. Add **fast-check** property tests that generate random valid workbooks and assert the section 6.7 invariants.
 
@@ -562,13 +586,88 @@ Also add **chat scenario tests** with the LLM mocked:
 ## 14. Build phases (stop, test and commit after each; wait for the go-ahead)
 1. **Scaffold**: Next.js, Tailwind, shadcn, Vitest, `.gitignore` (with `.env*`), CLAUDE.md, data files, `existingStores.ts`, `brandProfiles.ts`, types.
 2. **Ingestion**: parser, header matching, normalisation, data checks, data-quality report, fixture script + fixture, tests (G1, G2).
-3. **Engine**: gates, readiness, allocation, cannibalisation, payback, invariants, templated explanations, golden and property tests (G3). *This is the core. Get it right before any UI polish.*
+3. **Engine**: gates, readiness, allocation, cannibalisation, payback, invariants, templated explanations, locking, provisional wins, overrides, realistic location offers (15.4, 15.5), golden and property tests (G3, G9.2, G9.3, G9.9, G9.10). *This is the core. Get it right before any UI polish.*
 4. **Planner**: onboarding critical path, festival calendar, training plan, cohorts, tests.
-5. **Core UI**: set the visual direction (section 10.2) first. Then build the landing page, upload, overview, applications table, decision drawer, territories board and safe export (G6.4, G8). Install GSAP + `@gsap/react` and add `data-animate` hooks, but don't animate yet.
-6. **Gemini**: extraction + heuristics fallback; chat tools, fact patches, diff, undo, fallback router; partner messages; chat scenario tests (G4, G5).
-7. **Map**: Leaflet layers, H3 density, white space, low-confidence styling, map fallback (G8.4).
+5. **Core UI**: set the visual direction (section 10.2) first. Then build the landing page, upload, the decision sheet as the default view, batch insights, sanity banner, action queue (15.1, 15.2), overview, applications table, decision drawer, territories board and safe export (G6.4, G8). Install GSAP + `@gsap/react` and add `data-animate` hooks, but don't animate yet.
+6. **Gemini**: extraction with the evidence rule (15.3) + heuristics fallback; chat robustness (15.6); chat tools, fact patches, diff, undo, fallback router; partner messages; chat scenario tests (G4, G5).
+7. **Map**: Leaflet layers, white space, low-confidence styling, map fallback (G8.4).
 8. **Policy panel and brand switch**, with the diff summary.
 9. **Hardening**: work through the whole of section 11. Add the secret-leak check, rate limits and error states. Deploy, run Playwright against production (desktop + 375 px), set up the uptime monitor, and write `docs/GUARDRAILS_REPORT.md`.
 10. **Motion and polish**: GSAP per section 10.3 (cascade first), empty states, copy review, final mobile check. Re-run all tests afterwards, so motion hasn't broken anything.
 
-**Definition of done:** a judge can open the link, click "Try with sample data" or upload their file, see a decision with reasons and next steps for every application, ask why, give a new fact, watch the change and its knock-on effects, switch the brand type, and export, without hitting a login, error or blank screen. Every item in section 11 shows as passing in `docs/GUARDRAILS_REPORT.md`.
+**Definition of done:** a judge can open the link, click "Try with sample data" or upload their file, see a decision with reasons and next steps for every application, ask why, give a new fact, watch the change and its knock-on effects, switch the brand type, see the team's action queue, and export, without hitting a login, error or blank screen. Every item in section 11 shows as passing in `docs/GUARDRAILS_REPORT.md`.
+
+---
+
+## 15. Operator and judge review: additions (where this section differs from earlier ones, this section wins)
+
+### 15.1 Judge-first experience
+- **Decision sheet is the default view after upload.** One row per application with four columns that mirror the brief exactly: *what happens* (status label), *why* (one line), *what they do next* (the next single step), *how they'll be prepared* (training track + shadow store). Click any row to open the full drawer. Printable.
+- **Batch insights** at the top, generated by rules (not the LLM): status counts; oversubscribed territories with the ratio ("TER-02: 5 applicants for 2 slots"); slots with no applicants; the most common hold reason; contradictions found; applicants outside every territory.
+- **Threshold sanity banner**: if one rule affects more than 40% of applicants ("Capital below minimum: 9 of 20"), show "This rule is affecting most of this pool. Review it in Policy." This tells the judge the system knows its assumptions might not fit their data.
+- **Example rows**: if the skipped template example territory (TER-01, pins 570001/570002/570008) would have covered any applicant's pin, show a prominent warning with one-click "Include it". Judges may have kept it on purpose.
+- **Re-upload comparison**: if a second file is uploaded in the same session, offer "Compare with previous upload" and show the diff.
+- **Guided start**: four one-click suggestions on first load: see who's on hold and why; compare two competing applicants; give a new fact; switch the brand type.
+
+### 15.2 Expansion team action queue ("take the journey off their plate")
+A rules-generated list on the Overview, ordered by urgency. Each item has an owner, a due date and a one-click draft message:
+1. Calls to make: On hold partners, with the exact questions, in the partner's language.
+2. Conditions due within 7 days, and which waitlisted applicant gets the slot if one is missed.
+3. Location offers awaiting an answer (7-day expiry).
+4. Cannibalisation sign-offs needed, and existing partners to inform before an announcement.
+5. Recruit here: High-priority territories with free slots and no applicants (white-space pins).
+6. Training cohorts to schedule.
+
+Also available in chat as the tool `todays_actions()` ("What should the expansion team do this week?").
+
+### 15.3 LLM evidence rule (keeps decisions explainable and reproducible)
+- Any signal from Gemini that can create a HOLD or a condition must include an `evidence` field: an **exact quote** from the applicant's business or notes text. Code checks it's a real substring (ignoring case and extra spaces) **and** that confidence is at least 0.8. Otherwise the signal is downgraded to an info flag: "AI noticed a possible X. Please verify."
+- Heuristic matches use their matched text as the evidence.
+- The decision drawer shows the quote, so every note-based decision points to the applicant's own words.
+- Record the model name and extraction time in the decision record.
+
+### 15.4 Decision stability and human control
+- **Proposed vs sent.** Every decision is "Proposed" until the user clicks "Mark as sent to partner", which locks it. Later changes can't displace a locked Approved or Approved-with-conditions partner. A newcomer who would have outranked them is waitlisted with the reason "Slot already committed to APP-x on DATE". (In real operations, you don't take back a yes you've already given.)
+- **Provisional wins.** If an On-hold applicant would rank first for a pin once clarified, the current winner's decision says "Provisional for 7 days: APP-x ranks higher if their details are confirmed". The action queue chases that clarification.
+- **Human override** (UI button + chat tool `override_decision(app_id, new_status, reason)`): a reason is required, the override is logged and labelled "Human override" everywhere, and invariants still apply. If the override needs a full slot, show who would be bumped and ask for confirmation. The one-store-per-pin rule can never be overridden.
+- **"Disagree" button** on every decision captures a reason in a feedback log, which is included in the export. This is your evidence for "what happens when the tool is wrong" on slides 6–7.
+
+### 15.5 Making location offers realistic
+- Rank offer candidates: Space not yet identified first, then Rented (a lease can move), then Owned.
+- For Owned space, the offer explains: "This needs a new space. Your owned space in PIN can't host a store because ST-xx is already there."
+- Pick the offered pin from the same territory first, nearest to the applicant's pin, and outside an existing store's inner radius where possible.
+
+### 15.6 Chat robustness
+- **ID normalisation**: "APP-7", "app 07", "APP007", "application 7" and "#7" resolve to the file's own ID format. The same applies to territories.
+- **Names**: "Why is Ravi on hold?" uses fuzzy name matching; if there are several matches, ask which one.
+- **Premise check**: if a question assumes the wrong status, correct it first, then answer.
+- **Several facts in one message** ("found a 600 sq ft ground-floor shop and can now invest 30 lakh") → one commit, one diff.
+- **Relative facts** ("can invest 5 lakh more") → do the arithmetic and show the assumption.
+- **Follow-ups** ("and what about her training?") → use the last application mentioned.
+- **Fast path first**: the regex router handles common patterns instantly with template answers. Gemini handles everything else and polishes wording. This cuts both wait time and API usage.
+- Answers are 120 words or fewer by default, with "Show details". After a fact update, the affected drawer opens automatically.
+- A small chip under each answer shows the active brand profile.
+
+### 15.7 Notes and dates
+- **The template's own example is contradictory**: target launch 3 months, but "before Diwali" (8 Nov 2026, about 2 weeks after today's date). Rule: when a festival deadline and the target launch disagree, use the earlier date to test feasibility, flag "Notes and target launch disagree" (info, not hold), and propose a realistic date.
+- Target launch in months becomes a date: today (IST) + months.
+- A space more than 3× the ideal maximum gets an info flag: "Rent burden risk".
+
+### 15.8 Location honesty on the map
+- Pins with unknown coordinates are plotted at the city centre with a dashed "approximate" marker and a tooltip.
+- No decision should require the map to understand it; every map fact also appears in text.
+
+### 15.9 Partner messages
+- Labelled "Machine-drafted. Review before sending.", with an English back-translation.
+- Facts come only from the decision record. The message must never say "approved" unless the engine did.
+- It includes only the next 3 steps and their deadlines, with a "Copy" button and a WhatsApp share link (`https://wa.me/?text=`).
+
+### 15.10 Performance budgets
+- Parse + engine on 500 rows: under 2 seconds.
+- First decisions visible, including AI reading of notes: within 30 seconds.
+- Chat fast path: under 1 second. Chat with Gemini: under 8 seconds.
+- On day 1, check the provided Gemini key's rate limits in Google AI Studio. Expected usage: 1 extraction call per 20 applications per upload, plus 1–2 calls per chat message.
+
+### 15.11 Export
+- Sheet order: Summary, Decisions, Action queue, Conditions, Onboarding, Training cohorts, Partner messages, Data issues, Change log, Feedback.
+- The Decisions sheet keeps the input's column order and adds the decision columns at the end, so the team can work from it directly.

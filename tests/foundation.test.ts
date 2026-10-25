@@ -43,6 +43,10 @@ describe("brand profiles", () => {
     }
   });
 
+  it("uses the calibrated eyewear minimums (SPEC §5 after review)", () => {
+    expect(BRAND_PROFILES.eyewear.minInvestmentLakh).toEqual({ "Tier 1": 30, "Tier 2": 20, "Tier 3": 15 });
+  });
+
   it("encodes the spec's key differences", () => {
     expect(BRAND_PROFILES.eyewear.floorRules["Mall unit"].kind).toBe("ok");
     expect(BRAND_PROFILES.delivery.floorRules["Mall unit"].kind).toBe("condition");
@@ -54,7 +58,7 @@ describe("brand profiles", () => {
   it("defaultPolicy returns an independent copy", () => {
     const p = defaultPolicy();
     p.profile.minInvestmentLakh["Tier 1"] = 1;
-    expect(BRAND_PROFILES.eyewear.minInvestmentLakh["Tier 1"]).toBe(40);
+    expect(BRAND_PROFILES.eyewear.minInvestmentLakh["Tier 1"]).toBe(30);
   });
 
   it("computes payback = investment / (revenue × margin)", () => {

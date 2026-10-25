@@ -59,4 +59,17 @@ export const SignalsSchema = z.object({
   injection_attempt: z.boolean(),
   other_flags: z.array(z.string()),
   confidence: z.number().min(0).max(1),
+  evidence: z
+    .object({
+      relevant_sector: z.string(),
+      years_running_shop_mentioned: z.string(),
+      notes_floor_claim: z.string(),
+      notes_space_claim: z.string(),
+      festival_deadline: z.string(),
+      absentee_owner: z.string(),
+      competitor_conflict: z.string(),
+      funding_dependency: z.string(),
+      injection_attempt: z.string(),
+    })
+    .partial(),
 });

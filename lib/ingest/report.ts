@@ -23,6 +23,11 @@ export interface DataQualityReport {
   issues: Issue[];
   unmappedPins: UnmappedPin[];
   warnings: string[];
+  /**
+   * G9.8: the skipped example territory would have covered applicants' pins. Shown prominently,
+   * with a one-click "Include it" (Phase 5).
+   */
+  exampleTerritoryWarning: string | null;
   /** One-line, human summary for the top of the report. */
   summary: string;
 }
@@ -54,6 +59,14 @@ export function buildDataQualityReport(
       : `Row ${e.row} of ${e.sheet} is the template's example row and was included (toggle on).`,
   );
 
+  const ex = parse.skippedExampleTerritory;
+  const exampleTerritoryWarning =
+    ex && ex.covers.length
+      ? `The template's example territory (${ex.id}, row ${ex.row}: ${ex.pins.join(", ")}) was skipped, but it covers ` +
+        `the pin of ${ex.covers.map((c) => `${c.applicationId} (${c.pin})`).join(", ")}. ` +
+        "If you kept it on purpose, include it."
+      : null;
+
   const summary =
     `Read ${parse.applicationRowsRead} application${parse.applicationRowsRead === 1 ? "" : "s"} and ` +
     `${parse.territoryRowsRead} territor${parse.territoryRowsRead === 1 ? "y" : "ies"}. ` +
@@ -70,7 +83,8 @@ export function buildDataQualityReport(
     issueCounts,
     issues: checks.issues,
     unmappedPins,
-    warnings: [...exampleNotes, ...parse.warnings, ...checks.warnings],
+    warnings: [...(exampleTerritoryWarning ? [exampleTerritoryWarning] : []), ...exampleNotes, ...parse.warnings, ...checks.warnings],
+    exampleTerritoryWarning,
     summary,
   };
 }

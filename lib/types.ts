@@ -55,6 +55,23 @@ export interface Territory {
 
 // ---------- Free-text signals (SPEC §8.1) ----------
 
+export type EvidenceKey =
+  | "relevant_sector"
+  | "years_running_shop_mentioned"
+  | "notes_floor_claim"
+  | "notes_space_claim"
+  | "festival_deadline"
+  | "absentee_owner"
+  | "competitor_conflict"
+  | "funding_dependency"
+  | "injection_attempt";
+
+/**
+ * Exact quote from the applicant's business or notes text behind each signal (SPEC §15.3).
+ * Heuristics use their matched text; Gemini must supply one for any signal that can create a hold or condition.
+ */
+export type SignalEvidence = Partial<Record<EvidenceKey, string>>;
+
 /** Signals pulled from "Current / past business" and "Notes", by Gemini or by the heuristic fallback. */
 export interface Signals {
   relevant_sector: string | null;
@@ -68,6 +85,7 @@ export interface Signals {
   injection_attempt: boolean;
   other_flags: string[];
   confidence: number;
+  evidence: SignalEvidence;
 }
 
 // ---------- Data checks (SPEC §4) ----------
@@ -90,6 +108,8 @@ export interface Issue {
   message: string;
   /** Question to ask the partner, where one makes sense. */
   question?: string;
+  /** Exact quote from the applicant's text, for issues raised from notes (SPEC §15.3). */
+  evidence?: string;
 }
 
 // ---------- Decisions (SPEC §6) ----------
@@ -97,13 +117,14 @@ export interface Issue {
 export const STATUSES = ["APPROVED", "CONDITIONAL", "HOLD", "WAITLIST", "REDIRECT", "REJECT"] as const;
 export type Status = (typeof STATUSES)[number];
 
+/** Users always see the label (SPEC §6.1); codes appear only in reason chips and exports. */
 export const STATUS_META: Record<Status, { label: string; wayOut: string }> = {
   APPROVED: { label: "Approved", wayOut: "Complete onboarding milestones" },
-  CONDITIONAL: { label: "Conditional", wayOut: "Meet each condition, or the slot is released" },
-  HOLD: { label: "Hold", wayOut: "Answer the listed clarifying questions" },
-  WAITLIST: { label: "Waitlist", wayOut: "Wait for a slot to free up" },
-  REDIRECT: { label: "Redirect", wayOut: "Accept the offered pin" },
-  REJECT: { label: "Reject", wayOut: "See what would need to change to reapply" },
+  CONDITIONAL: { label: "Approved with conditions", wayOut: "Meet each condition, or the slot is released" },
+  HOLD: { label: "On hold", wayOut: "Answer the listed clarifying questions" },
+  WAITLIST: { label: "Waitlisted", wayOut: "Wait for a slot to free up" },
+  REDIRECT: { label: "Offered another location", wayOut: "Accept the offered pin" },
+  REJECT: { label: "Not approved", wayOut: "See what would need to change to reapply" },
 };
 
 export type ReasonCode =

@@ -2,7 +2,7 @@
 
 # Franchise Partner Onboarding Engine
 
-The source of truth is `docs/SPEC.md`. Read it before changing behaviour. Build in the phases in SPEC §14; after each phase run all tests, commit, summarise, and wait for the user's go-ahead.
+The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC §15 (operator review) wins wherever it conflicts with earlier sections.** Client state goes in `localStorage`; no H3/h3-js. Build in the phases in SPEC §14; after each phase run all tests, commit, summarise, and wait for the user's go-ahead.
 
 ## Principles (SPEC §0)
 1. **Rules decide, the LLM explains.** Decisions come only from the deterministic engine in `lib/engine`. Gemini only extracts signals from free text, routes chat to tools, and phrases explanations. The app must work fully with `GEMINI_API_KEY` unset.

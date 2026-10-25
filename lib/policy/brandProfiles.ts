@@ -8,7 +8,7 @@ const eyewear: BrandProfile = {
   label: "Eyewear store",
   styleHint: "Lenskart-style",
   description: "Walk-in optical retail with an in-store eye test.",
-  minInvestmentLakh: { "Tier 1": 40, "Tier 2": 30, "Tier 3": 25 },
+  minInvestmentLakh: { "Tier 1": 30, "Tier 2": 20, "Tier 3": 15 },
   hardFloorPct: 0.7,
   space: { minSqft: 400, idealMinSqft: 500, idealMaxSqft: 1000 },
   floorRules: {
@@ -36,7 +36,8 @@ const eyewear: BrandProfile = {
   ],
   defaultTargetLaunchMonths: 4,
   rationale: {
-    minInvestmentLakh: "Fit-out, eye-test equipment and opening stock for a 500–1000 sq ft store.",
+    minInvestmentLakh:
+      "Fit-out, eye-test equipment and opening stock; calibrated so the template's own example (₹25 lakh, Tier 2 Mysuru) passes comfortably.",
     hardFloorPct: "Below 70% of the minimum, a partner cannot fund fit-out even with a loan.",
     space: "Needs room for a testing room, display and try-on area.",
     floorRules: "Walk-in footfall drops sharply above ground level.",
