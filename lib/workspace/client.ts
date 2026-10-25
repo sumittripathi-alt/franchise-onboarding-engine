@@ -258,6 +258,7 @@ export class WorkspaceClient {
       ...(spec.overrides?.length ? { overrides: spec.overrides } : {}),
       ...(spec.set && Object.keys(spec.set).length ? { set: spec.set } : {}),
       ...(spec.signals && Object.keys(spec.signals).length ? { signals: spec.signals } : {}),
+      ...(spec.policy ? { policy: spec.policy } : {}),
       ...(spec.directKeys?.length ? { directKeys: spec.directKeys } : {}),
     };
     const valid = ChangePayloadSchema.safeParse(payload);

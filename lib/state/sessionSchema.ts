@@ -115,6 +115,11 @@ export const ChangeEntrySchema = z.object({
   set: SettingsSchema.partial().optional(),
   /** What the AI read from applicants' notes (a retry of "Read notes with AI"), by application key. */
   signals: z.record(z.string(), SignalsSchema).optional(),
+  /** Edited assumptions for one brand type, or a reset of them. */
+  policy: z.union([
+    z.object({ profileId: z.enum(["eyewear", "delivery", "partner_point"]), edits: z.array(z.object({ path: z.string(), value: z.number() })) }),
+    z.object({ profileId: z.enum(["eyewear", "delivery", "partner_point"]), reset: z.literal(true) }),
+  ]).optional(),
   diff: diffSummary,
 });
 

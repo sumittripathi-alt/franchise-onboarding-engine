@@ -5,6 +5,7 @@ import { z } from "zod";
 import { CITY_NAMES, FLOORS, LANGUAGES, PRIORITIES, SPACE_AVAILABLE } from "@/lib/policy/allowedValues";
 import { parseCity, parseFloor, parseLakh, parseLanguage, parseNumber, parsePin, parseSpaceAvailable } from "@/lib/ingest/normalise";
 import { SignalsSchema } from "@/lib/ingest/schemas";
+import { fieldFor, validateAgainstDefaults } from "@/lib/policy/edits";
 import { BrandProfileSchema, FactPatchSchema, HumanOverrideSchema, LockSchema, SessionSchema, SettingsSchema } from "@/lib/state/sessionSchema";
 
 export const MAX_BASE_BYTES = 2 * 1024 * 1024;
@@ -86,12 +87,23 @@ export const ChangePayloadSchema = z
     overrides: z.array(HumanOverrideSchema).min(1).max(50).optional(),
     set: SettingsSchema.partial().strict().optional(),
     signals: z.record(z.string().max(100), SignalsSchema).refine((r) => Object.keys(r).length >= 1 && Object.keys(r).length <= 40, "1 to 40 applications").optional(),
+    policy: z
+      .union([
+        z.object({ profileId: z.enum(["eyewear", "delivery", "partner_point"]), edits: z.array(z.object({ path: z.string().max(60), value: z.number().finite() }).strict()).min(1).max(16) }).strict(),
+        z.object({ profileId: z.enum(["eyewear", "delivery", "partner_point"]), reset: z.literal(true) }).strict(),
+      ])
+      .optional(),
     directKeys: z.array(z.string().max(100)).max(50).optional(),
   })
   .strict()
   .superRefine((p, ctx) => {
-    if (!p.facts && !p.locks && !p.overrides && !p.signals && !(p.set && Object.keys(p.set).length)) {
-      ctx.addIssue({ code: "custom", message: "a change must contain facts, locks, overrides, signals or settings" });
+    if (!p.facts && !p.locks && !p.overrides && !p.signals && !p.policy && !(p.set && Object.keys(p.set).length)) {
+      ctx.addIssue({ code: "custom", message: "a change must contain facts, locks, overrides, signals, assumptions or settings" });
+    }
+    if (p.policy && "edits" in p.policy) {
+      for (const e of p.policy.edits) if (!fieldFor(e.path)) ctx.addIssue({ code: "custom", path: ["policy"], message: `"${e.path}" isn't a setting that can be changed` });
+      const problem = validateAgainstDefaults(p.policy.profileId, p.policy.edits);
+      if (problem) ctx.addIssue({ code: "custom", path: ["policy"], message: problem });
     }
     for (const f of p.facts ?? []) {
       const problem = checkFactValue(f);
@@ -108,6 +120,7 @@ export function classifyChange(p: ChangePayload): Exclude<EventType, "undo"> {
   if (p.facts?.some((f) => f.field === "withdrawn")) return "withdraw";
   if (p.facts?.some((f) => f.target === "application")) return "fact";
   if (p.facts) return "territory_fact";
+  if (p.policy) return "policy_change";
   if (p.signals) return "fact";
   if (p.overrides) return "override";
   if (p.locks) return "lock";

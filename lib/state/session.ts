@@ -4,6 +4,7 @@
 
 import { diffResults, EMPTY_DIFF, type DiffSummary } from "@/lib/chat/diff";
 import { BRAND_PROFILES, defaultPolicy } from "@/lib/policy/brandProfiles";
+import { applyEdits, foldPolicyEntries, type PolicyEdit } from "@/lib/policy/edits";
 import type { BrandProfile, BrandProfileId, Policy } from "@/lib/policy/types";
 import { runEngineChecked } from "@/lib/engine/run";
 import type { EngineInput, EngineResult, FactPatch, HumanOverride, Lock } from "@/lib/engine/types";
@@ -67,6 +68,8 @@ export function newSession(args: {
 // ---------- Effective state ----------
 
 export interface Effective {
+  /** Edited assumptions by brand type (after any resets). */
+  policyEdits: Partial<Record<BrandProfileId, PolicyEdit[]>>;
   /** Signals read from notes after the upload, which replace the uploaded ones for those applications. */
   signals: Record<string, Signals>;
   settings: Settings;
@@ -90,13 +93,14 @@ export function effective(session: Session): Effective {
     if (e.locks) locks.push(...(e.locks as Lock[]));
     if (e.overrides) overrides.push(...(e.overrides as HumanOverride[]));
   }
-  return { signals, settings, facts, locks, overrides };
+  return { signals, policyEdits: foldPolicyEntries(session.entries as Parameters<typeof foldPolicyEntries>[0]), settings, facts, locks, overrides };
 }
 
 /** The brand profile in force: the session's stored profile (with edits), or the defaults of another brand type. */
 export function effectivePolicy(session: Session, profileId: BrandProfileId): Policy {
-  if (profileId === session.policy.id) return { profileId, profile: structuredClone(session.policy) };
-  return defaultPolicy(profileId);
+  const base = profileId === session.policy.id ? structuredClone(session.policy) : defaultPolicy(profileId).profile;
+  const edits = foldPolicyEntries(session.entries as Parameters<typeof foldPolicyEntries>[0])[profileId];
+  return { profileId, profile: applyEdits(base, edits) };
 }
 
 /** The applications and territories the engine sees: the example rows are included on request. */
@@ -205,6 +209,8 @@ export interface ChangeSpec {
   set?: Partial<Settings>;
   /** AI reading of notes, by application key (source "ai_notes"). */
   signals?: Record<string, Signals>;
+  /** Edited assumptions for one brand type, or a reset of them. */
+  policy?: { profileId: BrandProfileId; edits: PolicyEdit[] } | { profileId: BrandProfileId; reset: true };
   /** Applications the change is about; everything else that moves is a knock-on effect. */
   directKeys?: string[];
 }
@@ -232,6 +238,7 @@ function entryFrom(session: Session, spec: ChangeSpec, now: string): ChangeEntry
   if (spec.overrides?.length) entry.overrides = spec.overrides;
   if (spec.set && Object.keys(spec.set).length) entry.set = spec.set;
   if (spec.signals && Object.keys(spec.signals).length) entry.signals = spec.signals;
+  if (spec.policy) entry.policy = spec.policy;
   return entry;
 }
 
