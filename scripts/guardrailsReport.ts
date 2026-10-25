@@ -12,8 +12,11 @@ interface Rule {
   unit?: string[];
   e2e?: string[];
   script?: "bundle";
+  /** Something only a person can do remains: the guardrail shows as MANUAL, not PASS, with this said. */
   manual?: string;
   pending?: string;
+  /** Context worth stating next to a result. */
+  note?: string;
 }
 
 const RULES: Record<string, Rule> = {
@@ -25,9 +28,10 @@ const RULES: Record<string, Rule> = {
   "G5.3": { unit: ["'APP-003 has withdrawn' removes them", "'TER-02 now has 2 slots' changes the territory"] },
   "G6.1": { script: "bundle" },
   "G6.2": { unit: [".env files are ignored by git"] },
+  "G6.6": { note: "The count is kept in each server instance's memory, as specified, so a script spread across several instances at once can exceed it. The cost backstop is a spend cap in Google AI Studio, which only you can set." },
   "G7.2": { unit: ["a refresh restores the workspace"], e2e: ["G7.2"] },
   "G7.5": { unit: ["every AI route answers 503 with no key"], e2e: ["G7.5"], manual: "The UptimeRobot monitor on /api/health is not set up yet: it needs an account only you can create (https://uptimerobot.com, HTTP monitor on https://onboarding-engine-dun.vercel.app/api/health, every 5 minutes)." },
-  "G7.7": { e2e: ["G7.7"] },
+  "G7.7": { e2e: ["G7.7"], note: "Checked from a fresh browser with no cookies: the page loads with no login. Vercel's protection is on its standard setting, which leaves the production URL open and asks for a login only on the long per-deployment URLs." },
   "G8.4": { pending: "Phase 7 (the map) is not built yet." },
   "G8.5": { pending: "Phase 10 (motion) is not built yet." },
   "G9.1": { unit: ["the evidence rule (SPEC §15.3)"] },
@@ -96,9 +100,10 @@ for (const g of guardrails) {
   const failed = u.some((t) => !t.ok && !t.skipped) || e.some((t) => !t.ok) || (rule.script === "bundle" && !bundle.ok);
   if (rule.pending) result = "PENDING";
   else if (failed) result = "FAIL";
-  else if (tests.length === 0) result = rule.manual ? "MANUAL" : "NO TEST";
+  else if (rule.manual) result = "MANUAL";
+  else if (tests.length === 0) result = "NO TEST";
   else result = "PASS";
-  rows.push({ id: g.id, text: g.text, tests, result, note: rule.pending ?? (rule.manual && result !== "FAIL" ? rule.manual : undefined) });
+  rows.push({ id: g.id, text: g.text, tests, result, note: rule.pending ?? rule.manual ?? rule.note });
 }
 
 const count = (r: Result) => rows.filter((x) => x.result === r).length;
