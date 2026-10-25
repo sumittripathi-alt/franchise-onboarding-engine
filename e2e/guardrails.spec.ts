@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type APIResponse } from "@playwright/test";
 import { buildTemplateWorkbook, workbookBytes } from "../lib/ingest/templateWorkbook";
 import { TRICKY_APPLICATIONS, TRICKY_TERRITORIES } from "../tests/fixtures/trickyData";
-import { ask, noHorizontalScroll, noteWorkspace, openTab, startSample } from "./helpers";
+import { ask, noHorizontalScroll, noteWorkspace, openTab, settle, startSample } from "./helpers";
 
 const STACK = /\n\s+at .+\(.+:\d+:\d+\)|node_modules|webpack-internal|TypeError:|ReferenceError:/;
 
@@ -171,6 +171,7 @@ test.describe("G7 sessions and reliability", () => {
 test.describe("G8 accessibility and layout", () => {
   test("G8.1 no WCAG A or AA violations, including colour contrast, on the main screens", async ({ page }, info) => {
     const check = async (label: string) => {
+      await settle(page);
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
       const found = r.violations.map((v) => `${label}: ${v.id} (${v.impact}) ${v.nodes.length} node(s): ${v.nodes[0]?.html.slice(0, 120)}`);
       expect(found, found.join("\n")).toEqual([]);

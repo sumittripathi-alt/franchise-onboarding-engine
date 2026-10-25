@@ -1,12 +1,12 @@
 # Guardrails report
 
-Generated 2026-10-25 22:29 UTC by `npm run guardrails` from real test results. Nothing here is marked by hand.
+Generated 2026-10-25 23:11 UTC by `npm run guardrails` from real test results. Nothing here is marked by hand.
 
-- Unit tests: 353 passed of 353 (0 skipped).
-- Browser tests: 24 passed of 24 (2 projects against https://onboarding-engine-dun.vercel.app, results from 2026-10-25 22:28 UTC).
-- Secret scan of the browser bundle: G10.4 passed: scanned 22 browser files; no secret names, key shapes or secret values.
+- Unit tests: 372 passed of 372 (0 skipped).
+- Browser tests: 40 passed of 40 (2 projects against https://onboarding-engine-dun.vercel.app, results from 2026-10-25 23:11 UTC).
+- Secret scan of the browser bundle: G10.4 passed: scanned 24 browser files; no secret names, key shapes or secret values.
 
-**70 passed, 0 failed, 2 waiting on a later phase, 1 manual, 0 without a test**, out of 73 guardrails.
+**72 passed, 0 failed, 0 waiting on a later phase, 1 manual, 0 without a test**, out of 73 guardrails.
 
 | ID | Guardrail | Test(s) | Result |
 |---|---|---|---|
@@ -44,7 +44,7 @@ Generated 2026-10-25 22:29 UTC by `npm run guardrails` from real test results. N
 | G5.2 | Ambiguous updates are applied with a visible assumption, and the unknown parts become conditions. | unit: G5.2 and G5.4 chat changes: assumptions become conditions, and every change is logged and undoable 'found a ground-floor space' with no size leaves 'confirm the size' as a condition | **PASS** |
 | G5.3 | Withdrawals and slot changes trigger a full rerun, and the diff shows every knock-on effect. | unit: chat scenarios, with the AI off (G4.1) 'APP-003 has withdrawn' removes them and shows the knock-on effects; unit: chat scenarios, with the AI off (G4.1) 'TER-02 now has 2 slots' changes the territory and shows the slot change | **PASS** |
 | G5.4 | Every change is in the change log with its source and can be undone. | unit: G5.2 and G5.4 chat changes: assumptions become conditions, and every change is logged and undoable 'found a ground-floor space' with no size leaves 'confirm the size' as a condition | **PASS** |
-| G6.1 | The Gemini key is used only on the server. A build check greps .next/static for the key and fails if it's found. | script: npm run check:bundle: G10.4 passed: scanned 22 browser files; no secret names, key shapes or secret values. | **PASS** |
+| G6.1 | The Gemini key is used only on the server. A build check greps .next/static for the key and fails if it's found. | script: npm run check:bundle: G10.4 passed: scanned 24 browser files; no secret names, key shapes or secret values. | **PASS** |
 | G6.2 | .env* is in .gitignore; no secrets are in the repo or the logs. | unit: G10.4 no secret in the browser .env files are ignored by git and no environment file is committed | **PASS** |
 | G6.3 | Applicant text is rendered as plain text only (no dangerouslySetInnerHTML), so pasted HTML or script can't run. | unit: G6.3 and G6.5 and G6.7 code rules G6.3 nothing is rendered as HTML except the constant theme script; unit: G6.3 and G6.5 and G6.7 code rules G6.3 applicant text goes through React's escaping: markup in a name comes out as text; unit: G6.3 and G6.5 and G6.7 code rules G6.5 every API route goes through a wrapper that validates, limits and turns failures into clean JSON; and 2 more | **PASS** |
 | G6.4 | Excel export is safe from formula injection: any cell starting with =, +, -, @, tab or carriage return is prefixed with '. | unit: safe export (G6.4) prefixes any text that a spreadsheet would read as a formula; unit: safe export (G6.4) has the sheets in the specified order, and the Decisions sheet keeps the input's column order; unit: safe export (G6.4) no cell in any sheet can run as a formula, even when an applicant writes one; and 1 more | **PASS** |
@@ -63,8 +63,8 @@ Generated 2026-10-25 22:29 UTC by `npm run guardrails` from real test results. N
 | G8.1 | Status is always shown with a text label, never colour alone. Colour contrast meets WCAG AA. | unit: G8.1 status is always a word every status chip contains its text label, in every size; browser: G8 accessibility and layout › G8.1 no WCAG A or AA violations, including colour contrast, on the main screens | **PASS** |
 | G8.2 | Keyboard navigation and visible focus states throughout. | browser: G8 accessibility and layout › G8.2 everything can be reached and used from the keyboard, with a visible focus ring | **PASS** |
 | G8.3 | Works at 375 px width [e2e at mobile viewport]. | browser: G8 accessibility and layout › G8.3 nothing scrolls sideways on any screen at the current width | **PASS** |
-| G8.4 | Map failure (tiles blocked or offline) doesn't break the rest of the app; the Map tab shows a fallback message. | none — Phase 7 (the map) is not built yet. | **PENDING** |
-| G8.5 | Motion respects prefers-reduced-motion, never blocks content, and is cleaned up on unmount. | none — Phase 10 (motion) is not built yet. | **PENDING** |
+| G8.4 | Map failure (tiles blocked or offline) doesn't break the rest of the app; the Map tab shows a fallback message. | unit: G8.4 the map's data, and the same facts in words has every existing store, with a ring from the policy's radius for its city tier (only where the location is reliable); unit: G8.4 the map's data, and the same facts in words puts every applicant with a pin on the map, labelled with its decision; unit: G8.4 the map's data, and the same facts in words marks uncertain locations as approximate and says why; reliable ones are exact; and 9 more | **PASS** |
+| G8.5 | Motion respects prefers-reduced-motion, never blocks content, and is cleaned up on unmount. | unit: G8.5 motion rules every duration is held between 150 and 350 ms, whatever is asked for; unit: G8.5 motion rules a stagger never adds more than the budget, however many items there are; unit: G8.5 motion rules people who prefer reduced motion get no animation at all; and 12 more | **PASS** |
 | G9.1 | LLM evidence rule: a signal that creates a HOLD or condition without an exact quote from the applicant's text, or below 0.8 confidence, is downgraded to an info flag (test with made-up evidence). | unit: the evidence rule (SPEC §15.3) finds a quote ignoring case and extra spaces, and returns the applicant's own spelling; unit: the evidence rule (SPEC §15.3) uses a signal that has a real quote and enough confidence; unit: the evidence rule (SPEC §15.3) downgrades a claim with a made-up quote to an information note; and 5 more | **PASS** |
 | G9.2 | Decisions marked "Sent to partner" are never displaced by later changes. | unit: G9.2 decisions sent to the partner are never displaced a newcomer who would outrank a locked partner is waitlisted with 'slot already committed'; unit: G9.2 decisions sent to the partner are never displaced a locked partner keeps its slot when the territory's slots are cut, and the territory is flagged; unit: G9.2 decisions sent to the partner are never displaced a locked partner is not marked provisional; and 1 more | **PASS** |
 | G9.3 | Human overrides need a reason, are logged and labelled, and can never break the one-store-per-pin rule or exceed slots without an explicit confirmation of who gets bumped. | unit: G9.3 human overrides needs a reason; unit: G9.3 human overrides shows everyone the cascade would move and waits for confirmation; unit: G9.3 human overrides applies once the bumps are confirmed, labelled as a human override; and 4 more | **PASS** |

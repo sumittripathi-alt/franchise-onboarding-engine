@@ -39,3 +39,11 @@ export async function ask(page: Page, text: string) {
 
 export const noHorizontalScroll = async (page: Page) =>
   page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+
+/** Wait until the page has started and no animation is running, so colours and positions are measured at rest. */
+export async function settle(page: Page) {
+  await page.waitForFunction(() => (window as unknown as { __motion?: unknown }).__motion !== undefined);
+  await page.waitForTimeout(500); // hydration, and any animation it starts
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __motion: { active: () => number } }).__motion.active()), { timeout: 5000 }).toBe(0);
+  await page.waitForTimeout(150); // CSS transitions
+}

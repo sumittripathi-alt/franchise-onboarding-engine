@@ -24,4 +24,8 @@ The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC
 - `npm run lint` — ESLint
 - `npm run build` — production build
 - `npm run fixtures` — regenerate the tricky fixture, sample workbook and blank template
+- `npx playwright test` — browser tests (desktop and 375 px) against production, or `E2E_BASE_URL=http://localhost:3000`; they record the workspaces they make in `e2e/created-workspaces.txt` so they can be deleted afterwards
+- `npm run build && npm run check:bundle` — build, then scan the browser bundle for secrets (G10.4)
+- `npm run guardrails` — regenerate `docs/GUARDRAILS_REPORT.md` from the real unit and browser results
+- Deploy by hand with `vercel deploy --prod` (Vercel's production branch is `release`; pushes to `main` only make previews). Commits must use the GitHub no-reply email or Vercel blocks the deployment.
 - `npm run decide <file.xlsx> -- [--today=YYYY-MM-DD] [--profile=eyewear|delivery|partner_point] [--full] [--plans=APP-001,APP-019]` — print every decision as a table; `--plans` adds onboarding (text Gantt + checklist) and training plans
