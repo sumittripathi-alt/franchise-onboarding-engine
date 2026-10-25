@@ -235,13 +235,13 @@ describe("decide-output review fixes", () => {
   });
 
   it("6. an infeasible festival deadline is in the one-line why, with the earliest realistic date", () => {
-    expect(d("APP-026").headline).toMatch(/^Opening before Diwali \(8 Nov\) isn't possible without a space; earliest realistic opening is 1 Mar 2027\./);
+    expect(d("APP-026").headline).toMatch(/^Opening before Diwali \(8 Nov\) isn't possible without a space; earliest realistic opening is 16 Feb 2027\./);
   });
 
   it("7. not feasible only when more than 14 days late; otherwise a tight timeline", () => {
-    expect(d("APP-012").launch?.gapDays).toBe(4);
-    expect(d("APP-012").reasonCodes).toContain("TIGHT_TIMELINE");
-    expect(d("APP-012").reasonCodes).not.toContain("TARGET_NOT_FEASIBLE");
+    expect(d("APP-031").launch?.gapDays).toBe(1);
+    expect(d("APP-031").reasonCodes).toContain("TIGHT_TIMELINE");
+    expect(d("APP-031").reasonCodes).not.toContain("TARGET_NOT_FEASIBLE");
     expect(d("APP-029").launch!.gapDays).toBeGreaterThan(14);
     expect(d("APP-029").reasonCodes).toContain("TARGET_NOT_FEASIBLE");
   });

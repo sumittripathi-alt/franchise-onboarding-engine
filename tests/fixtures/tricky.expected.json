@@ -33,7 +33,8 @@
       "pin": "560024",
       "codes": [
         "NO_SLOT",
-        "REDIRECT_OFFERED"
+        "REDIRECT_OFFERED",
+        "TARGET_NOT_FEASIBLE"
       ]
     },
     "APP-005": {
@@ -95,8 +96,7 @@
     "APP-012": {
       "status": "WAITLIST",
       "codes": [
-        "NO_SLOT",
-        "TIGHT_TIMELINE"
+        "NO_SLOT"
       ],
       "rank": 5,
       "wanted": "TER-02",
@@ -194,8 +194,7 @@
     "APP-024": {
       "status": "WAITLIST",
       "codes": [
-        "NO_SLOT",
-        "TIGHT_TIMELINE"
+        "NO_SLOT"
       ],
       "rank": 6,
       "wanted": "TER-02"
@@ -256,7 +255,8 @@
       "status": "APPROVED",
       "pin": "560077",
       "codes": [
-        "CLEAN_WIN"
+        "CLEAN_WIN",
+        "TIGHT_TIMELINE"
       ]
     },
     "APP-032": {

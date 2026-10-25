@@ -47,7 +47,6 @@ export const TRICKY_APPLICATIONS: Row[] = [
   // Pin 560010 is in no territory; Rented, (3,3,2) → second must-move offer → OFFERED ANOTHER LOCATION (560058).
   ["APP-011", "Fatima Begum", "Bengaluru", "Karnataka", "560010", "52 lakh", 2, "Runs a bakery", "Rented", 500, "Ground", 4, "English", ""],
   // No space, (1,3,3); ranks below APP-019 for TER-02's single slot → WAITLIST #5 in Bengaluru, next in line for TER-02 (pre-onboarding).
-  // Tight timeline: the no-space plan ends 4 days after the 4-month target.
   // Chat: "found a ground-floor space" → (2,3,3) → APPROVED WITH CONDITIONS (confirm size); APP-019 → WAITLIST.
   ["APP-012", "Lakshmi Prasad", "Bengaluru", "Karnataka", 560048, 55, 3, "Runs a saree and apparel shop", "not yet identified", null, null, 4, "Kannada", "Looking for a shop near Hoodi"],
   // Same pin as APP-014 with identical data, (3,2,2) → wins by Application ID only; fourth in TER-01 → WAITLIST #2 in Bengaluru.
@@ -74,7 +73,7 @@ export const TRICKY_APPLICATIONS: Row[] = [
   ["APP-022", "Sunita Desai", "Belagavi", "Karnataka", 590006, 40, 5, "Apparel retail", "Rented", 500, "Ground", 4, null, ""],
   // Owned with blank size (A08), (2,3,3) → APPROVED WITH CONDITIONS (confirm size).
   ["APP-023", "Naveen Kumar", "Bengaluru", "Karnataka", 560084, 50, 4, "Apparel store", "owned", null, "Ground", 4, "Kannada", ""],
-  // Not yet identified + size 600 + Ground (A09) → treated as no space, (1,2,3) → WAITLIST #6 in Bengaluru; tight timeline.
+  // Not yet identified + size 600 + Ground (A09) → treated as no space, (1,2,3) → WAITLIST #6 in Bengaluru.
   ["APP-024", "Pooja Shenoy", "Bengaluru", "Karnataka", 560036, 33, 3, "Retail", "Not yet identified", 600, "Ground", 4, "English", ""],
   // Floor Ground but notes say first floor (A11) → ON HOLD. Pin 570023 is in no territory.
   ["APP-025", "Ramesh Naik", "Mysuru", "Karnataka", 570023, 38, 4, "Footwear retail", "Rented", 500, "Ground", 4, "Kannada", "The shop is on the first floor of the complex"],
@@ -90,9 +89,10 @@ export const TRICKY_APPLICATIONS: Row[] = [
   // Duplicate Application ID (A05) → both rows ON HOLD.
   ["APP-030", "Farhan Ali", "Bengaluru", "Karnataka", 560078, 50, 4, "Apparel", "Rented", 500, "Ground", 4, "English", ""],
   ["APP-030", "Sneha Kulkarni", "Bengaluru", "Karnataka", 560029, 48, 3, "Footwear", "Rented", 500, "Ground", 4, "Kannada", ""],
-  // Same name, same city, same business (A06 likely duplicate): APP-031 takes a TER-03 slot → APPROVED;
+  // Same name, same city, same business (A06 likely duplicate): APP-031 takes a TER-03 slot → APPROVED, with a tight
+  // timeline: owned space opens in 62 days (26 Dec), one day after its 2-month target (25 Dec);
   // APP-032 → ON HOLD with "Are you the same person as APP-031?". (A name match alone would only be an info flag.)
-  ["APP-031", "Ravi Shankar", "Bengaluru", "Karnataka", 560077, 50, 5, "Retail apparel", "Owned", 600, "Ground", 4, "Kannada", ""],
+  ["APP-031", "Ravi Shankar", "Bengaluru", "Karnataka", 560077, 50, 5, "Retail apparel", "Owned", 600, "Ground", 2, "Kannada", ""],
   ["APP-032", "Ravi Shankar", "Bengaluru", "Karnataka", 560010, 60, 5, "Retail apparel", "Owned", 600, "Ground", 4, "Kannada", ""],
   // 0.8 km from ST-06 (Mysuru, inner radius 2.5 km), (3,3,3) → APPROVED, PENDING INTERNAL SIGN-OFF (CONDITIONAL code;
   // the only condition, expansion-head sign-off, is a team action).

@@ -4,7 +4,7 @@ import { EXISTING_STORES } from "@/data/existingStores";
 import { reliableDistanceKm } from "@/lib/geo/pins";
 import { extractSignalsHeuristic } from "@/lib/ingest/heuristics";
 import { checkApplications, likelyDuplicates, resolveTerritories, type ResolvedTerritory } from "@/lib/ingest/validate";
-import { addDays } from "@/lib/planner/dates";
+import { addDays, daysBetween } from "@/lib/planner/dates";
 import {
   RESERVED_STATUSES,
   STATUS_META,
@@ -22,7 +22,9 @@ import { explain, type ExplainContext } from "./explain";
 import { applyFacts } from "./facts";
 import { checkInvariants, fingerprint } from "./invariants";
 import { estimatePayback } from "./payback";
-import { assess, type Assessment, type ConditionDraft } from "./readiness";
+import { assess, assessTimeline, type Assessment, type ConditionDraft } from "./readiness";
+import { buildOnboardingPlan, earliestLaunch } from "@/lib/planner/onboarding";
+import { buildCohorts, buildTrainingPlan } from "@/lib/planner/training";
 import type { EngineInput, EngineResult, HumanOverride, PendingOverride, RejectedOverride, TerritoryState } from "./types";
 
 interface Pass {
@@ -176,6 +178,27 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
   }
   const decisions: DecisionRecord[] = applications.map((app) => finalise(byKey.get(app.key)!, alloc.outcomes.get(app.key)!));
 
+  // Training cohorts across committed partners (Approved and Approved with conditions).
+  const cohorts = buildCohorts(
+    decisions
+      .filter((d) => (d.status === "APPROVED" || d.status === "CONDITIONAL") && d.training && d.onboarding && d.city)
+      .map((d) => ({
+        appId: d.appId,
+        appKey: d.appKey,
+        city: d.city!,
+        language: d.training!.language,
+        trainingStart: d.training!.start,
+        launch: d.onboarding!.earliestLaunch,
+      })),
+  );
+  for (const c of cohorts) {
+    for (const m of c.members) {
+      const d = decisions.find((x) => x.appKey === m.appKey)!;
+      d.training!.cohortId = c.id;
+      d.preparation = `${d.preparation} ${c.label}.`;
+    }
+  }
+
   function finalise(a: Assessment, o: Outcome): DecisionRecord {
     const slotT = o.slotTerritoryKey ? terByKey.get(o.slotTerritoryKey) : undefined;
     const flags: Flag[] = [...a.flags];
@@ -246,14 +269,59 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     if (o.override) flags.push({ code: "HUMAN_OVERRIDE", text: `Human override: ${o.override.reason}` });
     if (o.locked) flags.push({ code: "LOCKED", text: `Sent to partner on ${o.locked.date}.` });
 
+
+    // Plans (SPEC §7): for a location offer, the plan applies if accepted and needs a new space.
+    const reservedStatus = RESERVED_STATUSES.includes(status);
+    let view: Assessment = a;
+    let onboarding = null;
+    let training = null;
+    if (reservedStatus && o.pin) {
+      const isOffer = status === "REDIRECT";
+      const pendingSignOff = conditions.length > 0 && conditions.every((c) => c.owner === "team");
+      const path = {
+        ...(isOffer ? a.pathIfNewSpace : a.path),
+        internalSignOffDays: pendingSignOff ? Math.max(...conditions.map((c) => daysBetween(today, c.deadline))) : 0,
+      };
+      // The plan is the single source for the launch date: re-test feasibility against it.
+      const timeline = assessTimeline(earliestLaunch(today, profile, path), a.launch.target!, a.launch.festival, isOffer || a.spaceType === "none");
+      const TIMELINE = new Set(["TARGET_NOT_FEASIBLE", "TIGHT_TIMELINE", "NOTES_TARGET_DISAGREE"]);
+      view = { ...a, launch: timeline.launch, flags: [...a.flags.filter((f) => !TIMELINE.has(f.code)), ...timeline.flags] };
+      for (let i = flags.length - 1; i >= 0; i--) if (TIMELINE.has(flags[i].code)) flags.splice(i, 1);
+      flags.push(...timeline.flags);
+      onboarding = buildOnboardingPlan({
+        today,
+        profile,
+        input: path,
+        target: view.launch.target,
+        festival: view.launch.festival,
+        conditions,
+        storeManager: a.signals.absentee_owner,
+        ifAccepted: isOffer,
+        pin: o.pin,
+      });
+      const tm = onboarding.milestones.find((m) => m.id === "training")!;
+      training = buildTrainingPlan({
+        profile,
+        track: a.track,
+        experienceText: a.experienceText,
+        language: a.app.language.value,
+        storeManager: a.signals.absentee_owner,
+        pin: o.pin,
+        city: a.app.city.value,
+        stores,
+        start: tm.start,
+        end: tm.end,
+        auditEnd: onboarding.milestones.find((m) => m.id === "audit")!.end,
+      });
+    }
+
     const codes: ReasonCode[] = [...o.codes];
     if (o.kind === "won") codes.unshift(status === "APPROVED" ? "CLEAN_WIN" : "WON_SLOT_WITH_CONDITIONS");
     for (const c of conditions) codes.push(c.source);
     for (const f of flags) codes.push(f.code);
     if (codes.length === 0) codes.push(status === "WAITLIST" ? "NO_SLOT" : "BLOCKING_DATA_ISSUE");
 
-    const ex = explain(a, o, status, conditions, cann, payback, ctx);
-    const reservedStatus = RESERVED_STATUSES.includes(status);
+    const ex = explain(view, o, status, conditions, cann, payback, ctx);
 
     return {
       appKey: a.key,
@@ -312,10 +380,13 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       provisional: o.provisional ? { byAppId: idOf(o.provisional.byKey), until: addDays(today, 7) } : null,
       cannibalisation: reservedStatus ? cann : null,
       payback: reservedStatus ? payback : null,
-      launch: a.launch,
+      launch: view.launch,
       evidence: a.issues.filter((i) => i.evidence).map((i) => ({ code: i.code, quote: i.evidence! })),
       locked: o.locked ? { date: o.locked.date } : null,
       override: o.override ? { status: o.override.status, reason: o.override.reason, time: o.override.time } : null,
+      onboarding,
+      training,
+      preparation: training ? `${training.summary}.${onboarding?.ifAccepted ? " (If the offer is accepted.)" : ""}` : null,
       version: 1,
       history: [],
     };
@@ -353,6 +424,7 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     profileId: profile.id,
     decisions,
     territories: territoryStates,
+    cohorts,
     issues: [...appIssues, ...resolved.issues],
     withdrawn,
     pendingOverrides: [],

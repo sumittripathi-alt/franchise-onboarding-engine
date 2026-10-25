@@ -1,6 +1,7 @@
 import type { ExistingStore } from "@/data/existingStores";
 import type { ResolvedTerritory } from "@/lib/ingest/validate";
 import type { Policy } from "@/lib/policy/types";
+import type { Cohort } from "@/lib/planner/training";
 import type { Application, DecisionRecord, Issue, Signals, Status, Territory } from "@/lib/types";
 
 /** A fact stated in chat (or a what-if), applied on top of the parsed data before the engine runs. */
@@ -98,6 +99,8 @@ export interface EngineResult {
   profileId: string;
   decisions: DecisionRecord[];
   territories: TerritoryState[];
+  /** Training cohorts: partners grouped by language and city with launches within 30 days. */
+  cohorts: Cohort[];
   issues: Issue[];
   /** Applications removed by a withdrawal fact. */
   withdrawn: string[];

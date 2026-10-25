@@ -1,6 +1,8 @@
 // Shared domain types. Zod schemas for parsing live in lib/ingest/schemas.ts (Phase 2);
 // these interfaces describe the normalised data the engine works on.
 
+import type { OnboardingPlan } from "@/lib/planner/onboarding";
+import type { TrainingPlan } from "@/lib/planner/training";
 import type {
   CityName,
   Floor,
@@ -309,6 +311,11 @@ export interface DecisionRecord {
   evidence: { code: string; quote: string }[];
   locked: { date: string } | null;
   override: { status: Status; reason: string; time: string } | null;
+  /** Onboarding plan for Approved, Approved with conditions and location offers (if accepted). */
+  onboarding: OnboardingPlan | null;
+  training: TrainingPlan | null;
+  /** "How they'll be prepared", one line for the decision sheet (SPEC §15.1). */
+  preparation: string | null;
   version: number;
   history: HistoryEntry[];
 }

@@ -45,6 +45,10 @@ export interface BrandProfile {
   specialHiring: string | null;
 
   baseTrainingDays: number;
+  /** Days added to (or removed from) base training per track (SPEC §7.2). */
+  trainingTrackAdjustDays: { "Fast-track": number; Standard: number; Extended: number };
+  /** Days shadowing at an existing store, per track. */
+  shadowDays: { "Fast-track": number; Standard: number; Extended: number };
   trainingFormat: string;
   trainingModules: string[];
 

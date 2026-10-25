@@ -1,7 +1,7 @@
 // Prints the engine's decision for every application in a workbook, for reviewing its judgement.
 //
 //   npm run decide <file.xlsx> [-- --today=2026-10-25] [--profile=eyewear|delivery|partner_point]
-//                              [--full] [--include-example]
+//                              [--full] [--include-example] [--plans=APP-001,APP-019]
 //
 // Uses the heuristic notes reader (no Gemini), exactly as the app does when the AI is unavailable.
 
@@ -11,7 +11,7 @@ import { parseWorkbooks } from "@/lib/ingest/parseWorkbook";
 import { defaultPolicy } from "@/lib/policy/brandProfiles";
 import type { BrandProfileId } from "@/lib/policy/types";
 import { runEngineChecked } from "@/lib/engine/run";
-import { isIsoDate, todayIST } from "@/lib/planner/dates";
+import { addDays, isIsoDate, todayIST } from "@/lib/planner/dates";
 import { STATUSES, STATUS_META } from "@/lib/types";
 
 const args = process.argv.slice(2);
@@ -137,6 +137,49 @@ console.log(
     ? `\n✗ INVARIANT VIOLATIONS:\n- ${result.invariantViolations.join("\n- ")}`
     : "\n✓ All invariants hold (6.7), including a rerun determinism check.",
 );
+
+const planIds = flag("plans")?.split(",").map((x) => x.trim().toUpperCase()) ?? [];
+for (const id of planIds) {
+  const d = result.decisions.find((x) => x.appId === id);
+  if (!d) {
+    console.log(`\nNo application ${id}.`);
+    continue;
+  }
+  console.log(`\n══ ${d.appId} · ${d.name} · ${d.label}${d.pin ? ` · pin ${d.pin}` : ""} ══`);
+  if (!d.onboarding || !d.training) {
+    console.log("No onboarding plan: plans are made for Approved, Approved with conditions and location offers.");
+    continue;
+  }
+  const o = d.onboarding;
+  if (o.ifAccepted) console.log("(Location offer: this plan applies if the offer is accepted.)");
+  console.log(`\nOnboarding: ${o.summary}`);
+  if (o.phasedOption) console.log(o.phasedOption.text);
+  // Text Gantt: one column per week from today.
+  const weeks = Math.ceil((Date.parse(o.earliestLaunch) - Date.parse(result.today)) / (7 * 86400000)) + 1;
+  const col = (iso: string) => Math.floor((Date.parse(iso) - Date.parse(result.today)) / (7 * 86400000));
+  console.log(`\n${"Milestone".padEnd(58)} ${"Owner".padEnd(15)} ${"Start".padEnd(12)} ${"End".padEnd(12)} Weeks from ${result.today}`);
+  for (const m of o.milestones) {
+    const bar = Array.from({ length: weeks }, (_, w) =>
+      m.skipped ? " " : m.days === 0 ? (w === col(m.end) ? "◆" : " ") : w >= col(m.start) && w <= col(addDays(m.end, -1)) ? (m.critical ? "█" : "░") : " ",
+    ).join("");
+    const name = `${m.skipped ? "(skipped) " : ""}${m.name}${m.critical && !m.skipped ? " *" : ""}`;
+    console.log(`${name.slice(0, 58).padEnd(58)} ${m.owner.padEnd(15)} ${m.start.padEnd(12)} ${m.end.padEnd(12)} ${bar}`);
+    if (m.note) console.log(`${"".padEnd(4)}↳ ${m.note}`);
+  }
+  console.log("  * critical path   █ critical   ░ has slack   ◆ launch");
+  console.log("\nChecklist:");
+  for (const c of o.checklist) console.log(`  [ ] ${c.due}  ${c.owner.padEnd(15)} ${c.item}`);
+  const t = d.training;
+  console.log(`\nTraining: ${t.summary}.`);
+  console.log(`  Track: ${t.track} (${t.trackReason}); ${t.days} days, ${t.format}, ${t.start} → ${t.end}; language ${t.language}.`);
+  console.log(`  Modules:\n${t.modules.map((m) => `    - ${m.name}${m.note ? ` (${m.note})` : ""}`).join("\n")}`);
+  if (t.staffingNote) console.log(`  Staffing: ${t.staffingNote}`);
+  if (t.shadow) console.log(`  Shadowing: ${t.shadow.days} days at ${t.shadow.storeId}, ${t.shadow.storeCity} (pin ${t.shadow.pin}${t.shadow.km !== null ? `, ${t.shadow.km} km away` : ""}): ${t.shadow.note}.`);
+  if (t.storeManagerAttends) console.log("  The named store manager attends every module.");
+  const cohort = result.cohorts.find((c) => c.id === t.cohortId);
+  console.log(`  Cohort: ${cohort ? cohort.label : "none yet (no other partner with the same language and city launching within 30 days)"}`);
+  console.log(`  Readiness check: ${t.readinessCheck.map((r) => `${r.item} by ${r.due}`).join("; ")}.`);
+}
 
 if (args.includes("--full")) {
   for (const d of result.decisions) {

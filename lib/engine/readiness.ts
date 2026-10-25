@@ -6,11 +6,12 @@ import { describesRunningShop } from "@/lib/ingest/heuristics";
 import { personKey } from "@/lib/ingest/normalise";
 import { festivalDate } from "@/lib/planner/calendar";
 import { addMonths, daysBetween, formatDate } from "@/lib/planner/dates";
-import { earliestLaunch } from "@/lib/planner/onboarding";
+import { earliestLaunch, type PathInput } from "@/lib/planner/onboarding";
+import type { TrainingTrack } from "@/lib/planner/training";
 import type { Application, Band, Bands, Flag, Issue, LaunchInfo, ReasonCode, Signals } from "@/lib/types";
 
 export type SpaceType = "none" | "Rented" | "Owned";
-export type TrainingTrack = "Fast-track" | "Standard" | "Extended";
+export type { TrainingTrack };
 
 /** A condition before deadlines' knock-on effects are known. */
 export interface ConditionDraft {
@@ -75,8 +76,10 @@ export interface Assessment {
   flags: Flag[];
   track: TrainingTrack;
   launch: LaunchInfo;
-  /** Earliest launch if they must find a new space (location offers). */
-  launchIfNewSpace: string;
+  /** The onboarding path for the applicant's own situation (shared with the planner). */
+  path: PathInput;
+  /** The path if they must find a new space (location offers). */
+  pathIfNewSpace: PathInput;
   /** Suggestions that don't change the status (e.g. a lower-tier city the investment fits). */
   suggestions: string[];
 }
@@ -281,33 +284,22 @@ export function assess(
     });
   }
 
-  // Timeline.
-  const needsLease = space.type === "Rented";
-  const extended = experience === 1;
-  const earliest = earliestLaunch(today, profile, { needsSpaceSearch: space.type === "none", needsLease, extendedTraining: extended });
+  // Timeline: the same schedule the onboarding planner uses.
+  // A new space is needed with no space yet, or when the current one must change (floor or size).
+  const spaceChange = conditions.filter((c) => c.source === "SPACE_NOT_IDENTIFIED" || c.source === "FLOOR_NOT_SUITABLE" || c.source === "SIZE_BELOW_MIN");
+  const newSpaceDays = profile.noSpaceRule.kind === "condition" ? profile.noSpaceRule.days : 30;
+  const path: PathInput = {
+    needsSpaceSearch: spaceChange.length > 0,
+    spaceSearchDays: spaceChange.length ? Math.max(...spaceChange.map((c) => c.days)) : 0,
+    needsLease: space.type === "Rented",
+    track,
+  };
+  const pathIfNewSpace: PathInput = { needsSpaceSearch: true, spaceSearchDays: newSpaceDays, needsLease: true, track };
+  const earliest = earliestLaunch(today, profile, path);
   const target = addMonths(today, targetMonths(app, profile));
   const fest = festivalDate(signals.festival_deadline, today);
-  const testDate = fest && fest.date < target ? fest.date : target;
-  const gapDays = daysBetween(testDate, earliest);
-  const feasible = gapDays <= 0;
-  if (fest && target > fest.date) {
-    flags.push({
-      code: "NOTES_TARGET_DISAGREE",
-      text: `Notes and target launch disagree: the notes say before ${fest.name} (${formatDate(fest.date)}, verify), but the target launch is ${formatDate(target)}. The earlier date was used.`,
-    });
-  }
-  const what = fest && testDate === fest.date ? `opening before ${fest.name} (${formatDate(fest.date)})` : `opening by ${formatDate(target)}`;
-  if (gapDays > TIGHT_TIMELINE_DAYS) {
-    flags.push({
-      code: "TARGET_NOT_FEASIBLE",
-      text: `Target not feasible: ${what} isn't possible; the earliest realistic date is ${formatDate(earliest)}.${space.type === "none" ? " A soft launch is possible once the space is fitted out." : ""}`,
-    });
-  } else if (gapDays > 0) {
-    flags.push({
-      code: "TIGHT_TIMELINE",
-      text: `Tight timeline: ${what} is ${gapDays} day${gapDays === 1 ? "" : "s"} earlier than the earliest realistic date (${formatDate(earliest)}). Possible if every step runs to plan.`,
-    });
-  }
+  const timeline = assessTimeline(earliest, target, fest, space.type === "none");
+  flags.push(...timeline.flags);
 
   const bands: Bands | null =
     capital === null ? null : { space: space.band, capital, experience };
@@ -332,9 +324,47 @@ export function assess(
     portableConditions: portable,
     flags,
     track,
-    launch: { earliest, target, festival: fest ? { name: fest.name, date: fest.date } : null, testDate, feasible, gapDays },
-    launchIfNewSpace: earliestLaunch(today, profile, { needsSpaceSearch: true, needsLease: true, extendedTraining: extended }),
+    launch: timeline.launch,
+    path,
+    pathIfNewSpace,
     suggestions,
+  };
+}
+
+/**
+ * Feasibility of a target (SPEC §7.1, §15.7): test against the earlier of the target and any festival in the
+ * notes; more than TIGHT_TIMELINE_DAYS late is not feasible, a smaller gap is a tight timeline.
+ */
+export function assessTimeline(
+  earliest: string,
+  target: string,
+  fest: { name: string; date: string } | null,
+  noSpace: boolean,
+): { launch: LaunchInfo; flags: Flag[] } {
+  const flags: Flag[] = [];
+  const testDate = fest && fest.date < target ? fest.date : target;
+  const gapDays = daysBetween(testDate, earliest);
+  if (fest && target > fest.date) {
+    flags.push({
+      code: "NOTES_TARGET_DISAGREE",
+      text: `Notes and target launch disagree: the notes say before ${fest.name} (${formatDate(fest.date)}, verify), but the target launch is ${formatDate(target)}. The earlier date was used.`,
+    });
+  }
+  const what = fest && testDate === fest.date ? `opening before ${fest.name} (${formatDate(fest.date)})` : `opening by ${formatDate(target)}`;
+  if (gapDays > TIGHT_TIMELINE_DAYS) {
+    flags.push({
+      code: "TARGET_NOT_FEASIBLE",
+      text: `Target not feasible: ${what} isn't possible; the earliest realistic date is ${formatDate(earliest)}.${noSpace ? " A soft launch is possible once the space is fitted out." : ""}`,
+    });
+  } else if (gapDays > 0) {
+    flags.push({
+      code: "TIGHT_TIMELINE",
+      text: `Tight timeline: ${what} is ${gapDays} day${gapDays === 1 ? "" : "s"} earlier than the earliest realistic date (${formatDate(earliest)}). Possible if every step runs to plan.`,
+    });
+  }
+  return {
+    launch: { earliest, target, festival: fest ? { name: fest.name, date: fest.date } : null, testDate, feasible: gapDays <= 0, gapDays },
+    flags,
   };
 }
 
