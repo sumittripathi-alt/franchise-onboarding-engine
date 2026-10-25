@@ -2,7 +2,7 @@
 // same way. The engine then decides from base data plus that log, so every client shows the same decisions.
 // Decisions are never stored; diffs are recomputed here, for the most recent events only (older ones are summarised by their description).
 
-import { diffResults, EMPTY_DIFF } from "@/lib/chat/diff";
+import { diffResults, EMPTY_DIFF, type DiffSummary } from "@/lib/chat/diff";
 import { computeResult, type ChangeEntry, type Session } from "@/lib/state/session";
 import type { BaseData, ChangePayload, EventType, UndoPayload } from "./schemas";
 
@@ -19,6 +19,12 @@ export interface LogEvent {
 }
 
 export const DIFF_WINDOW = 15;
+
+/**
+ * A diff depends only on the exact history before its event, so it is remembered by that history. Adding a change then
+ * costs two engine runs instead of recomputing every recent diff, which matters on a large file.
+ */
+const diffMemo = new WeakMap<BaseData, Map<string, DiffSummary>>();
 
 export function entryIdOf(ev: LogEvent): string {
   return ev.clientEventId ?? `s${ev.seq}`;
@@ -40,6 +46,9 @@ export function orderLog(confirmed: LogEvent[], pending: LogEvent[]): LogEvent[]
 
 export function replayEntries(base: BaseData, log: LogEvent[], window = DIFF_WINDOW): ChangeEntry[] {
   let entries: ChangeEntry[] = [];
+  const memo = diffMemo.get(base) ?? new Map<string, DiffSummary>();
+  diffMemo.set(base, memo);
+  let history = "";
   const bySeq = new Map<number, string>();
   const probe = (list: ChangeEntry[]): Session => ({ ...base, entries: list, feedback: [], reviewed: true }) as Session;
   const run = (list: ChangeEntry[]) => {
@@ -54,6 +63,7 @@ export function replayEntries(base: BaseData, log: LogEvent[], window = DIFF_WIN
     if (isUndo(ev)) {
       const target = ev.undoOf ?? bySeq.get(ev.payload.targetSeq);
       if (target) entries = entries.map((e) => (e.id === target ? { ...e, undone: true } : e));
+      history += `|u:${target ?? "?"}`;
       return;
     }
     const p = ev.payload as ChangePayload;
@@ -71,11 +81,20 @@ export function replayEntries(base: BaseData, log: LogEvent[], window = DIFF_WIN
       ...(p.signals ? { signals: p.signals } : {}),
       ...(p.policy ? { policy: p.policy } : {}),
     };
+    const key = `${history}|${entry.id}`;
     if (i >= log.length - window) {
-      const before = run(entries);
-      const after = run([...entries, entry]);
-      if (before && after) entry.diff = diffResults(before, after, p.directKeys ?? []);
+      const known = memo.get(key);
+      if (known) entry.diff = known;
+      else {
+        const before = run(entries);
+        const after = run([...entries, entry]);
+        if (before && after) {
+          entry.diff = diffResults(before, after, p.directKeys ?? []);
+          memo.set(key, entry.diff);
+        }
+      }
     }
+    history = key;
     if (ev.seq !== null) bySeq.set(ev.seq, entry.id);
     entries = [...entries, entry];
   });

@@ -23,7 +23,7 @@ const blankAi = (over: Partial<AiSignal> = {}, ev: Partial<AiSignal["evidence"]>
 });
 
 const apps = (n: number, text = "Runs a shop"): Pick<Application, "key" | "business" | "notes">[] =>
-  Array.from({ length: n }, (_, i) => ({ key: `APP-${i + 1}`, business: text, notes: i % 2 ? "some notes" : "" }));
+  Array.from({ length: n }, (_, i) => ({ key: `APP-${i + 1}`, business: `${text} number ${i + 1}`, notes: i % 2 ? "some notes" : "" }));
 
 const ok = (items: ExtractItem[]): ExtractBatch => ({
   ok: true,

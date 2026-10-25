@@ -3,6 +3,7 @@
 
 import type { Application, Signals } from "@/lib/types";
 import { extractBatch as realExtract, type ExtractBatch, type ExtractItem } from "./clientApi";
+import { textHash, type SignalCache } from "./signalCache";
 
 // Spec says 20; ten per call keeps one call to about ten seconds, so four in parallel fit the 25-second cap for a typical file.
 export const BATCH_SIZE = 10;
@@ -18,6 +19,8 @@ export interface ReadingResult {
   unavailable: boolean;
   read: number;
   total: number;
+  /** How many of those came from this device's cache (the same text was read before). */
+  cached: number;
   model: string | null;
 }
 
@@ -26,6 +29,8 @@ export interface ReadingOptions {
   parallel?: number;
   batchSize?: number;
   extract?: (items: ExtractItem[], signal?: AbortSignal) => Promise<ExtractBatch>;
+  /** Readings by text hash. The same text is read once, then reused. */
+  cache?: SignalCache;
 }
 
 export function hasText(a: Pick<Application, "business" | "notes">): boolean {
@@ -33,15 +38,37 @@ export function hasText(a: Pick<Application, "business" | "notes">): boolean {
 }
 
 export async function readNotes(apps: Pick<Application, "key" | "business" | "notes">[], opts: ReadingOptions = {}): Promise<ReadingResult> {
-  const { capMs = CAP_MS, parallel = PARALLEL, batchSize = BATCH_SIZE, extract = realExtract } = opts;
-  // Only the application's key, its business text and its notes leave the browser.
-  const items: ExtractItem[] = apps.filter(hasText).map((a) => ({ id: a.key, business: a.business.slice(0, 1000), notes: a.notes.slice(0, 2000) }));
+  const { capMs = CAP_MS, parallel = PARALLEL, batchSize = BATCH_SIZE, extract = realExtract, cache } = opts;
+  const withText = apps.filter(hasText);
+  const signals: Record<string, Signals> = {};
+  let cached = 0;
+
+  // Group applications by their exact text: each distinct text is read once, and the reading is shared.
+  const keysByHash = new Map<string, string[]>();
+  const sample = new Map<string, { business: string; notes: string }>();
+  for (const a of withText) {
+    const h = textHash(a.business, a.notes);
+    keysByHash.set(h, [...(keysByHash.get(h) ?? []), a.key]);
+    sample.set(h, { business: a.business.slice(0, 1000), notes: a.notes.slice(0, 2000) });
+  }
+  const todo: { hash: string; item: ExtractItem }[] = [];
+  for (const [hash, keys] of keysByHash) {
+    const hit = cache?.get(hash);
+    if (hit) {
+      for (const k of keys) signals[k] = hit;
+      cached += keys.length;
+    } else {
+      // Only a key, the business text and the notes leave the browser.
+      todo.push({ hash, item: { id: keys[0], ...sample.get(hash)! } });
+    }
+  }
+  const hashOfKey = new Map(todo.map((t) => [t.item.id, t.hash]));
+
   const batches: ExtractItem[][] = [];
-  for (let i = 0; i < items.length; i += batchSize) batches.push(items.slice(i, i + batchSize));
+  for (let i = 0; i < todo.length; i += batchSize) batches.push(todo.slice(i, i + batchSize).map((t) => t.item));
 
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), capMs);
-  const signals: Record<string, Signals> = {};
   let answered = 0;
   let model: string | null = null;
   let next = 0;
@@ -52,7 +79,12 @@ export async function readNotes(apps: Pick<Application, "key" | "business" | "no
       if (r.ok) {
         answered++;
         model = r.model ?? model;
-        Object.assign(signals, r.results);
+        for (const [id, sig] of Object.entries(r.results)) {
+          const hash = hashOfKey.get(id);
+          if (!hash) continue;
+          cache?.set(hash, sig);
+          for (const k of keysByHash.get(hash) ?? [id]) signals[k] = sig;
+        }
       }
     }
   };
@@ -64,7 +96,7 @@ export async function readNotes(apps: Pick<Application, "key" | "business" | "no
     clearTimeout(timer);
   }
   const read = Object.keys(signals).length;
-  return { signals, complete: items.length > 0 && read >= items.length, unavailable: batches.length > 0 && answered === 0, read, total: items.length, model };
+  return { signals, complete: withText.length > 0 && read >= withText.length, unavailable: batches.length > 0 && answered === 0 && cached === 0, read, total: withText.length, cached, model };
 }
 
 /** Split signals into groups that each fit a workspace event (10 KB). */

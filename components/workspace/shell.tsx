@@ -62,12 +62,12 @@ export function Shell() {
           </div>
           <div className="flex items-center gap-1">
             <Link href="/" className="contents">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" aria-label="Upload another file">
                 <Upload /> <span className="hidden sm:inline">Upload another file</span>
               </Button>
             </Link>
             <ShareButton />
-            <Button variant="ghost" size="sm" onClick={downloadSession}>
+            <Button variant="ghost" size="sm" onClick={downloadSession} aria-label="Download session">
               <Download /> <span className="hidden sm:inline">Download session</span>
             </Button>
             <Button

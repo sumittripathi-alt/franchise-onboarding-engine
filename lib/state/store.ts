@@ -28,6 +28,7 @@ import { httpTransport } from "@/lib/workspace/transport";
 import { answerTurn, NEW_CHAT, type ChatReply, type ChatState } from "@/lib/chat/engine";
 import { aiClient } from "@/lib/llm/clientApi";
 import { chunkSignals, hasText, readNotes } from "@/lib/llm/extractClient";
+import { localSignalCache } from "@/lib/llm/signalCache";
 
 export type Tab = "sheet" | "chat" | "overview" | "applications" | "territories" | "policy" | "log" | "export";
 
@@ -243,7 +244,7 @@ export const useStore = create<StoreState>((set, get) => {
       attach(c);
       set({ previous, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS, reading: { status: "running", message: null } });
       void (async () => {
-        const r = await readNotes(session.parsed.applications);
+        const r = await readNotes(session.parsed.applications, { cache: localSignalCache });
         c.setSignals(r.signals);
         if (client !== c) return;
         const state: ReadingState = r.total === 0 || r.complete
@@ -321,7 +322,7 @@ export const useStore = create<StoreState>((set, get) => {
         return;
       }
       set({ reading: { status: "running", message: null } });
-      const r = await readNotes(todo);
+      const r = await readNotes(todo, { cache: localSignalCache });
       if (client !== c) return;
       if (r.read === 0) {
         set({ reading: { status: "failed", message: "The AI assistant isn't available right now. Try again in a minute." } });

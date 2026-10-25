@@ -55,7 +55,7 @@ export function ShareButton() {
       >
         <span aria-hidden className={cn("size-1.5 rounded-full", sync.status === "synced" ? "bg-st-approved-dot" : "bg-st-hold-dot")} /> {state}
       </span>
-      <Button variant="ghost" size="sm" onClick={() => void copy()}>
+      <Button variant="ghost" size="sm" onClick={() => void copy()} aria-label={copied ? "Link copied" : "Copy share link"}>
         {copied ? <Check /> : <Link2 />} <span className="hidden sm:inline">{copied ? "Link copied" : "Copy share link"}</span>
       </Button>
     </div>

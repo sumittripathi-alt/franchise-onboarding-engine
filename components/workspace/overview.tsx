@@ -41,7 +41,7 @@ export function Overview() {
         {STATUSES.map((s) => (
           <button
             key={s}
-            className="rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
+            className="min-w-0 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
             onClick={() => {
               setFilters({ status: s });
               setTab("applications");
@@ -49,7 +49,7 @@ export function Overview() {
             aria-label={`${insights.statusCounts[s]} ${labelOf(s) ?? s}. Show them.`}
           >
             <p className="text-2xl font-semibold tabular-nums">{insights.statusCounts[s]}</p>
-            <StatusChip status={s} label={labelOf(s) ?? undefined} className="mt-1" />
+            <StatusChip status={s} label={labelOf(s) ?? undefined} className="mt-1 max-w-full whitespace-normal" />
           </button>
         ))}
       </section>
