@@ -5,7 +5,7 @@ import type { BrandProfile } from "@/lib/policy/types";
 import { describesRunningShop } from "@/lib/ingest/heuristics";
 import { personKey } from "@/lib/ingest/normalise";
 import { festivalDate } from "@/lib/planner/calendar";
-import { addMonths, formatDate } from "@/lib/planner/dates";
+import { addMonths, daysBetween, formatDate } from "@/lib/planner/dates";
 import { earliestLaunch } from "@/lib/planner/onboarding";
 import type { Application, Band, Bands, Flag, Issue, LaunchInfo, ReasonCode, Signals } from "@/lib/types";
 
@@ -15,9 +15,33 @@ export type TrainingTrack = "Fast-track" | "Standard" | "Extended";
 /** A condition before deadlines' knock-on effects are known. */
 export interface ConditionDraft {
   source: ReasonCode;
+  /** Imperative, e.g. "Move to a ground-floor space within 45 days". */
   text: string;
+  /** Third person, for the one-line why, e.g. "moves to a ground-floor space". */
+  short: string;
   days: number;
+  owner: "partner" | "team";
 }
+
+/** "Move to a ground-floor space within 45 days" → "moves to a ground-floor space". */
+export function thirdPerson(text: string): string {
+  const t = text.replace(/\s+within \d+ days$/, "");
+  const [verb, ...rest] = t.split(" ");
+  const v = verb.toLowerCase();
+  const s = /(s|sh|ch|x)$/.test(v) ? `${v}es` : /[^aeiou]y$/.test(v) ? `${v.slice(0, -1)}ies` : `${v}s`;
+  return [s, ...rest].join(" ");
+}
+
+const partner = (source: ReasonCode, text: string, days: number, short = thirdPerson(text)): ConditionDraft => ({
+  source,
+  text,
+  short,
+  days,
+  owner: "partner",
+});
+
+/** Max gap (days) between the earliest launch and the target before a target counts as not feasible. */
+export const TIGHT_TIMELINE_DAYS = 14;
 
 export interface Gate {
   code: "BELOW_HARD_FLOOR" | "PROFILE_REJECT_SPACE" | "PROFILE_REJECT_FLOOR";
@@ -53,6 +77,8 @@ export interface Assessment {
   launch: LaunchInfo;
   /** Earliest launch if they must find a new space (location offers). */
   launchIfNewSpace: string;
+  /** Suggestions that don't change the status (e.g. a lower-tier city the investment fits). */
+  suggestions: string[];
 }
 
 const round2 = (x: number) => Math.round(x * 100) / 100;
@@ -79,7 +105,7 @@ function evaluateSpace(app: Application, profile: BrandProfile) {
         fix: "Reapply once you have a running shop with a ground-floor space",
       };
     } else if (rule.kind === "condition") {
-      conditions.push({ source: "SPACE_NOT_IDENTIFIED", text: rule.text, days: rule.days });
+      conditions.push(partner("SPACE_NOT_IDENTIFIED", rule.text, rule.days, "finds a space"));
     }
     return { band: 1 as Band, type, text: "no space yet", conditions, flags, gate };
   }
@@ -98,16 +124,14 @@ function evaluateSpace(app: Application, profile: BrandProfile) {
       };
     } else if (rule.kind === "condition") {
       band = 2;
-      conditions.push({ source: "FLOOR_NOT_SUITABLE", text: rule.text, days: rule.days });
+      conditions.push(partner("FLOOR_NOT_SUITABLE", rule.text, rule.days));
     }
   } else {
     band = 2;
     floorWord = "space on an unconfirmed floor";
-    conditions.push({
-      source: "FLOOR_UNCONFIRMED",
-      text: "Confirm which floor the space is on (ground, upper or mall unit)",
-      days: profile.conditionDays.confirmDetails,
-    });
+    conditions.push(
+      partner("FLOOR_UNCONFIRMED", "Confirm which floor the space is on", profile.conditionDays.confirmDetails, "confirms which floor the space is on"),
+    );
   }
 
   const size = app.spaceSqft.value;
@@ -116,19 +140,18 @@ function evaluateSpace(app: Application, profile: BrandProfile) {
   if (size === null) {
     band = 2;
     sizeText = "of unconfirmed size";
-    conditions.push({
-      source: "SIZE_UNCONFIRMED",
-      text: `Confirm the space is at least ${min} sq ft`,
-      days: profile.conditionDays.confirmDetails,
-    });
+    conditions.push(partner("SIZE_UNCONFIRMED", `Confirm the space is at least ${min} sq ft`, profile.conditionDays.confirmDetails));
   } else if (size < min) {
     band = 2;
-    sizeText = `of ${size} sq ft (below the ${min} sq ft minimum)`;
-    conditions.push({
-      source: "SIZE_BELOW_MIN",
-      text: `Find a space of at least ${min} sq ft (current space is ${size} sq ft)`,
-      days: profile.noSpaceRule.kind === "condition" ? profile.noSpaceRule.days : 30,
-    });
+    sizeText = `of ${size} sq ft, below the ${min} sq ft minimum`;
+    conditions.push(
+      partner(
+        "SIZE_BELOW_MIN",
+        `Find a space of at least ${min} sq ft; the current one is ${size} sq ft`,
+        profile.noSpaceRule.kind === "condition" ? profile.noSpaceRule.days : 30,
+        `finds a space of at least ${min} sq ft`,
+      ),
+    );
   } else {
     sizeText = `of ${size} sq ft`;
     if (size > 3 * profile.space.idealMaxSqft) {
@@ -171,6 +194,7 @@ export function assess(
   const flags: Flag[] = [];
   const conditions: ConditionDraft[] = [];
   const portable: ConditionDraft[] = [];
+  const suggestions: string[] = [];
   const blocking = issues.filter((i) => i.severity === "blocking");
 
   // Space.
@@ -189,20 +213,27 @@ export function assess(
     if (inv < th.floor) {
       gate = {
         code: "BELOW_HARD_FLOOR",
-        text: `investment of ${lakh(inv)} is below the hard floor of ${lakh(th.floor)} (${Math.round(profile.hardFloorPct * 100)}% of the ${tier} minimum of ${lakh(th.min)})`,
-        fix: `Reapply with an investment capacity of at least ${lakh(th.floor)}; ${lakh(th.min)} or more avoids a proof-of-funds condition`,
+        text: `${lakh(inv)} is below the ${lakh(th.min)} minimum for ${city} (${tier})`,
+        fix: `Reapply with at least ${lakh(th.min)}, the ${tier} minimum for ${city}`,
       };
+      const lower = lowerTierFit(profile, tier, inv);
+      if (lower) suggestions.push(lower);
     }
     capital = inv >= th.band3 ? 3 : inv >= th.min ? 2 : 1;
   }
-  const fundingQuote = signals.funding_dependency;
-  if (capital === 1 || fundingQuote) {
-    const th = tier ? capitalThresholds(profile, tier) : null;
-    const text =
-      capital === 1 && th
-        ? `Show proof of funds of at least ${lakh(th.min)} (declared ${lakh(inv!)})${fundingQuote ? ", or a loan sanction letter" : ""}`
-        : "Share proof of funds or a loan sanction letter";
-    const c = { source: "PROOF_OF_FUNDS" as const, text, days: profile.conditionDays.proofOfFunds };
+  // A shortfall says how the gap is filled; never ask for proof of more than was declared without that.
+  if (capital === 1 && tier && inv !== null) {
+    const gap = round2(capitalThresholds(profile, tier).min - inv);
+    const c = partner(
+      "PROOF_OF_FUNDS",
+      `Arrange the remaining ${lakh(gap)} (loan or co-investor) and share proof`,
+      profile.conditionDays.proofOfFunds,
+      `arranges the remaining ${lakh(gap)}`,
+    );
+    conditions.push(c);
+    portable.push(c);
+  } else if (signals.funding_dependency) {
+    const c = partner("PROOF_OF_FUNDS", "Share proof of funds or a loan sanction letter", profile.conditionDays.proofOfFunds, "shares proof of funds");
     conditions.push(c);
     portable.push(c);
   }
@@ -233,18 +264,20 @@ export function assess(
   const track: TrainingTrack = experience === 3 ? "Fast-track" : experience === 2 ? "Standard" : "Extended";
 
   if (signals.absentee_owner) {
-    const c = {
-      source: "STORE_MANAGER" as const,
-      text: "Name the store manager who will run the store; they must also complete training",
-      days: profile.conditionDays.storeManager,
-    };
+    const c = partner(
+      "STORE_MANAGER",
+      "Name the store manager who will run the store; they must also complete training",
+      profile.conditionDays.storeManager,
+      "names a store manager",
+    );
     conditions.push(c);
     portable.push(c);
   }
   if (signals.injection_attempt) {
+    const quote = signals.evidence?.injection_attempt;
     flags.push({
       code: "INTEGRITY_CONCERN",
-      text: "Integrity concern: the notes contain instructions to the system. They were ignored.",
+      text: `The notes contained instructions to the system${quote ? ` ("${quote}")` : ""}. They were ignored, and the application was assessed normally.`,
     });
   }
 
@@ -255,17 +288,24 @@ export function assess(
   const target = addMonths(today, targetMonths(app, profile));
   const fest = festivalDate(signals.festival_deadline, today);
   const testDate = fest && fest.date < target ? fest.date : target;
-  const feasible = earliest <= testDate;
+  const gapDays = daysBetween(testDate, earliest);
+  const feasible = gapDays <= 0;
   if (fest && target > fest.date) {
     flags.push({
       code: "NOTES_TARGET_DISAGREE",
       text: `Notes and target launch disagree: the notes say before ${fest.name} (${formatDate(fest.date)}, verify), but the target launch is ${formatDate(target)}. The earlier date was used.`,
     });
   }
-  if (!feasible) {
+  const what = fest && testDate === fest.date ? `opening before ${fest.name} (${formatDate(fest.date)})` : `opening by ${formatDate(target)}`;
+  if (gapDays > TIGHT_TIMELINE_DAYS) {
     flags.push({
       code: "TARGET_NOT_FEASIBLE",
-      text: `Target not feasible: ${fest && testDate === fest.date ? `opening before ${fest.name} (${formatDate(fest.date)})` : `opening by ${formatDate(target)}`} isn't possible; the earliest realistic date is ${formatDate(earliest)}.${space.type === "none" ? " A soft launch is possible once the space is fitted out." : ""}`,
+      text: `Target not feasible: ${what} isn't possible; the earliest realistic date is ${formatDate(earliest)}.${space.type === "none" ? " A soft launch is possible once the space is fitted out." : ""}`,
+    });
+  } else if (gapDays > 0) {
+    flags.push({
+      code: "TIGHT_TIMELINE",
+      text: `Tight timeline: ${what} is ${gapDays} day${gapDays === 1 ? "" : "s"} earlier than the earliest realistic date (${formatDate(earliest)}). Possible if every step runs to plan.`,
     });
   }
 
@@ -292,7 +332,22 @@ export function assess(
     portableConditions: portable,
     flags,
     track,
-    launch: { earliest, target, festival: fest ? { name: fest.name, date: fest.date } : null, testDate, feasible },
+    launch: { earliest, target, festival: fest ? { name: fest.name, date: fest.date } : null, testDate, feasible, gapDays },
     launchIfNewSpace: earliestLaunch(today, profile, { needsSpaceSearch: true, needsLease: true, extendedTraining: extended }),
+    suggestions,
   };
+}
+
+const TIER_ORDER: Tier[] = ["Tier 1", "Tier 2", "Tier 3"];
+
+/** "Your ₹15 lakh meets the Tier 3 minimum. Would you consider Tumakuru or Davanagere?" (a suggestion only). */
+function lowerTierFit(profile: BrandProfile, tier: Tier, inv: number): string | null {
+  for (const t of TIER_ORDER.slice(TIER_ORDER.indexOf(tier) + 1)) {
+    if (inv >= profile.minInvestmentLakh[t]) {
+      const cities = Object.values(CITIES).filter((c) => c.tier === t).map((c) => c.name);
+      const list = cities.length > 1 ? `${cities.slice(0, -1).join(", ")} or ${cities[cities.length - 1]}` : cities[0];
+      return `Your ${lakh(inv)} meets the ${t} minimum. Would you consider ${list}?`;
+    }
+  }
+  return null;
 }

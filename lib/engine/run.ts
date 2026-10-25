@@ -3,7 +3,7 @@
 import { EXISTING_STORES } from "@/data/existingStores";
 import { reliableDistanceKm } from "@/lib/geo/pins";
 import { extractSignalsHeuristic } from "@/lib/ingest/heuristics";
-import { checkApplications, resolveTerritories, type ResolvedTerritory } from "@/lib/ingest/validate";
+import { checkApplications, likelyDuplicates, resolveTerritories, type ResolvedTerritory } from "@/lib/ingest/validate";
 import { addDays } from "@/lib/planner/dates";
 import {
   RESERVED_STATUSES,
@@ -58,6 +58,10 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
 
   // 4. Readiness.
   const assessments = applications.map((a) => assess(a, signals[a.key], issuesByKey.get(a.key) ?? [], profile, today));
+  // "One person" = a likely-duplicate group (same name and city plus similar business or investment), not a name alone.
+  const duplicateOf = likelyDuplicates(applications);
+  const personOf = new Map(applications.map((a) => [a.key, duplicateOf.get(a.key) ?? a.key]));
+  for (const a of assessments) a.person = personOf.get(a.key)!;
   const byKey = new Map(assessments.map((a) => [a.key, a]));
   const terByKey = new Map(resolved.territories.map((t) => [t.key, t]));
   const activeByPin = new Map<string, ResolvedTerritory>();
@@ -104,21 +108,23 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
 
   // 7. Final statuses, conditions, cannibalisation, payback, explanations.
   const idOf = (key: string) => byKey.get(key)?.id || key;
-  const cityQueues = new Map<string, string[]>();
-  for (const o of alloc.outcomes.values()) {
-    if (o.waitlist?.scope === "city") {
-      const q = cityQueues.get(o.waitlist.city) ?? [];
-      q[o.waitlist.rank - 1] = o.key;
-      cityQueues.set(o.waitlist.city, q);
-    }
-  }
+  /** City waitlist entries whose own pin is in the territory, in rank order. */
+  const inTerritoryLine = (territoryKey: string) => {
+    const t = terByKey.get(territoryKey);
+    if (!t) return [];
+    return (alloc.cityWaitlists.get(t.city ?? "") ?? []).filter((k) => {
+      const pin = byKey.get(k)?.app.pin.value;
+      return pin !== null && pin !== undefined && t.pins.includes(pin);
+    });
+  };
+  // A slot freed in a territory goes first to the highest-ranked waitlisted applicant whose pin is in it,
+  // then to the highest-ranked in the city.
   const nextInLine = (territoryKey: string | null, city: string | null) => {
     const t = territoryKey ? terByKey.get(territoryKey) : undefined;
-    const fromTerritory = territoryKey ? alloc.waitlists.get(territoryKey)?.[0] : undefined;
-    const fromCity = cityQueues.get(city ?? t?.city ?? "")?.[0];
-    const k = fromTerritory ?? fromCity;
+    const k = (territoryKey ? inTerritoryLine(territoryKey)[0] : undefined) ?? alloc.cityWaitlists.get(city ?? t?.city ?? "")?.[0];
     return k ? idOf(k) : null;
   };
+  const activeCities = new Set(resolved.territories.filter((t) => !t.blocked).map((t) => t.city));
 
   const reservedPins = [...alloc.outcomes.values()].filter((o) => o.pin).map((o) => ({ key: o.key, appId: idOf(o.key), pin: o.pin! }));
 
@@ -129,7 +135,13 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     nameOf: (key) => byKey.get(key)?.app.name ?? key,
     territoryId: (key) => (key ? (terByKey.get(key)?.id ?? key) : ""),
     slotsOf: (key) => alloc.slots.get(key) ?? terByKey.get(key)?.slots ?? 0,
+    slotHolders: (key) => (alloc.reserved.get(key) ?? []).map((r) => idOf(r.key)).sort(),
     nextInLine,
+    lineFor: (key, territoryKey) => {
+      const i = inTerritoryLine(territoryKey).indexOf(key);
+      return i < 0 ? null : i + 1;
+    },
+    cityHasTerritory: (city) => activeCities.has(city as never),
     storeAt: (pin) => stores.find((s) => s.pin === pin)?.id ?? null,
   };
 
@@ -148,7 +160,7 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     } else if (o.kind === "offer") {
       const days = profile.noSpaceRule.kind === "condition" ? profile.noSpaceRule.days : 30;
       drafts = [
-        { source: "SPACE_NOT_IDENTIFIED", text: `Find a suitable space in pin ${o.pin}`, days },
+        { source: "SPACE_NOT_IDENTIFIED", text: `Find a suitable space in pin ${o.pin}`, short: `finds a space in pin ${o.pin}`, days, owner: "partner" },
         ...a.portableConditions,
       ];
     }
@@ -168,10 +180,13 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
         const store = cann.nearestStore && cann.nearestStore.km <= cann.radiusKm ? cann.nearestStore.id : null;
         const near = [store, ...cann.nearbyReserved.map((r) => `${r.appId}'s location`)].filter(Boolean).join(" and ");
         if (o.kind === "won" || o.kind === "offer") {
+          // Internal: the team acts on these, not the partner.
           drafts.push({
             source: "EXPANSION_SIGNOFF",
             text: `Get expansion-head sign-off (within ${cann.radiusKm} km of ${near})${store ? ` and inform the existing partner at ${store} before announcing` : ""}`,
+            short: "gets expansion-head sign-off",
             days: profile.conditionDays.expansionSignOff,
+            owner: "team",
           });
         }
       } else if (cann.zone === "uncertain") {
@@ -193,6 +208,8 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     const conditions: Condition[] = drafts.map((d, i) => ({
       id: `${a.id || a.key}-C${i + 1}`,
       text: d.text,
+      short: d.short,
+      owner: d.owner,
       deadline: addDays(today, d.days),
       ifMissed: next ? `The slot is released to the next applicant in line: ${next}.` : "The slot is released and offered to the next eligible applicant.",
       source: d.source,
@@ -220,12 +237,19 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       row: a.app.row,
       city: a.app.city.value,
       status,
-      label: STATUS_META[status].label,
+      label:
+        status === "CONDITIONAL" && conditions.length > 0 && conditions.every((c) => c.owner === "team")
+          ? "Approved, pending internal sign-off"
+          : STATUS_META[status].label,
       reasonCodes: [...new Set(codes)],
       headline: ex.headline,
       explanation: ex.explanation,
       counterfactual: ex.counterfactual,
-      nextSteps: ex.nextSteps,
+      partnerSteps: ex.partnerSteps,
+      teamSteps: ex.teamSteps,
+      partnerNextStep: ex.partnerSteps[0] ?? "",
+      teamNextStep: ex.teamSteps[0] ?? "",
+      suggestions: a.suggestions,
       questions: ex.questions,
       conditions,
       flags: dedupeFlags(flags),
@@ -245,6 +269,10 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
           : null,
       competitors: o.competitors,
       bands: a.bands,
+      waitlist:
+        status === "WAITLIST" && o.waitlist
+          ? { city: o.waitlist.city, rank: o.waitlist.rank, wantedTerritoryId: o.homeTerritoryKey ? (terByKey.get(o.homeTerritoryKey)?.id ?? null) : null }
+          : null,
       waitlistRank: status === "WAITLIST" ? (o.waitlist?.rank ?? null) : null,
       ifClarified: o.ifClarified
         ? { territoryId: terByKey.get(o.ifClarified.territoryKey)?.id ?? "", rank: o.ifClarified.rank, winsPin: o.ifClarified.winsPin, pin: o.ifClarified.pin }
@@ -300,7 +328,7 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     warnings: [...resolved.warnings, ...alloc.warnings],
     invariantViolations: [],
   };
-  result.invariantViolations = checkInvariants(result, applications, storePins);
+  result.invariantViolations = checkInvariants(result, applications, storePins, personOf);
   return { result, refused };
 }
 

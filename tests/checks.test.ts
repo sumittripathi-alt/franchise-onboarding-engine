@@ -66,7 +66,7 @@ describe("tricky fixture issues (golden)", () => {
     const rep = buildDataQualityReport(parsed.report, parsed.applications, checks);
     expect(rep.applicationRowsRead).toBe(38);
     expect(rep.territoryRowsRead).toBe(6);
-    expect(rep.issueCounts).toEqual({ blocking: 8, condition: 3, info: 14 });
+    expect(rep.issueCounts).toEqual({ blocking: 9, condition: 3, info: 13 });
     expect(rep.warnings[0]).toBe("Row 3 of Applications is the template's example row and was skipped.");
     expect(rep.unmappedPins).toEqual([{ pin: "560017", reason: "location_unknown", usedBy: ["TER-02"] }]);
     expect(rep.exampleTerritoryWarning).toBeNull();
@@ -108,10 +108,25 @@ describe("G2.1 application checks", () => {
     expect(issues.filter((i) => i.code === "A05").map((i) => i.subjectId)).toEqual(["APP-002@row4", "APP-002@row5"]);
   });
 
-  it("A06 same person with different IDs (info)", () => {
-    const issues = check([appRow("APP-002", { 1: "Ravi  Shankar" }), appRow("APP-003", { 1: "ravi shankar" })]);
-    expect(issues.filter((i) => i.code === "A06").every((i) => i.severity === "info")).toBe(true);
-    expect(issues.filter((i) => i.code === "A06")).toHaveLength(2);
+  it("A06 a name match alone is only an info flag", () => {
+    // Same name, different city.
+    const issues = check([appRow("APP-002", { 1: "Ravi  Shankar" }), appRow("APP-003", { 1: "ravi shankar", 2: "Mysuru", 4: 570010 })]);
+    const a06 = issues.filter((i) => i.code === "A06");
+    expect(a06).toHaveLength(2);
+    expect(a06.every((i) => i.severity === "info")).toBe(true);
+    expect(a06[0].message).toMatch(/treated as different people/);
+  });
+
+  it("A06 likely duplicate: same name + city + (similar business or investment within ±20%) → later one blocked", () => {
+    // Different business, investment 50 vs 58 (within 20%).
+    const byInvestment = check([appRow("APP-002", { 1: "Ravi Shankar" }), appRow("APP-003", { 1: "Ravi Shankar", 5: 58, 7: "Bakery" })]);
+    const later = byInvestment.find((i) => i.code === "A06" && i.subjectId === "APP-003")!;
+    expect(later.severity).toBe("blocking");
+    expect(later.question).toBe("Are you the same person as APP-002?");
+    expect(byInvestment.find((i) => i.code === "A06" && i.subjectId === "APP-002")!.severity).toBe("info");
+    // Different business and investment 50 vs 70 (40% apart): not a likely duplicate.
+    const different = check([appRow("APP-002", { 1: "Ravi Shankar" }), appRow("APP-003", { 1: "Ravi Shankar", 5: 70, 7: "Bakery" })]);
+    expect(different.filter((i) => i.code === "A06").every((i) => i.severity === "info")).toBe(true);
   });
 
   it("A07 implausible investment", () => {
@@ -198,7 +213,7 @@ describe("G2.1 territory checks", () => {
 describe("G2.2 blocking issues ask the partner something", () => {
   it("every blocking application issue has a clarifying question", () => {
     const blocking = trickyChecks().checks.issues.filter((i) => i.severity === "blocking" && i.code.startsWith("A"));
-    expect(blocking.length).toBe(8);
+    expect(blocking.length).toBe(9);
     for (const i of blocking) expect(i.question, `${i.code} ${i.subjectId}`).toBeTruthy();
   });
 });

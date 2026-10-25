@@ -40,12 +40,13 @@ export function checkApplications(apps: Application[], signals: Record<string, S
   const byId = new Map<string, Application[]>();
   for (const a of apps) if (a.id) byId.set(a.id, [...(byId.get(a.id) ?? []), a]);
 
-  // A06: same applicant name with different IDs.
+  // A06: same applicant name with different IDs; likely duplicates need more than a name.
   const byPerson = new Map<string, Application[]>();
   for (const a of apps) {
     const k = personKey(a.name);
     if (k) byPerson.set(k, [...(byPerson.get(k) ?? []), a]);
   }
+  const dupOf = likelyDuplicates(apps);
 
   for (const a of apps) {
     const s = signals[a.key] ?? extractSignalsHeuristic({ business: a.business, notes: a.notes });
@@ -151,12 +152,30 @@ export function checkApplications(apps: Application[], signals: Record<string, S
 
     // A06.
     const samePerson = (byPerson.get(personKey(a.name)) ?? []).filter((x) => x.id !== a.id);
-    if (samePerson.length) {
+    const earlier = dupOf.get(a.key);
+    const laterDups = apps.filter((x) => dupOf.get(x.key) === a.key);
+    if (earlier) {
+      const e = apps.find((x) => x.key === earlier)!;
+      add(a, {
+        code: "A06",
+        severity: "blocking",
+        field: "Applicant name",
+        message: `${name}: likely the same person as ${label(e)}, with the same name and city and ${sameBusiness(a, e) ? "a similar business" : "a similar investment"}. A person can hold at most one slot.`,
+        question: `Are you the same person as ${label(e)}?`,
+      });
+    } else if (laterDups.length) {
       add(a, {
         code: "A06",
         severity: "info",
         field: "Applicant name",
-        message: `${name}: same applicant name as ${samePerson.map(label).join(", ")}. A person can hold at most one slot.`,
+        message: `${name}: ${laterDups.map(label).join(", ")} looks like a duplicate of this application and is on hold until confirmed.`,
+      });
+    } else if (samePerson.length) {
+      add(a, {
+        code: "A06",
+        severity: "info",
+        field: "Applicant name",
+        message: `${name}: same applicant name as ${samePerson.map(label).join(", ")}, but other details differ, so they are treated as different people.`,
       });
     }
 
@@ -333,6 +352,55 @@ export function checkApplications(apps: Application[], signals: Record<string, S
     }
   }
   return issues;
+}
+
+// ---------- Likely duplicates (A06) ----------
+
+const idOrder = new Intl.Collator("en", { numeric: true });
+const STOP = new Set(["a", "an", "the", "and", "of", "for", "in", "my", "our", "runs", "run", "running", "own", "owns", "years", "year"]);
+
+function tokens(s: string): Set<string> {
+  return new Set(s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((t) => t.length > 2 && !STOP.has(t)));
+}
+
+/** Business texts overlap on most of their meaningful words. */
+function sameBusiness(a: Application, b: Application): boolean {
+  const x = tokens(a.business);
+  const y = tokens(b.business);
+  if (!x.size || !y.size) return false;
+  const shared = [...x].filter((t) => y.has(t)).length;
+  return shared / Math.min(x.size, y.size) >= 0.6;
+}
+
+function similarInvestment(later: Application, earlier: Application): boolean {
+  const l = later.investmentLakh.value;
+  const e = earlier.investmentLakh.value;
+  return l !== null && e !== null && e > 0 && Math.abs(l - e) <= 0.2 * e;
+}
+
+/**
+ * Likely duplicates: same name AND same city AND (similar business OR investment within ±20%).
+ * Returns later application key → the earliest matching application's key. A name alone is not enough.
+ */
+export function likelyDuplicates(apps: Application[]): Map<string, string> {
+  const out = new Map<string, string>();
+  const ordered = [...apps].sort((a, b) => idOrder.compare(a.id, b.id) || a.row - b.row);
+  ordered.forEach((later, i) => {
+    const key = personKey(later.name);
+    if (!key || !later.city.value) return;
+    const first = ordered
+      .slice(0, i)
+      .find(
+        (e) =>
+          e.id !== later.id &&
+          !out.has(e.key) &&
+          personKey(e.name) === key &&
+          e.city.value === later.city.value &&
+          (sameBusiness(later, e) || similarInvestment(later, e)),
+      );
+    if (first) out.set(later.key, first.key);
+  });
+  return out;
 }
 
 // ---------- Territories ----------

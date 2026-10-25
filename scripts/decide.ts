@@ -46,12 +46,13 @@ const result = runEngineChecked({ applications: parsed.applications, territories
 
 // ---- Table ----
 const COLS = [
-  { title: "ID", width: 13 },
+  { title: "ID", width: 8 },
   { title: "Decision", width: 18 },
-  { title: "Why", width: 62 },
-  { title: "Next step", width: 46 },
+  { title: "Why", width: 54 },
+  { title: "Partner next step", width: 38 },
+  { title: "Team next step", width: 38 },
   { title: "Pin", width: 6 },
-  { title: "Flags", width: 24 },
+  { title: "Flags", width: 19 },
 ];
 
 function wrap(text: string, width: number): string[] {
@@ -90,6 +91,7 @@ const FLAG_SHORT: Record<string, string> = {
   LOCATION_UNCERTAIN: "location-uncertain",
   PAYBACK_WARNING: "slow-payback",
   TARGET_NOT_FEASIBLE: "target-not-feasible",
+  TIGHT_TIMELINE: "tight-timeline",
   NOTES_TARGET_DISAGREE: "notes≠target",
   RENT_BURDEN_RISK: "rent-burden",
   PROVISIONAL: "provisional",
@@ -106,7 +108,7 @@ console.log(row(COLS.map((c) => c.title)));
 console.log(rule);
 for (const d of result.decisions) {
   const flags = d.flags.map((f) => FLAG_SHORT[f.code] ?? f.code.toLowerCase()).join(", ");
-  console.log(row([d.appId, d.label, d.headline, d.nextSteps[0] ?? "", d.pin ?? "", flags]));
+  console.log(row([d.appId, d.label, d.headline, d.partnerNextStep, d.teamNextStep, d.pin ?? "", flags]));
   console.log(rule);
 }
 
@@ -116,9 +118,18 @@ for (const t of result.territories) {
   console.log(
     `${t.id.padEnd(8)} ${String(t.city).padEnd(17)} ${t.priority.padEnd(6)} slots ${t.reserved.length}/${t.slots}` +
       `  reserved: ${t.reserved.map((r) => `${r.appId}@${r.pin}`).join(", ") || "—"}` +
-      `  waitlist: ${t.waitlist.join(", ") || "—"}` +
       (t.whiteSpacePins.length ? `  recruit here: ${t.whiteSpacePins.join(", ")}` : ""),
   );
+}
+
+console.log("\nWaitlists (one per city, single rank; wanted territory in brackets):");
+const cities = [...new Set(result.decisions.filter((d) => d.waitlist).map((d) => d.waitlist!.city))].sort();
+for (const c of cities) {
+  const list = result.decisions
+    .filter((d) => d.waitlist?.city === c)
+    .sort((a, b) => a.waitlist!.rank - b.waitlist!.rank)
+    .map((d) => `#${d.waitlist!.rank} ${d.appId} (${d.waitlist!.wantedTerritoryId ?? "no territory"})`);
+  console.log(`  ${c.padEnd(17)} ${list.join(", ")}`);
 }
 if (result.warnings.length) console.log(`\nWarnings:\n- ${result.warnings.join("\n- ")}`);
 console.log(
@@ -132,8 +143,10 @@ if (args.includes("--full")) {
     console.log(`\n── ${d.appId} · ${d.name} · ${d.label} ──`);
     console.log(wrap(d.explanation, 120).join("\n"));
     console.log(`What would change this: ${d.counterfactual}`);
-    console.log(`Next steps:\n  - ${d.nextSteps.join("\n  - ")}`);
-    if (d.conditions.length) console.log(`Conditions:\n  - ${d.conditions.map((c) => `${c.text} (by ${c.deadline}; if missed: ${c.ifMissed})`).join("\n  - ")}`);
+    console.log(`Partner next steps:\n  - ${d.partnerSteps.join("\n  - ")}`);
+    console.log(`Team next steps:\n  - ${d.teamSteps.join("\n  - ")}`);
+    if (d.suggestions.length) console.log(`Suggestions: ${d.suggestions.join(" ")}`);
+    if (d.conditions.length) console.log(`Conditions:\n  - ${d.conditions.map((c) => `[${c.owner}] ${c.text} (by ${c.deadline}; if missed: ${c.ifMissed})`).join("\n  - ")}`);
     console.log(`Reason codes: ${d.reasonCodes.join(", ")}`);
   }
 }

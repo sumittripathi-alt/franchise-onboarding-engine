@@ -5,152 +5,169 @@
 
 tricky.xlsx · Eyewear store (Lenskart-style) · today 2026-10-25 · 38 applications
 
-ID            │ Decision           │ Why                                                            │ Next step                                      │ Pin    │ Flags                   
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-001       │ Approved           │ Wins pin 560041 and one of TER-01's 2 slots (ranked #1 of 5    │ Sign the letter of intent and pay the brand    │ 560041 │                         
-              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-002       │ Waitlisted         │ Waitlisted #3 for Bengaluru: APP-003 ranks higher for pin      │ Tell the partner they are #3 in the Bengaluru  │        │                         
-              │                    │ 560068 (APP-003 has a better space (a rented ground-floor      │ queue for another location                     │        │                         
-              │                    │ space of 550 sq ft, vs a rented upper-floor space of 500 sq    │                                                │        │                         
-              │                    │ ft)), and no Bengaluru territory has a free slot to offer.     │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-003       │ Approved           │ Wins pin 560068 and one of TER-01's 2 slots (ranked #2 of 5    │ Sign the letter of intent and pay the brand    │ 560068 │                         
-              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-004       │ Waitlisted         │ Waitlisted #1 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #1 on the TER-01     │        │                         
-              │                    │ rank higher.                                                   │ waitlist                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-005       │ Waitlisted         │ Waitlisted #1 for Bengaluru: APP-004 ranks higher for pin      │ Tell the partner they are #1 in the Bengaluru  │        │                         
-              │                    │ 560102 (APP-004 has more investment capacity (₹50 lakh vs ₹33  │ queue for another location                     │        │                         
-              │                    │ lakh)), and no Bengaluru territory has a free slot to offer.   │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-006       │ On hold            │ On hold: investment is ₹0 lakh, which can't be right.          │ Call the partner and ask: Please confirm your  │        │                         
-              │                    │                                                                │ investment capacity in ₹ lakh. You entered 0.  │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-007       │ On hold            │ On hold: pin 560011 is in Bengaluru, but the city is Mysuru.   │ Call the partner and ask: Your pin code 560011 │        │                         
-              │                    │                                                                │ is in Bengaluru, but you chose Mysuru. Which   │        │                         
-              │                    │                                                                │ city do you mean?                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-008       │ On hold            │ On hold: investment is ₹2500 lakh, which is probably a unit    │ Call the partner and ask: Please confirm your  │        │                         
-              │                    │ mix-up (rupees vs lakh).                                       │ investment capacity in ₹ lakh. You entered     │        │                         
-              │                    │                                                                │ 2500.                                          │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-009       │ Not approved       │ Not approved: investment of ₹15 lakh is below the hard floor   │ Tell the partner what would need to change:    │        │                         
-              │                    │ of ₹21 lakh (70% of the Tier 1 minimum of ₹30 lakh).           │ reapply with an investment capacity of at      │        │                         
-              │                    │                                                                │ least ₹21 lakh; ₹30 lakh or more avoids a      │        │                         
-              │                    │                                                                │ proof-of-funds condition                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-010       │ Offered another    │ Offered pin 560043 in TER-03 instead, because pin 560038       │ Accept or decline the offer of pin 560043 by 1 │ 560043 │                         
-              │ location           │ already has existing store ST-03. Held until 1 Nov 2026.       │ Nov 2026                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-011       │ Offered another    │ Offered pin 560024 in TER-03 instead, because pin 560010 isn't │ Accept or decline the offer of pin 560024 by 1 │ 560024 │                         
-              │ location           │ in any of our territories. Held until 1 Nov 2026.              │ Nov 2026                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-012       │ Waitlisted         │ Waitlisted #1 for TER-02: it has 1 slot, and 1 applicant ranks │ Tell the partner they are #1 on the TER-02     │        │ target-not-feasible     
-              │                    │ higher.                                                        │ waitlist                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-013       │ Waitlisted         │ Waitlisted #2 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #2 on the TER-01     │        │                         
-              │                    │ rank higher.                                                   │ waitlist                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-014       │ Waitlisted         │ Waitlisted #2 for Bengaluru: APP-013 ranks higher for pin      │ Tell the partner they are #2 in the Bengaluru  │        │                         
-              │                    │ 560029 (everything else is equal, so the earlier application   │ queue for another location                     │        │                         
-              │                    │ wins (APP-013 before APP-014)), and no Bengaluru territory has │                                                │        │                         
-              │                    │ a free slot to offer.                                          │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-015       │ Approved           │ Wins pin 570015 and one of TER-04's 5 slots (ranked #2 of 4    │ Sign the letter of intent and pay the brand    │ 570015 │                         
-              │                    │ for 5 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-016       │ Approved           │ Wins pin 570010 and one of TER-04's 5 slots (ranked #1 of 4    │ Sign the letter of intent and pay the brand    │ 570010 │                         
-              │                    │ for 5 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-017       │ Approved           │ Wins pin 572101 and one of TER-06's 2 slots (ranked #1 of 2    │ Sign the letter of intent and pay the brand    │ 572101 │                         
-              │                    │ for 2 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-018       │ Approved with      │ Wins pin 572106 and one of TER-06's 2 slots (ranked #2 of 2    │ Show proof of funds of at least ₹15 lakh       │ 572106 │ exp-under-reported      
-              │ conditions         │ for 2 slots), if one condition is met: show proof of funds of  │ (declared ₹12 lakh) by 8 Nov 2026              │        │                         
-              │                    │ at least ₹15 lakh (declared ₹12 lakh).                         │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-019       │ Approved with      │ Wins pin 560037 and TER-02's only slot (ranked #1 of 3 for 1   │ Move to a ground-floor space by 9 Dec 2026     │ 560037 │ provisional             
-              │ conditions         │ slot), if one condition is met: move to a ground-floor space   │                                                │        │                         
-              │                    │ within 45 days.                                                │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-020       │ Approved with      │ Wins pin 560032 and one of TER-03's 6 slots (ranked #3 of 4    │ Share proof of funds or a loan sanction letter │ 560032 │                         
-              │ conditions         │ for 6 slots), if one condition is met: share proof of funds or │ by 8 Nov 2026                                  │        │                         
-              │                    │ a loan sanction letter.                                        │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-021       │ Waitlisted         │ Waitlisted #1 for TER-05: it has no open slots right now.      │ Tell the partner they are #1 on the TER-05     │        │                         
-              │                    │                                                                │ waitlist                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-022       │ Waitlisted         │ Waitlisted: Belagavi has no territory in the current plan, so  │ Keep APP-022 in the Belagavi talent pool and   │        │                         
-              │                    │ APP-022 is kept in the talent pool.                            │ contact them when a territory opens            │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-023       │ Approved with      │ Wins pin 560084 and one of TER-03's 6 slots (ranked #4 of 4    │ Confirm the space is at least 400 sq ft by 1   │ 560084 │                         
-              │ conditions         │ for 6 slots), if one condition is met: confirm the space is at │ Nov 2026                                       │        │                         
-              │                    │ least 400 sq ft.                                               │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-024       │ Waitlisted         │ Waitlisted #2 for TER-02: it has 1 slot, and 1 applicant ranks │ Tell the partner they are #2 on the TER-02     │        │ target-not-feasible     
-              │                    │ higher.                                                        │ waitlist                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-025       │ On hold            │ On hold: the form says floor Ground, but the notes suggest an  │ Call the partner and ask: Your form says       │        │                         
-              │                    │ upper floor.                                                   │ Ground, but your notes suggest an upper floor. │        │                         
-              │                    │                                                                │ Which floor is the space on?                   │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-026       │ Approved with      │ Wins pin 570020 and one of TER-04's 5 slots (ranked #4 of 4    │ Find a suitable space by 9 Dec 2026            │ 570020 │ notes≠target,           
-              │ conditions         │ for 5 slots), if one condition is met: find a suitable space   │                                                │        │ target-not-feasible,    
-              │                    │ within 45 days.                                                │                                                │        │ location-uncertain      
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-027       │ Approved with      │ Wins pin 560045 and one of TER-03's 6 slots (ranked #2 of 4    │ Name the store manager who will run the store; │ 560045 │ location-uncertain      
-              │ conditions         │ for 6 slots), if one condition is met: name the store manager  │ they must also complete training by 24 Nov     │        │                         
-              │                    │ who will run the store; they must also complete training.      │ 2026                                           │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-028       │ On hold            │ On hold: the text mentions running a competing brand. A        │ Call the partner and ask: Do you run or hold a │        │                         
-              │                    │ conflict-of-interest check is needed.                          │ stake in a competing brand? We need to         │        │                         
-              │                    │                                                                │ complete a conflict-of-interest check before   │        │                         
-              │                    │                                                                │ deciding.                                      │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-029       │ Waitlisted         │ Waitlisted #3 for TER-01: it has 2 slots, and 2 applicants     │ Tell the partner they are #3 on the TER-01     │        │ integrity,              
-              │                    │ rank higher.                                                   │ waitlist                                       │        │ target-not-feasible     
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-030       │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, 34).    │ Call the partner and ask: Application ID       │        │                         
-              │                    │                                                                │ APP-030 appears more than once. Which row is   │        │                         
-              │                    │                                                                │ correct, or should one get a new ID?           │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-030       │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, 34).    │ Call the partner and ask: Application ID       │        │                         
-              │                    │                                                                │ APP-030 appears more than once. Which row is   │        │                         
-              │                    │                                                                │ correct, or should one get a new ID?           │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-031       │ Approved           │ Wins pin 560077 and one of TER-03's 6 slots (ranked #1 of 4    │ Sign the letter of intent and pay the brand    │ 560077 │                         
-              │                    │ for 6 slots), with no conditions.                              │ fee by 1 Nov 2026                              │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-032       │ Waitlisted         │ Waitlisted: Ravi Shankar already holds a slot through APP-031; │ Confirm with the applicant whether APP-032 and │        │                         
-              │                    │ one slot per person.                                           │ APP-031 are the same person                    │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-033       │ Approved with      │ Wins pin 570005 and one of TER-04's 5 slots (ranked #3 of 4    │ Get expansion-head sign-off (within 2.5 km of  │ 570005 │ near-store              
-              │ conditions         │ for 5 slots), if one condition is met: get expansion-head      │ ST-06) and inform the existing partner at      │        │                         
-              │                    │ sign-off (within 2.5 km of ST-06) and inform the existing      │ ST-06 before announcing by 1 Nov 2026          │        │                         
-              │                    │ partner at ST-06 before announcing.                            │                                                │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-034       │ Offered another    │ Offered pin 570016 in TER-04 instead, because pin 570009       │ Accept or decline the offer of pin 570016 by 1 │ 570016 │ near-store              
-              │ location           │ already has existing store ST-06. Held until 1 Nov 2026.       │ Nov 2026                                       │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-035       │ On hold            │ On hold: the form says floor Ground, but the notes suggest an  │ Call the partner and ask: Your form says       │        │                         
-              │                    │ upper floor.                                                   │ Ground, but your notes suggest an upper floor. │        │                         
-              │                    │                                                                │ Which floor is the space on?                   │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-036       │ Waitlisted         │ Waitlisted: Davanagere has no territory in the current plan,   │ Keep APP-036 in the Davanagere talent pool and │        │                         
-              │                    │ so APP-036 is kept in the talent pool.                         │ contact them when a territory opens            │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
-APP-037       │ Waitlisted         │ Waitlisted: Mangaluru has no territory in the current plan, so │ Keep APP-037 in the Mangaluru talent pool and  │        │                         
-              │                    │ APP-037 is kept in the talent pool.                            │ contact them when a territory opens            │        │                         
-──────────────┼────────────────────┼────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼────────┼─────────────────────────
+ID       │ Decision           │ Why                                                    │ Partner next step                      │ Team next step                         │ Pin    │ Flags              
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-001  │ Approved           │ Wins pin 560041 and a TER-01 slot, ranked #1 of 5,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 560041 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-002  │ Waitlisted         │ Waitlisted #5 in Bengaluru: lost pin 560068 to APP-003 │ No action needed; you're #5 in         │ Tell the partner they're #5 on the     │        │                    
+         │                    │ (better space), and the last free location went to     │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-01     │        │                    
+         │                    │ APP-011 (better space).                                │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-003  │ Approved           │ Wins pin 560068 and a TER-01 slot, ranked #2 of 5,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 560068 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-004  │ Waitlisted         │ Waitlisted #1 in Bengaluru, wanted TER-01: its 2 slots │ Start pre-onboarding now (documents,   │ Tell the partner they're #1 on the     │        │                    
+         │                    │ went to higher-ranked APP-001 and APP-003.             │ KYC, store design brief) so you can    │ Bengaluru waitlist, wanting TER-01     │        │                    
+         │                    │                                                        │ open quickly if a slot frees           │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-005  │ Waitlisted         │ Waitlisted #2 in Bengaluru: lost pin 560102 to APP-004 │ Start pre-onboarding now (documents,   │ Tell the partner they're #2 on the     │        │                    
+         │                    │ (more investment), and the last free location went to  │ KYC, store design brief) so you can    │ Bengaluru waitlist, wanting TER-01     │        │                    
+         │                    │ APP-011 (more investment).                             │ open quickly if a slot frees           │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-006  │ On hold            │ On hold: investment is ₹0 lakh, which can't be right.  │ Answer: Please confirm your investment │ Call the partner and ask: Please       │        │                    
+         │                    │                                                        │ capacity in ₹ lakh. You entered 0.     │ confirm your investment capacity in ₹  │        │                    
+         │                    │                                                        │                                        │ lakh. You entered 0.                   │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-007  │ On hold            │ On hold: pin 560011 is in Bengaluru, but the city is   │ Answer: Your pin code 560011 is in     │ Call the partner and ask: Your pin     │        │                    
+         │                    │ Mysuru.                                                │ Bengaluru, but you chose Mysuru. Which │ code 560011 is in Bengaluru, but you   │        │                    
+         │                    │                                                        │ city do you mean?                      │ chose Mysuru. Which city do you mean?  │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-008  │ On hold            │ On hold: investment is ₹2500 lakh, which is probably a │ Answer: Please confirm your investment │ Call the partner and ask: Please       │        │                    
+         │                    │ unit mix-up (rupees vs lakh).                          │ capacity in ₹ lakh. You entered 2500.  │ confirm your investment capacity in ₹  │        │                    
+         │                    │                                                        │                                        │ lakh. You entered 2500.                │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-009  │ Not approved       │ Not approved: ₹15 lakh is below the ₹30 lakh minimum   │ Reapply with at least ₹30 lakh, the    │ Send the decision with what would need │        │                    
+         │                    │ for Bengaluru (Tier 1).                                │ Tier 1 minimum for Bengaluru           │ to change                              │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-010  │ Offered another    │ Offered pin 560043 in TER-03 because pin 560038        │ Accept or decline the offer of pin     │ Send the location offer for pin        │ 560043 │                    
+         │ location           │ already has store ST-03. Offer held until 1 Nov.       │ 560043 by 1 Nov 2026                   │ 560043; it lapses on 1 Nov 2026        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-011  │ Offered another    │ Offered pin 560024 in TER-03 because pin 560010 isn't  │ Accept or decline the offer of pin     │ Send the location offer for pin        │ 560024 │                    
+         │ location           │ in any territory. Offer held until 1 Nov.              │ 560024 by 1 Nov 2026                   │ 560024; it lapses on 1 Nov 2026        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-012  │ Waitlisted         │ Waitlisted #7 in Bengaluru, wanted TER-02: its only    │ No action needed; you're #7 in         │ Tell the partner they're #7 on the     │        │ tight-timeline     
+         │                    │ slot went to higher-ranked APP-019.                    │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-02     │        │                    
+         │                    │                                                        │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-013  │ Waitlisted         │ Waitlisted #3 in Bengaluru, wanted TER-01: its 2 slots │ No action needed; you're #3 in         │ Tell the partner they're #3 on the     │        │                    
+         │                    │ went to higher-ranked APP-001 and APP-003.             │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-01     │        │                    
+         │                    │                                                        │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-014  │ Waitlisted         │ Waitlisted #4 in Bengaluru: lost pin 560029 to APP-013 │ No action needed; you're #4 in         │ Tell the partner they're #4 on the     │        │                    
+         │                    │ (applied earlier), and the last free location went to  │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-01     │        │                    
+         │                    │ APP-011 (more investment).                             │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-015  │ Approved           │ Wins pin 570015 and a TER-04 slot, ranked #2 of 4,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 570015 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-016  │ Approved           │ Wins pin 570010 and a TER-04 slot, ranked #1 of 4,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 570010 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-017  │ Approved           │ Wins pin 572101 and a TER-06 slot, ranked #1 of 2,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 572101 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-018  │ Approved with      │ Wins pin 572106 and a TER-06 slot if it arranges the   │ Arrange the remaining ₹3 lakh (loan or │ Send the conditional approval and      │ 572106 │ exp-under-reported 
+         │ conditions         │ remaining ₹3 lakh by 8 Nov.                            │ co-investor) and share proof by 8 Nov  │ track 1 condition                      │        │                    
+         │                    │                                                        │ 2026                                   │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-019  │ Approved with      │ Wins pin 560037 and TER-02's only slot if it moves to  │ Move to a ground-floor space by 9 Dec  │ Chase APP-035's answer before sending  │ 560037 │ provisional        
+         │ conditions         │ a ground-floor space by 9 Dec; provisional until       │ 2026                                   │ this decision; it's provisional until  │        │                    
+         │                    │ APP-035 is checked.                                    │                                        │ 1 Nov 2026                             │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-020  │ Approved with      │ Wins pin 560032 and a TER-03 slot if it shares proof   │ Share proof of funds or a loan         │ Send the conditional approval and      │ 560032 │                    
+         │ conditions         │ of funds by 8 Nov.                                     │ sanction letter by 8 Nov 2026          │ track 1 condition                      │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-021  │ Waitlisted         │ Waitlisted #1 in Hubballi-Dharwad, wanted TER-05: it   │ Start pre-onboarding now (documents,   │ Tell the partner they're #1 on the     │        │                    
+         │                    │ has no open slots right now.                           │ KYC, store design brief) so you can    │ Hubballi-Dharwad waitlist, wanting     │        │                    
+         │                    │                                                        │ open quickly if a slot frees           │ TER-05                                 │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-022  │ Waitlisted         │ Waitlisted #1 in Belagavi: no territory covers         │ No action needed; we'll contact you if │ Keep APP-022 in the Belagavi talent    │        │                    
+         │                    │ Belagavi in the current plan, so it stays in the       │ a territory opens in Belagavi          │ pool and contact them when a territory │        │                    
+         │                    │ talent pool.                                           │                                        │ opens                                  │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-023  │ Approved with      │ Wins pin 560084 and a TER-03 slot if it confirms the   │ Confirm the space is at least 400 sq   │ Send the conditional approval and      │ 560084 │                    
+         │ conditions         │ space is at least 400 sq ft by 1 Nov.                  │ ft by 1 Nov 2026                       │ track 1 condition                      │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-024  │ Waitlisted         │ Waitlisted #8 in Bengaluru, wanted TER-02: its only    │ No action needed; you're #8 in         │ Tell the partner they're #8 on the     │        │ tight-timeline     
+         │                    │ slot went to higher-ranked APP-019.                    │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-02     │        │                    
+         │                    │                                                        │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-025  │ On hold            │ On hold: the form says floor Ground, but the notes     │ Answer: Your form says Ground, but     │ Call the partner and ask: Your form    │        │                    
+         │                    │ suggest an upper floor, quoting "first floor".         │ your notes suggest an upper floor.     │ says Ground, but your notes suggest an │        │                    
+         │                    │                                                        │ Which floor is the space on?           │ upper floor. Which floor is the space  │        │                    
+         │                    │                                                        │                                        │ on?                                    │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-026  │ Approved with      │ Opening before Diwali (8 Nov) isn't possible without a │ Find a suitable space by 9 Dec 2026    │ Send the conditional approval and      │ 570020 │ notes≠target,      
+         │ conditions         │ space; earliest realistic opening is 1 Mar 2027. Slot  │                                        │ track 1 condition                      │        │ target-not-feasible
+         │                    │ held if it finds a space by 9 Dec.                     │                                        │                                        │        │ ,                  
+         │                    │                                                        │                                        │                                        │        │ location-uncertain 
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-027  │ Approved with      │ Wins pin 560045 and a TER-03 slot if it names a store  │ Name the store manager who will run    │ Send the conditional approval and      │ 560045 │ location-uncertain 
+         │ conditions         │ manager by 24 Nov.                                     │ the store; they must also complete     │ track 1 condition                      │        │                    
+         │                    │                                                        │ training by 24 Nov 2026                │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-028  │ On hold            │ On hold: the text mentions running a competing brand,  │ Answer: Do you run or hold a stake in  │ Call the partner and ask: Do you run   │        │                    
+         │                    │ quoting "Titan Eye+".                                  │ a competing brand? We need to complete │ or hold a stake in a competing brand?  │        │                    
+         │                    │                                                        │ a conflict-of-interest check before    │ We need to complete a                  │        │                    
+         │                    │                                                        │ deciding.                              │ conflict-of-interest check before      │        │                    
+         │                    │                                                        │                                        │ deciding.                              │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-029  │ Waitlisted         │ Waitlisted #6 in Bengaluru, wanted TER-01: its 2 slots │ No action needed; you're #6 in         │ Tell the partner they're #6 on the     │        │ integrity,         
+         │                    │ went to higher-ranked APP-001 and APP-003.             │ Bengaluru and we'll call you if a slot │ Bengaluru waitlist, wanting TER-01     │        │ target-not-feasible
+         │                    │                                                        │ frees                                  │                                        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-030  │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, │ Answer: Application ID APP-030 appears │ Call the partner and ask: Application  │        │                    
+         │                    │ 34).                                                   │ more than once. Which row is correct,  │ ID APP-030 appears more than once.     │        │                    
+         │                    │                                                        │ or should one get a new ID?            │ Which row is correct, or should one    │        │                    
+         │                    │                                                        │                                        │ get a new ID?                          │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-030  │ On hold            │ On hold: application ID APP-030 is used by 2 rows (33, │ Answer: Application ID APP-030 appears │ Call the partner and ask: Application  │        │                    
+         │                    │ 34).                                                   │ more than once. Which row is correct,  │ ID APP-030 appears more than once.     │        │                    
+         │                    │                                                        │ or should one get a new ID?            │ Which row is correct, or should one    │        │                    
+         │                    │                                                        │                                        │ get a new ID?                          │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-031  │ Approved           │ Wins pin 560077 and a TER-03 slot, ranked #1 of 4,     │ Sign the letter of intent and pay the  │ Send the approval and letter of        │ 560077 │                    
+         │                    │ with no conditions.                                    │ brand fee by 1 Nov 2026                │ intent, then mark the decision as sent │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-032  │ On hold            │ On hold: likely the same person as APP-031, with the   │ Answer: Are you the same person as     │ Call the partner and ask: Are you the  │        │                    
+         │                    │ same name and city and a similar business.             │ APP-031?                               │ same person as APP-031?                │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-033  │ Approved, pending  │ Wins pin 570005 and a TER-04 slot, pending             │ Nothing yet: we'll confirm after an    │ Get expansion-head sign-off (within    │ 570005 │ near-store         
+         │ internal sign-off  │ expansion-head sign-off: it is 0.8 km from ST-06.      │ internal check by 1 Nov 2026           │ 2.5 km of ST-06) and inform the        │        │                    
+         │                    │                                                        │                                        │ existing partner at ST-06 before       │        │                    
+         │                    │                                                        │                                        │ announcing by 1 Nov 2026               │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-034  │ Offered another    │ Offered pin 570016 in TER-04 because pin 570009        │ Accept or decline the offer of pin     │ Send the location offer for pin        │ 570016 │ near-store         
+         │ location           │ already has store ST-06. Offer held until 1 Nov.       │ 570016 by 1 Nov 2026                   │ 570016; it lapses on 1 Nov 2026        │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-035  │ On hold            │ On hold: the form says floor Ground, but the notes     │ Answer: Your form says Ground, but     │ Call the partner and ask: Your form    │        │                    
+         │                    │ suggest an upper floor, quoting "first floor".         │ your notes suggest an upper floor.     │ says Ground, but your notes suggest an │        │                    
+         │                    │                                                        │ Which floor is the space on?           │ upper floor. Which floor is the space  │        │                    
+         │                    │                                                        │                                        │ on?                                    │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-036  │ Waitlisted         │ Waitlisted #1 in Davanagere: no territory covers       │ No action needed; we'll contact you if │ Keep APP-036 in the Davanagere talent  │        │                    
+         │                    │ Davanagere in the current plan, so it stays in the     │ a territory opens in Davanagere        │ pool and contact them when a territory │        │                    
+         │                    │ talent pool.                                           │                                        │ opens                                  │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
+APP-037  │ Waitlisted         │ Waitlisted #1 in Mangaluru: no territory covers        │ No action needed; we'll contact you if │ Keep APP-037 in the Mangaluru talent   │        │                    
+         │                    │ Mangaluru in the current plan, so it stays in the      │ a territory opens in Mangaluru         │ pool and contact them when a territory │        │                    
+         │                    │ talent pool.                                           │                                        │ opens                                  │        │                    
+─────────┼────────────────────┼────────────────────────────────────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┼────────┼────────────────────
 
-Approved: 6 · Approved with conditions: 7 · On hold: 8 · Waitlisted: 13 · Offered another location: 3 · Not approved: 1
-TER-01   Bengaluru         High   slots 2/2  reserved: APP-001@560041, APP-003@560068  waitlist: APP-004, APP-013, APP-029
-TER-02   Bengaluru         Medium slots 1/1  reserved: APP-019@560037  waitlist: APP-012, APP-024
-TER-03   Bengaluru         Low    slots 6/6  reserved: APP-010@560043, APP-011@560024, APP-020@560032, APP-023@560084, APP-027@560045, APP-031@560077  waitlist: —
-TER-04   Mysuru            High   slots 5/5  reserved: APP-015@570015, APP-016@570010, APP-026@570020, APP-033@570005, APP-034@570016  waitlist: —
-TER-05   Hubballi-Dharwad  Medium slots 0/0  reserved: —  waitlist: APP-021
-TER-06   Tumakuru          Medium slots 2/2  reserved: APP-017@572101, APP-018@572106  waitlist: —
+Approved: 6 · Approved with conditions: 7 · On hold: 9 · Waitlisted: 12 · Offered another location: 3 · Not approved: 1
+TER-01   Bengaluru         High   slots 2/2  reserved: APP-001@560041, APP-003@560068
+TER-02   Bengaluru         Medium slots 1/1  reserved: APP-019@560037
+TER-03   Bengaluru         Low    slots 6/6  reserved: APP-010@560043, APP-011@560024, APP-020@560032, APP-023@560084, APP-027@560045, APP-031@560077
+TER-04   Mysuru            High   slots 5/5  reserved: APP-015@570015, APP-016@570010, APP-026@570020, APP-033@570005, APP-034@570016
+TER-05   Hubballi-Dharwad  Medium slots 0/0  reserved: —
+TER-06   Tumakuru          Medium slots 2/2  reserved: APP-017@572101, APP-018@572106
+
+Waitlists (one per city, single rank; wanted territory in brackets):
+  Belagavi          #1 APP-022 (no territory)
+  Bengaluru         #1 APP-004 (TER-01), #2 APP-005 (TER-01), #3 APP-013 (TER-01), #4 APP-014 (TER-01), #5 APP-002 (TER-01), #6 APP-029 (TER-01), #7 APP-012 (TER-02), #8 APP-024 (TER-02)
+  Davanagere        #1 APP-036 (no territory)
+  Hubballi-Dharwad  #1 APP-021 (TER-05)
+  Mangaluru         #1 APP-037 (no territory)
 
 ✓ All invariants hold (6.7), including a rerun determinism check.

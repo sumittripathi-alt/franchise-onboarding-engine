@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { checkInvariants } from "@/lib/engine/invariants";
+import { likelyDuplicates } from "@/lib/ingest/validate";
 import type { FactPatch, HumanOverride, Lock } from "@/lib/engine/types";
 import { EXISTING_STORE_PINS } from "@/data/existingStores";
 import { decision, trickyInput, trickyRun } from "./engineHelpers";
@@ -35,7 +36,7 @@ describe("G9.2 decisions sent to the partner are never displaced", () => {
     const d12 = decision(r, "APP-012");
     expect(d12.status).toBe("WAITLIST");
     expect(d12.reasonCodes).toContain("SLOT_COMMITTED");
-    expect(d12.headline).toBe("Waitlisted: slot already committed to APP-019 on 25 Oct 2026.");
+    expect(d12.headline).toMatch(/^Waitlisted #\d+ in Bengaluru: slot already committed to APP-019 on 25 Oct 2026\.$/);
   });
 
   it("a locked partner keeps its slot when the territory's slots are cut, and the territory is flagged", () => {
@@ -139,8 +140,8 @@ describe("G3.6 invariant failures are detected", () => {
     broken.decisions.find((d) => d.appKey === "APP-004")!.slotTerritoryId = "TER-01";
     broken.decisions.find((d) => d.appKey === "APP-032")!.status = "APPROVED"; // 7: one person, two slots
     broken.decisions.find((d) => d.appKey === "APP-032")!.pin = "560010";
-    broken.decisions.find((d) => d.appKey === "APP-009")!.nextSteps = []; // 4
-    const v = checkInvariants(broken, input.applications, EXISTING_STORE_PINS);
+    broken.decisions.find((d) => d.appKey === "APP-009")!.partnerSteps = []; // 4
+    const v = checkInvariants(broken, input.applications, EXISTING_STORE_PINS, likelyDuplicates(input.applications));
     for (const n of ["1:", "2:", "3:", "4:", "5:", "7:"]) expect(v.some((x) => x.startsWith(n)), n).toBe(true);
   });
 });

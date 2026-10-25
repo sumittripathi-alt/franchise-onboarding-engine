@@ -5,9 +5,10 @@
 //      location-offer candidate, or outside the plan.
 //   2. Pre-reserve locked partners ("sent to partner") and forced-in overrides.
 //   3. Pin contests in every territory; losers become location-offer candidates.
-//   4. Slot contests, territories by priority then ID; losers are waitlisted with a rank.
+//   4. Slot contests, territories by priority then ID; losers are waitlisted.
 //   5. Location offers per city, candidates in offer order (no space → Rented → Owned, then rank).
-//   6. On-hold applicants: where they would stand once clarified; provisional wins.
+//   6. One waitlist per city with a single rank (wanted territory's priority first, then the ranking key).
+//   7. On-hold applicants: where they would stand once clarified; provisional wins.
 
 import { PRIORITY_RANK } from "@/lib/policy/allowedValues";
 import type { ResolvedTerritory } from "@/lib/ingest/validate";
@@ -32,8 +33,11 @@ export interface Outcome {
   kind: "won" | "offer" | "locked" | "forced" | null;
   offer: { pin: string; territoryKey: string; distanceKm: number | null; homeReason: HomeReason } | null;
   competitors: Competitor[];
-  waitlist: { scope: "territory"; territoryKey: string; rank: number } | { scope: "city"; city: string; rank: number } | null;
-  lostTo: { key: string; text: string } | null;
+  /** Rank in the city's single waitlist. */
+  waitlist: { city: string; rank: number } | null;
+  /** For location-queue losers: the lowest-ranked applicant who did get an offer, and why they ranked higher. */
+  passedOverBy: { key: string; text: string; factor: string } | null;
+  lostTo: { key: string; text: string; factor: string } | null;
   committedTo: { key: string; date: string } | null;
   duplicateOf: string | null;
   locked: Lock | null;
@@ -71,7 +75,12 @@ export interface Allocation {
   /** Effective slots per territory key (raised to the number of locked partners if needed). */
   slots: Map<string, number>;
   reserved: Map<string, { key: string; pin: string }[]>;
+  /** Territory key → waitlisted applicants who wanted it, in city-rank order. */
   waitlists: Map<string, string[]>;
+  /** City → its single waitlist, in rank order. */
+  cityWaitlists: Map<string, string[]>;
+  /** City → applicants offered another location there. */
+  offeredInCity: Map<string, string[]>;
   overCommitted: Set<string>;
   warnings: string[];
   refusedForced: { key: string; message: string }[];
@@ -89,6 +98,7 @@ function newOutcome(key: string): Outcome {
     offer: null,
     competitors: [],
     waitlist: null,
+    passedOverBy: null,
     lostTo: null,
     committedTo: null,
     duplicateOf: null,
@@ -278,10 +288,11 @@ export function allocate(input: AllocationInput): Allocation {
             o.committedTo = { key: holderKey, date: holderOutcome.locked!.date };
           } else {
             o.codes.push("LOST_PIN_CONTEST");
-            o.lostTo = {
-              key: holderKey,
-              text: holderOutcome.kind === "forced" ? `a human override gave pin ${pin} to ${holder.id}` : cmp.firstDifference(ranked(holder), ranked(c)).text,
-            };
+            const diff = cmp.firstDifference(ranked(holder), ranked(c));
+            o.lostTo =
+              holderOutcome.kind === "forced"
+                ? { key: holderKey, text: `a human override gave pin ${pin} to ${holder.id}`, factor: "override" }
+                : { key: holderKey, text: diff.text, factor: diff.factor };
             candidates.push({ a: c, home: t, reason: "lostPin" });
           }
         }
@@ -294,17 +305,18 @@ export function allocate(input: AllocationInput): Allocation {
       winners.push(winner.a);
       pinContest.set(pin, { winner: winner.a, group });
       for (const loser of order.slice(1)) {
-        const diff = cmp.firstDifference(winner, loser).text;
+        const { text: diff, factor } = cmp.firstDifference(winner, loser);
         const lo = outcomes.get(loser.a.key)!;
         lo.codes.push("LOST_PIN_CONTEST");
-        lo.lostTo = { key: winner.a.key, text: diff };
-        lo.competitors.push({ appId: winner.a.id, appKey: winner.a.key, relation: "pin", won: false, firstDifferingFactor: diff });
+        lo.lostTo = { key: winner.a.key, text: diff, factor };
+        lo.competitors.push({ appId: winner.a.id, appKey: winner.a.key, relation: "pin", won: false, firstDifferingFactor: diff, factor });
         outcomes.get(winner.a.key)!.competitors.push({
           appId: loser.a.id,
           appKey: loser.a.key,
           relation: "pin",
           won: true,
           firstDifferingFactor: diff,
+          factor,
         });
         candidates.push({ a: loser.a, home: t, reason: "lostPin" });
       }
@@ -313,7 +325,6 @@ export function allocate(input: AllocationInput): Allocation {
   }
 
   // ---- 4. Slot contests ----
-  const waitlists = new Map<string, string[]>();
   for (const t of active) {
     const group = (pinWinners.get(t.key) ?? []).map((x) => ranked(x));
     const lockedHere = reserved
@@ -323,7 +334,6 @@ export function allocate(input: AllocationInput): Allocation {
     const cmp = makeComparator([...group, ...lockedHere.map((o) => ranked(byKey.get(o.key)!, o.pin))]);
     const order = sortRanked(group, cmp);
     const winnersHere: Ranked[] = [];
-    const wl: string[] = [];
     order.forEach((r, i) => {
       const o = outcomes.get(r.a.key)!;
       o.slotRank = i + 1;
@@ -343,15 +353,14 @@ export function allocate(input: AllocationInput): Allocation {
       }
       o.status = "WAITLIST";
       o.codes.push("NO_SLOT");
-      wl.push(r.a.key);
       // The applicant they would need to beat: the lowest-ranked slot holder here.
       const bar = winnersHere[winnersHere.length - 1];
       if (bar) {
-        const diff = cmp.firstDifference(bar, r).text;
-        o.competitors.push({ appId: bar.a.id, appKey: bar.a.key, relation: "slot", won: false, firstDifferingFactor: diff });
+        const { text: diff, factor } = cmp.firstDifference(bar, r);
+        o.competitors.push({ appId: bar.a.id, appKey: bar.a.key, relation: "slot", won: false, firstDifferingFactor: diff, factor });
         const bo = outcomes.get(bar.a.key)!;
         if (bo.competitors.filter((c) => c.relation === "slot").length < 3) {
-          bo.competitors.push({ appId: r.a.id, appKey: r.a.key, relation: "slot", won: true, firstDifferingFactor: diff });
+          bo.competitors.push({ appId: r.a.id, appKey: r.a.key, relation: "slot", won: true, firstDifferingFactor: diff, factor });
         }
       }
       const outranked = lockedHere.find((lo) => cmp.compare(r, ranked(byKey.get(lo.key)!, lo.pin)) < 0);
@@ -360,14 +369,13 @@ export function allocate(input: AllocationInput): Allocation {
         o.committedTo = { key: outranked.key, date: outranked.locked!.date };
       }
     });
-    wl.forEach((k, i) => (outcomes.get(k)!.waitlist = { scope: "territory", territoryKey: t.key, rank: i + 1 }));
-    waitlists.set(t.key, wl);
   }
 
   // ---- 5. Location offers, per city ----
   const holdPins = new Set(
     input.assessments.filter((a) => outcomes.get(a.key)!.status === "HOLD" && a.app.pin.value).map((a) => a.app.pin.value!),
   );
+  const offeredInCity = new Map<string, string[]>();
   const byCity = new Map<string, typeof candidates>();
   for (const c of candidates) {
     const city = c.a.app.city.value!;
@@ -378,7 +386,7 @@ export function allocate(input: AllocationInput): Allocation {
     const cmp = makeComparator(list.map((c) => ranked(c.a)), { bySpaceType: true });
     const order = sortRanked(list.map((c) => ranked(c.a)), cmp);
     const homeOf = new Map(list.map((c) => [c.a.key, c]));
-    const cityWaitlist: string[] = [];
+    const offered: string[] = [];
     let lastOffered: Ranked | null = null;
     for (const r of order) {
       const c = homeOf.get(r.a.key)!;
@@ -397,10 +405,10 @@ export function allocate(input: AllocationInput): Allocation {
       if (!t) {
         o.status = "WAITLIST";
         o.codes.push("NO_SLOT_IN_CITY");
-        cityWaitlist.push(r.a.key);
         if (lastOffered) {
-          const diff = cmp.firstDifference(lastOffered, r).text;
-          o.competitors.push({ appId: lastOffered.a.id, appKey: lastOffered.a.key, relation: "offer", won: false, firstDifferingFactor: diff });
+          const { text: diff, factor } = cmp.firstDifference(lastOffered, r);
+          o.competitors.push({ appId: lastOffered.a.id, appKey: lastOffered.a.key, relation: "offer", won: false, firstDifferingFactor: diff, factor });
+          o.passedOverBy = { key: lastOffered.a.key, text: diff, factor };
         }
         continue;
       }
@@ -414,12 +422,40 @@ export function allocate(input: AllocationInput): Allocation {
         offer: { pin, territoryKey: t.key, distanceKm: r.a.app.pin.value ? input.pinKm(r.a.app.pin.value, pin) : null, homeReason: c.reason },
       });
       o.codes.push("REDIRECT_OFFERED");
+      offered.push(r.a.key);
       lastOffered = r;
     }
-    cityWaitlist.forEach((k, i) => (outcomes.get(k)!.waitlist = { scope: "city", city, rank: i + 1 }));
+    offeredInCity.set(city, offered);
   }
 
-  // ---- 6. On hold: standing once clarified, and provisional wins ----
+  // ---- 6. One waitlist per city, a single rank ----
+  // The wanted territory's priority comes first (SPEC §6.3, "when comparing across territories"); applicants
+  // whose pin is in no territory rank after those who wanted one, then the usual ranking key applies.
+  const cityWaitlists = new Map<string, string[]>();
+  const waiting = sorted.filter((a) => {
+    const o = outcomes.get(a.key)!;
+    return o.status === "WAITLIST" && o.kind !== "forced" && a.app.city.value;
+  });
+  for (const city of [...new Set(waiting.map((a) => a.app.city.value!))].sort()) {
+    const group = waiting
+      .filter((a) => a.app.city.value === city)
+      .map((a): Ranked => {
+        const home = outcomes.get(a.key)!.homeTerritoryKey;
+        const t = home ? terByKey.get(home) : undefined;
+        return { ...ranked(a), territoryPriority: t ? PRIORITY_RANK[t.priority] : 9 };
+      });
+    const cmp = makeComparator(group, { byTerritoryPriority: true });
+    const order = sortRanked(group, cmp).map((r) => r.a.key);
+    order.forEach((k, i) => (outcomes.get(k)!.waitlist = { city, rank: i + 1 }));
+    cityWaitlists.set(city, order);
+  }
+  const waitlists = new Map<string, string[]>();
+  for (const t of active) {
+    const list = cityWaitlists.get(t.city ?? "") ?? [];
+    waitlists.set(t.key, list.filter((k) => outcomes.get(k)!.homeTerritoryKey === t.key));
+  }
+
+  // ---- 7. On hold: standing once clarified, and provisional wins ----
   const provisionalBy = new Map<string, Ranked>(); // winner key → best on-hold challenger
   for (const a of sorted) {
     const o = outcomes.get(a.key)!;
@@ -458,7 +494,7 @@ export function allocate(input: AllocationInput): Allocation {
     wo.codes.push("PROVISIONAL");
   }
 
-  return { outcomes, slots, reserved, waitlists, overCommitted, warnings, refusedForced };
+  return { outcomes, slots, reserved, waitlists, cityWaitlists, offeredInCity, overCommitted, warnings, refusedForced };
 }
 
 /**

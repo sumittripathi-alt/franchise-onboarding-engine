@@ -51,6 +51,9 @@ export interface BrandProfile {
   /** Used when target launch is blank or invalid (check A13). */
   defaultTargetLaunchMonths: number;
 
+  /** The top N in each city's waitlist get a pre-onboarding step, so they can open quickly if a slot frees. */
+  preOnboarding: { topN: number; step: string };
+
   /** Days allowed for each kind of condition (SPEC §6.6). Space and floor deadlines come from the rules above. */
   conditionDays: {
     confirmDetails: number;

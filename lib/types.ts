@@ -160,6 +160,7 @@ export type ReasonCode =
   | "LOCATION_UNCERTAIN"
   | "PAYBACK_WARNING"
   | "TARGET_NOT_FEASIBLE"
+  | "TIGHT_TIMELINE"
   | "NOTES_TARGET_DISAGREE"
   | "RENT_BURDEN_RISK"
   | "PROVISIONAL"
@@ -179,6 +180,10 @@ export interface Bands {
 export interface Condition {
   id: string;
   text: string;
+  /** Third-person phrase for the one-line why, e.g. "moves to a ground-floor space". */
+  short: string;
+  /** Who acts on it: the partner, or the brand's own team (sign-off, informing an existing partner). */
+  owner: "partner" | "team";
   /** ISO date (YYYY-MM-DD). */
   deadline: string;
   ifMissed: string;
@@ -197,6 +202,8 @@ export interface Competitor {
   won: boolean;
   /** Plain-English first differing factor, from the winner's point of view. */
   firstDifferingFactor: string;
+  /** Which factor it was: space, capital, experience, distance, launch, id, spaceType, territoryPriority. */
+  factor: string;
 }
 
 export interface HistoryEntry {
@@ -233,6 +240,8 @@ export interface LaunchInfo {
   /** The date used to test feasibility: the earlier of target and festival (SPEC §15.7). */
   testDate: string | null;
   feasible: boolean;
+  /** Days the earliest launch falls after the test date (≤ 0 = feasible). */
+  gapDays: number;
 }
 
 export interface LocationOffer {
@@ -258,8 +267,14 @@ export interface DecisionRecord {
   explanation: string;
   /** "What would change this decision." */
   counterfactual: string;
-  /** Always at least one (G9.12). */
-  nextSteps: string[];
+  /** What the partner does next (G9.12). Never empty; the first is the headline step. */
+  partnerSteps: string[];
+  /** What the expansion team does next. Never empty. */
+  teamSteps: string[];
+  partnerNextStep: string;
+  teamNextStep: string;
+  /** Suggestions that don't change the status, e.g. a lower-tier city the investment would fit. */
+  suggestions: string[];
   questions: string[];
   conditions: Condition[];
   flags: Flag[];
@@ -273,6 +288,8 @@ export interface DecisionRecord {
   offer: LocationOffer | null;
   competitors: Competitor[];
   bands: Bands | null;
+  /** One waitlist per city with a single rank; shows the territory the applicant wanted. */
+  waitlist: { city: string; rank: number; wantedTerritoryId: string | null } | null;
   waitlistRank: number | null;
   /** For HOLD: where it would stand once clarified. */
   ifClarified: { territoryId: string; rank: number; winsPin: boolean; pin: string } | null;

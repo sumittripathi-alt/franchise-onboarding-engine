@@ -1,80 +1,420 @@
 {
-  "description": "Golden decisions for tests/fixtures/tricky.xlsx (SPEC §12, G3.7). Mirrors the row comments in trickyData.ts. Today = 2026-10-25, heuristic notes reading (no Gemini).",
+  "description": "Golden decisions for tests/fixtures/tricky.xlsx (SPEC §12, G3.7). Mirrors the row comments in trickyData.ts. Today = 2026-10-25, heuristic notes reading (no Gemini). Waitlist ranks are per city (one waitlist per city).",
   "today": "2026-10-25",
   "eyewear": {
-    "APP-001": { "status": "APPROVED", "pin": "560041", "codes": ["CLEAN_WIN"] },
-    "APP-002": { "status": "WAITLIST", "codes": ["LOST_PIN_CONTEST", "NO_SLOT_IN_CITY"], "rank": 3, "lostTo": "APP-003", "factor": "space" },
-    "APP-003": { "status": "APPROVED", "pin": "560068", "codes": ["CLEAN_WIN"] },
-    "APP-004": { "status": "WAITLIST", "codes": ["NO_SLOT"], "rank": 1 },
-    "APP-005": { "status": "WAITLIST", "codes": ["LOST_PIN_CONTEST", "NO_SLOT_IN_CITY"], "rank": 1, "lostTo": "APP-004", "factor": "capital" },
-    "APP-006": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-007": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-008": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-009": { "status": "REJECT", "codes": ["BELOW_HARD_FLOOR"] },
-    "APP-010": { "status": "REDIRECT", "pin": "560043", "codes": ["PIN_HAS_EXISTING_STORE", "REDIRECT_OFFERED"] },
-    "APP-011": { "status": "REDIRECT", "pin": "560024", "codes": ["PIN_NOT_IN_TERRITORY", "REDIRECT_OFFERED"] },
-    "APP-012": { "status": "WAITLIST", "codes": ["NO_SLOT"], "rank": 1 },
-    "APP-013": { "status": "WAITLIST", "codes": ["NO_SLOT"], "rank": 2 },
-    "APP-014": { "status": "WAITLIST", "codes": ["LOST_PIN_CONTEST", "NO_SLOT_IN_CITY"], "rank": 2, "lostTo": "APP-013", "factor": "id" },
-    "APP-015": { "status": "APPROVED", "pin": "570015", "codes": ["CLEAN_WIN"] },
-    "APP-016": { "status": "APPROVED", "pin": "570010", "codes": ["CLEAN_WIN"] },
-    "APP-017": { "status": "APPROVED", "pin": "572101", "codes": ["CLEAN_WIN"] },
-    "APP-018": { "status": "CONDITIONAL", "pin": "572106", "codes": ["PROOF_OF_FUNDS", "EXPERIENCE_UNDER_REPORTED"] },
-    "APP-019": { "status": "CONDITIONAL", "pin": "560037", "codes": ["FLOOR_NOT_SUITABLE", "PROVISIONAL"] },
-    "APP-020": { "status": "CONDITIONAL", "pin": "560032", "codes": ["PROOF_OF_FUNDS"] },
-    "APP-021": { "status": "WAITLIST", "codes": ["NO_SLOT"], "rank": 1 },
-    "APP-022": { "status": "WAITLIST", "codes": ["OUTSIDE_PLAN"] },
-    "APP-023": { "status": "CONDITIONAL", "pin": "560084", "codes": ["SIZE_UNCONFIRMED"] },
-    "APP-024": { "status": "WAITLIST", "codes": ["NO_SLOT"], "rank": 2 },
-    "APP-025": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-026": { "status": "CONDITIONAL", "pin": "570020", "codes": ["SPACE_NOT_IDENTIFIED", "NOTES_TARGET_DISAGREE", "TARGET_NOT_FEASIBLE", "LOCATION_UNCERTAIN"] },
-    "APP-027": { "status": "CONDITIONAL", "pin": "560045", "codes": ["STORE_MANAGER", "LOCATION_UNCERTAIN"] },
-    "APP-028": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-029": { "status": "WAITLIST", "codes": ["NO_SLOT", "INTEGRITY_CONCERN"], "rank": 3 },
-    "APP-030@row33": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-030@row34": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"] },
-    "APP-031": { "status": "APPROVED", "pin": "560077", "codes": ["CLEAN_WIN"] },
-    "APP-032": { "status": "WAITLIST", "codes": ["DUPLICATE_PERSON"] },
-    "APP-033": { "status": "CONDITIONAL", "pin": "570005", "codes": ["EXPANSION_SIGNOFF", "CANNIBALISATION_RISK"] },
-    "APP-034": { "status": "REDIRECT", "pin": "570016", "codes": ["PIN_HAS_EXISTING_STORE", "REDIRECT_OFFERED", "CANNIBALISATION_RISK"] },
-    "APP-035": { "status": "HOLD", "codes": ["BLOCKING_DATA_ISSUE"], "ifClarified": { "territoryId": "TER-02", "rank": 1, "winsPin": true } },
-    "APP-036": { "status": "WAITLIST", "codes": ["OUTSIDE_PLAN"] },
-    "APP-037": { "status": "WAITLIST", "codes": ["OUTSIDE_PLAN"] }
+    "APP-001": {
+      "status": "APPROVED",
+      "pin": "560041",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-002": {
+      "status": "WAITLIST",
+      "codes": [
+        "LOST_PIN_CONTEST",
+        "NO_SLOT_IN_CITY"
+      ],
+      "rank": 5,
+      "lostTo": "APP-003",
+      "factor": "space",
+      "wanted": "TER-01",
+      "passedOverBy": "APP-011"
+    },
+    "APP-003": {
+      "status": "APPROVED",
+      "pin": "560068",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-004": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT"
+      ],
+      "rank": 1,
+      "wanted": "TER-01"
+    },
+    "APP-005": {
+      "status": "WAITLIST",
+      "codes": [
+        "LOST_PIN_CONTEST",
+        "NO_SLOT_IN_CITY"
+      ],
+      "rank": 2,
+      "lostTo": "APP-004",
+      "factor": "capital",
+      "wanted": "TER-01",
+      "passedOverBy": "APP-011"
+    },
+    "APP-006": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-007": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-008": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-009": {
+      "status": "REJECT",
+      "codes": [
+        "BELOW_HARD_FLOOR"
+      ],
+      "suggestion": "Your ₹15 lakh meets the Tier 3 minimum. Would you consider Tumakuru or Davanagere?"
+    },
+    "APP-010": {
+      "status": "REDIRECT",
+      "pin": "560043",
+      "codes": [
+        "PIN_HAS_EXISTING_STORE",
+        "REDIRECT_OFFERED"
+      ]
+    },
+    "APP-011": {
+      "status": "REDIRECT",
+      "pin": "560024",
+      "codes": [
+        "PIN_NOT_IN_TERRITORY",
+        "REDIRECT_OFFERED"
+      ]
+    },
+    "APP-012": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT",
+        "TIGHT_TIMELINE"
+      ],
+      "rank": 7,
+      "wanted": "TER-02"
+    },
+    "APP-013": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT"
+      ],
+      "rank": 3,
+      "wanted": "TER-01"
+    },
+    "APP-014": {
+      "status": "WAITLIST",
+      "codes": [
+        "LOST_PIN_CONTEST",
+        "NO_SLOT_IN_CITY"
+      ],
+      "rank": 4,
+      "lostTo": "APP-013",
+      "factor": "id",
+      "wanted": "TER-01",
+      "passedOverBy": "APP-011"
+    },
+    "APP-015": {
+      "status": "APPROVED",
+      "pin": "570015",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-016": {
+      "status": "APPROVED",
+      "pin": "570010",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-017": {
+      "status": "APPROVED",
+      "pin": "572101",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-018": {
+      "status": "CONDITIONAL",
+      "pin": "572106",
+      "codes": [
+        "PROOF_OF_FUNDS",
+        "EXPERIENCE_UNDER_REPORTED"
+      ],
+      "condition": "Arrange the remaining ₹3 lakh (loan or co-investor) and share proof"
+    },
+    "APP-019": {
+      "status": "CONDITIONAL",
+      "pin": "560037",
+      "codes": [
+        "FLOOR_NOT_SUITABLE",
+        "PROVISIONAL"
+      ]
+    },
+    "APP-020": {
+      "status": "CONDITIONAL",
+      "pin": "560032",
+      "codes": [
+        "PROOF_OF_FUNDS"
+      ]
+    },
+    "APP-021": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT"
+      ],
+      "rank": 1,
+      "wanted": "TER-05"
+    },
+    "APP-022": {
+      "status": "WAITLIST",
+      "codes": [
+        "OUTSIDE_PLAN"
+      ],
+      "rank": 1,
+      "wanted": null
+    },
+    "APP-023": {
+      "status": "CONDITIONAL",
+      "pin": "560084",
+      "codes": [
+        "SIZE_UNCONFIRMED"
+      ]
+    },
+    "APP-024": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT",
+        "TIGHT_TIMELINE"
+      ],
+      "rank": 8,
+      "wanted": "TER-02"
+    },
+    "APP-025": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-026": {
+      "status": "CONDITIONAL",
+      "pin": "570020",
+      "codes": [
+        "SPACE_NOT_IDENTIFIED",
+        "NOTES_TARGET_DISAGREE",
+        "TARGET_NOT_FEASIBLE",
+        "LOCATION_UNCERTAIN"
+      ]
+    },
+    "APP-027": {
+      "status": "CONDITIONAL",
+      "pin": "560045",
+      "codes": [
+        "STORE_MANAGER",
+        "LOCATION_UNCERTAIN"
+      ]
+    },
+    "APP-028": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-029": {
+      "status": "WAITLIST",
+      "codes": [
+        "NO_SLOT",
+        "INTEGRITY_CONCERN",
+        "TARGET_NOT_FEASIBLE"
+      ],
+      "rank": 6,
+      "wanted": "TER-01"
+    },
+    "APP-030@row33": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-030@row34": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ]
+    },
+    "APP-031": {
+      "status": "APPROVED",
+      "pin": "560077",
+      "codes": [
+        "CLEAN_WIN"
+      ]
+    },
+    "APP-032": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ],
+      "question": "Are you the same person as APP-031?"
+    },
+    "APP-033": {
+      "status": "CONDITIONAL",
+      "pin": "570005",
+      "codes": [
+        "EXPANSION_SIGNOFF",
+        "CANNIBALISATION_RISK"
+      ],
+      "label": "Approved, pending internal sign-off"
+    },
+    "APP-034": {
+      "status": "REDIRECT",
+      "pin": "570016",
+      "codes": [
+        "PIN_HAS_EXISTING_STORE",
+        "REDIRECT_OFFERED",
+        "CANNIBALISATION_RISK"
+      ]
+    },
+    "APP-035": {
+      "status": "HOLD",
+      "codes": [
+        "BLOCKING_DATA_ISSUE"
+      ],
+      "ifClarified": {
+        "territoryId": "TER-02",
+        "rank": 1,
+        "winsPin": true
+      }
+    },
+    "APP-036": {
+      "status": "WAITLIST",
+      "codes": [
+        "OUTSIDE_PLAN"
+      ],
+      "rank": 1,
+      "wanted": null
+    },
+    "APP-037": {
+      "status": "WAITLIST",
+      "codes": [
+        "OUTSIDE_PLAN"
+      ],
+      "rank": 1,
+      "wanted": null
+    }
   },
   "delivery": {
-    "APP-017": { "status": "CONDITIONAL", "codes": ["FLOOR_NOT_SUITABLE"] }
+    "APP-017": {
+      "status": "CONDITIONAL",
+      "codes": [
+        "FLOOR_NOT_SUITABLE"
+      ]
+    }
   },
   "scenarios": {
     "APP-012 has now found a ground-floor space": {
       "facts": [
-        { "target": "application", "key": "APP-012", "field": "spaceAvailable", "value": "Rented" },
-        { "target": "application", "key": "APP-012", "field": "floor", "value": "Ground" }
+        {
+          "target": "application",
+          "key": "APP-012",
+          "field": "spaceAvailable",
+          "value": "Rented"
+        },
+        {
+          "target": "application",
+          "key": "APP-012",
+          "field": "floor",
+          "value": "Ground"
+        }
       ],
       "expect": {
-        "APP-012": { "status": "CONDITIONAL", "pin": "560048", "codes": ["SIZE_UNCONFIRMED"] },
-        "APP-019": { "status": "WAITLIST", "rank": 1 }
+        "APP-012": {
+          "status": "CONDITIONAL",
+          "pin": "560048",
+          "codes": [
+            "SIZE_UNCONFIRMED"
+          ]
+        },
+        "APP-019": {
+          "status": "WAITLIST",
+          "rank": 7,
+          "wanted": "TER-02"
+        }
       }
     },
     "APP-003 has withdrawn": {
-      "facts": [{ "target": "application", "key": "APP-003", "field": "withdrawn", "value": true }],
+      "facts": [
+        {
+          "target": "application",
+          "key": "APP-003",
+          "field": "withdrawn",
+          "value": true
+        }
+      ],
       "expect": {
-        "APP-004": { "status": "APPROVED", "pin": "560102" },
-        "APP-002": { "status": "WAITLIST", "codes": ["NO_SLOT"] }
+        "APP-004": {
+          "status": "APPROVED",
+          "pin": "560102"
+        },
+        "APP-002": {
+          "status": "WAITLIST",
+          "codes": [
+            "NO_SLOT"
+          ]
+        }
       }
     },
     "TER-02 now has 2 slots": {
-      "facts": [{ "target": "territory", "key": "TER-02", "field": "openSlots", "value": 2 }],
+      "facts": [
+        {
+          "target": "territory",
+          "key": "TER-02",
+          "field": "openSlots",
+          "value": 2
+        }
+      ],
       "expect": {
-        "APP-019": { "status": "CONDITIONAL", "pin": "560037" },
-        "APP-012": { "status": "CONDITIONAL", "pin": "560048", "codes": ["SPACE_NOT_IDENTIFIED"] },
-        "APP-024": { "status": "WAITLIST", "rank": 1 }
+        "APP-019": {
+          "status": "CONDITIONAL",
+          "pin": "560037"
+        },
+        "APP-012": {
+          "status": "CONDITIONAL",
+          "pin": "560048",
+          "codes": [
+            "SPACE_NOT_IDENTIFIED"
+          ]
+        },
+        "APP-024": {
+          "status": "WAITLIST",
+          "rank": 7,
+          "wanted": "TER-02"
+        }
       }
     },
     "What if TER-01 gets 1 more slot": {
-      "facts": [{ "target": "territory", "key": "TER-01", "field": "openSlots", "value": 3 }],
+      "facts": [
+        {
+          "target": "territory",
+          "key": "TER-01",
+          "field": "openSlots",
+          "value": 3
+        }
+      ],
       "expect": {
-        "APP-004": { "status": "APPROVED", "pin": "560102" },
-        "APP-013": { "status": "WAITLIST", "rank": 1 }
+        "APP-004": {
+          "status": "APPROVED",
+          "pin": "560102"
+        },
+        "APP-013": {
+          "status": "WAITLIST",
+          "rank": 2,
+          "wanted": "TER-01"
+        }
       }
     }
   }

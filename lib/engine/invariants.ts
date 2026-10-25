@@ -1,7 +1,6 @@
 // Invariants (SPEC §6.7), asserted after every run. Determinism (invariant 6) is checked by
 // runEngineChecked, which runs twice and compares.
 
-import { personKey } from "@/lib/ingest/normalise";
 import { RESERVED_STATUSES, STATUSES, type Application, type DecisionRecord } from "@/lib/types";
 import type { EngineResult } from "./types";
 
@@ -9,6 +8,8 @@ export function checkInvariants(
   result: Pick<EngineResult, "decisions" | "territories">,
   applications: Application[],
   storePins: ReadonlySet<string>,
+  /** Application key → person (likely-duplicate group). Defaults to each application being its own person. */
+  personOf: ReadonlyMap<string, string> = new Map(),
 ): string[] {
   const v: string[] = [];
   const reserved = result.decisions.filter((d) => RESERVED_STATUSES.includes(d.status));
@@ -40,7 +41,9 @@ export function checkInvariants(
     if (!STATUSES.includes(d.status)) v.push(`4: ${d.appId} has an unknown status ${d.status}.`);
     if (d.reasonCodes.length === 0) v.push(`4: ${d.appId} has no reason code.`);
     if (!d.explanation.trim() || !d.headline.trim()) v.push(`4: ${d.appId} has no explanation.`);
-    if (d.nextSteps.length === 0 || d.nextSteps.some((s) => !s.trim())) v.push(`4: ${d.appId} has no next steps.`);
+    for (const [who, steps] of [["partner", d.partnerSteps], ["team", d.teamSteps]] as const) {
+      if (steps.length === 0 || steps.some((s) => !s.trim())) v.push(`4: ${d.appId} has no ${who} next step.`);
+    }
   }
 
   // 5. Pins held only by reserved statuses, exactly one each.
@@ -51,11 +54,10 @@ export function checkInvariants(
   }
 
   // 7. One person holds at most one slot.
-  const names = new Map(applications.map((a) => [a.key, personKey(a.name)]));
   const byPerson = new Map<string, string[]>();
   for (const d of reserved) {
-    const p = names.get(d.appKey);
-    if (p) byPerson.set(p, [...(byPerson.get(p) ?? []), d.appId]);
+    const p = personOf.get(d.appKey) ?? d.appKey;
+    byPerson.set(p, [...(byPerson.get(p) ?? []), d.appId]);
   }
   for (const [, ids] of byPerson) if (ids.length > 1) v.push(`7: one person holds ${ids.length} slots (${ids.join(", ")}).`);
 

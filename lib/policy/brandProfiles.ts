@@ -35,6 +35,10 @@ const eyewear: BrandProfile = {
     "Inventory",
   ],
   defaultTargetLaunchMonths: 4,
+  preOnboarding: {
+    topN: 2,
+    step: "Start pre-onboarding now (documents, KYC, store design brief) so you can open quickly if a slot frees",
+  },
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh:
@@ -52,6 +56,7 @@ const eyewear: BrandProfile = {
     baseTrainingDays: "Product, eye-test workflow and POS before launch.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
+    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
   },
 };
 
@@ -91,6 +96,10 @@ const delivery: BrandProfile = {
     "Hub software",
   ],
   defaultTargetLaunchMonths: 3,
+  preOnboarding: {
+    topN: 2,
+    step: "Start pre-onboarding now (documents, KYC, hub layout brief) so you can open quickly if a slot frees",
+  },
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Racking, sorting area, deposits and working capital.",
@@ -107,6 +116,7 @@ const delivery: BrandProfile = {
     baseTrainingDays: "Operations-focused training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
+    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
   },
 };
 
@@ -135,6 +145,10 @@ const partnerPoint: BrandProfile = {
   trainingFormat: "App-based",
   trainingModules: ["Partner app", "Parcel handover and returns", "Customer service"],
   defaultTargetLaunchMonths: 1,
+  preOnboarding: {
+    topN: 2,
+    step: "Start pre-onboarding now (documents, KYC, partner app set-up) so you can open quickly if a slot frees",
+  },
   conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Only a shelf, scanner and signage are needed.",
@@ -150,6 +164,7 @@ const partnerPoint: BrandProfile = {
     baseTrainingDays: "Self-serve app training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
     conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
+    preOnboarding: "The top 2 waitlisted in each city prepare early, so a freed slot can open fast.",
   },
 };
 

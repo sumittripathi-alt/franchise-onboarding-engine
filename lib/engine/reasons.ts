@@ -31,6 +31,7 @@ export const REASON_TEXT: Record<ReasonCode, string> = {
   LOCATION_UNCERTAIN: "Pin location is uncertain",
   PAYBACK_WARNING: "Payback slower than the threshold",
   TARGET_NOT_FEASIBLE: "Target launch date isn't realistic",
+  TIGHT_TIMELINE: "Target launch is tight but possible",
   NOTES_TARGET_DISAGREE: "Notes and target launch disagree",
   RENT_BURDEN_RISK: "Space far bigger than needed",
   PROVISIONAL: "Provisional: an on-hold applicant may rank higher",
