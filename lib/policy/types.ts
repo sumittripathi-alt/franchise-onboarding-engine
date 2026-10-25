@@ -51,6 +51,14 @@ export interface BrandProfile {
   /** Used when target launch is blank or invalid (check A13). */
   defaultTargetLaunchMonths: number;
 
+  /** Days allowed for each kind of condition (SPEC §6.6). Space and floor deadlines come from the rules above. */
+  conditionDays: {
+    confirmDetails: number;
+    proofOfFunds: number;
+    storeManager: number;
+    expansionSignOff: number;
+  };
+
   /** One-line rationale per assumption, shown in the Policy panel. */
   rationale: Partial<Record<PolicyKey, string>>;
 }

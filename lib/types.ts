@@ -127,7 +127,10 @@ export const STATUS_META: Record<Status, { label: string; wayOut: string }> = {
   REJECT: { label: "Not approved", wayOut: "See what would need to change to reapply" },
 };
 
+export const RESERVED_STATUSES: readonly Status[] = ["APPROVED", "CONDITIONAL", "REDIRECT"];
+
 export type ReasonCode =
+  // Outcomes
   | "CLEAN_WIN"
   | "WON_SLOT_WITH_CONDITIONS"
   | "BLOCKING_DATA_ISSUE"
@@ -136,17 +139,34 @@ export type ReasonCode =
   | "PROFILE_REJECT_FLOOR"
   | "PIN_HAS_EXISTING_STORE"
   | "PIN_NOT_IN_TERRITORY"
-  | "OUTSIDE_PLAN"
   | "LOST_PIN_CONTEST"
-  | "NO_SLOT"
   | "REDIRECT_OFFERED"
+  | "NO_SLOT"
   | "NO_SLOT_IN_CITY"
+  | "OUTSIDE_PLAN"
   | "DUPLICATE_PERSON"
+  | "SLOT_COMMITTED"
+  // Conditions
+  | "SPACE_NOT_IDENTIFIED"
+  | "FLOOR_NOT_SUITABLE"
+  | "FLOOR_UNCONFIRMED"
+  | "SIZE_UNCONFIRMED"
+  | "SIZE_BELOW_MIN"
+  | "PROOF_OF_FUNDS"
+  | "STORE_MANAGER"
+  | "EXPANSION_SIGNOFF"
+  // Flags
   | "CANNIBALISATION_RISK"
   | "LOCATION_UNCERTAIN"
   | "PAYBACK_WARNING"
   | "TARGET_NOT_FEASIBLE"
-  | "WITHDRAWN";
+  | "NOTES_TARGET_DISAGREE"
+  | "RENT_BURDEN_RISK"
+  | "PROVISIONAL"
+  | "HUMAN_OVERRIDE"
+  | "LOCKED"
+  | "INTEGRITY_CONCERN"
+  | "EXPERIENCE_UNDER_REPORTED";
 
 export type Band = 1 | 2 | 3;
 
@@ -159,43 +179,110 @@ export interface Bands {
 export interface Condition {
   id: string;
   text: string;
-  deadline: string; // ISO date
+  /** ISO date (YYYY-MM-DD). */
+  deadline: string;
   ifMissed: string;
-  source: ReasonCode | ApplicationCheckCode;
+  source: ReasonCode;
+}
+
+export interface Flag {
+  code: ReasonCode;
+  text: string;
 }
 
 export interface Competitor {
   appId: string;
-  relation: "pin" | "slot";
-  firstDifferingFactor: string;
+  appKey: string;
+  relation: "pin" | "slot" | "offer";
   won: boolean;
+  /** Plain-English first differing factor, from the winner's point of view. */
+  firstDifferingFactor: string;
 }
 
 export interface HistoryEntry {
   version: number;
   time: string;
-  source: "upload" | "chat" | "policy" | "brand" | "ai_notes";
+  source: "upload" | "chat" | "policy" | "brand" | "ai_notes" | "override" | "lock";
   from: Status | null;
   to: Status;
   note: string;
 }
 
+export interface CannibalisationInfo {
+  /** 2 = inside an inner radius, 3 = clear, "uncertain" = location data too weak to judge. */
+  zone: 2 | 3 | "uncertain";
+  radiusKm: number;
+  nearestStore: { id: string; pin: string; km: number } | null;
+  nearbyReserved: { appId: string; pin: string; km: number }[];
+  note: string;
+}
+
+export interface PaybackInfo {
+  months: number;
+  basisLakh: number;
+  monthlyRevenueLakh: number;
+  margin: number;
+  warning: boolean;
+}
+
+export interface LaunchInfo {
+  /** ISO dates. */
+  earliest: string;
+  target: string | null;
+  festival: { name: string; date: string } | null;
+  /** The date used to test feasibility: the earlier of target and festival (SPEC §15.7). */
+  testDate: string | null;
+  feasible: boolean;
+}
+
+export interface LocationOffer {
+  pin: string;
+  territoryId: string;
+  expires: string;
+  /** Why the applicant's own space can't be used, when they have one. */
+  spaceNote: string | null;
+  distanceKm: number | null;
+}
+
 export interface DecisionRecord {
+  appKey: string;
   appId: string;
+  name: string;
+  row: number;
+  city: string | null;
   status: Status;
+  label: string;
   reasonCodes: ReasonCode[];
+  /** The one-line "why". */
+  headline: string;
   explanation: string;
+  /** "What would change this decision." */
   counterfactual: string;
+  /** Always at least one (G9.12). */
+  nextSteps: string[];
+  questions: string[];
   conditions: Condition[];
+  flags: Flag[];
+  /** The applicant's own pin and the territory it maps to. */
+  homePin: string | null;
   territoryId: string | null;
+  /** Pin held (APPROVED/CONDITIONAL) or offered (REDIRECT); null otherwise. */
   pin: string | null;
+  /** Territory whose slot is held or offered. */
+  slotTerritoryId: string | null;
+  offer: LocationOffer | null;
   competitors: Competitor[];
   bands: Bands | null;
-  flags: string[];
-  waitlistRank?: number;
-  wouldRankIfClarified?: number;
-  questions: string[];
-  nextSteps: string[];
+  waitlistRank: number | null;
+  /** For HOLD: where it would stand once clarified. */
+  ifClarified: { territoryId: string; rank: number; winsPin: boolean; pin: string } | null;
+  provisional: { byAppId: string; until: string } | null;
+  cannibalisation: CannibalisationInfo | null;
+  payback: PaybackInfo | null;
+  launch: LaunchInfo | null;
+  evidence: { code: string; quote: string }[];
+  locked: { date: string } | null;
+  override: { status: Status; reason: string; time: string } | null;
   version: number;
   history: HistoryEntry[];
 }

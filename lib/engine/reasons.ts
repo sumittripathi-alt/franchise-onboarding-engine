@@ -1,0 +1,41 @@
+// One short, plain-English line per reason code, for chips and exports (SPEC §6.8).
+// Full sentences with the applicant's own facts are built in explain.ts.
+
+import type { ReasonCode } from "@/lib/types";
+
+export const REASON_TEXT: Record<ReasonCode, string> = {
+  CLEAN_WIN: "Won the pin and a slot, no conditions",
+  WON_SLOT_WITH_CONDITIONS: "Won the pin and a slot, with conditions",
+  BLOCKING_DATA_ISSUE: "Data needs clarifying before a decision",
+  BELOW_HARD_FLOOR: "Investment below the hard floor",
+  PROFILE_REJECT_SPACE: "This brand type needs an existing space",
+  PROFILE_REJECT_FLOOR: "This brand type can't use this floor",
+  PIN_HAS_EXISTING_STORE: "An existing store is already in this pin",
+  PIN_NOT_IN_TERRITORY: "Pin is outside our territories",
+  LOST_PIN_CONTEST: "Another applicant ranked higher for this pin",
+  REDIRECT_OFFERED: "Offered another pin with a free slot",
+  NO_SLOT: "No slot left in the territory",
+  NO_SLOT_IN_CITY: "No free slot anywhere in the city",
+  OUTSIDE_PLAN: "City not in the current expansion plan",
+  DUPLICATE_PERSON: "Same person already holds a slot",
+  SLOT_COMMITTED: "Slot already committed to a partner",
+  SPACE_NOT_IDENTIFIED: "Needs to find a space",
+  FLOOR_NOT_SUITABLE: "Space is on an unsuitable floor",
+  FLOOR_UNCONFIRMED: "Floor needs confirming",
+  SIZE_UNCONFIRMED: "Space size needs confirming",
+  SIZE_BELOW_MIN: "Space is smaller than the minimum",
+  PROOF_OF_FUNDS: "Proof of funds needed",
+  STORE_MANAGER: "Named store manager must train too",
+  EXPANSION_SIGNOFF: "Expansion-head sign-off needed",
+  CANNIBALISATION_RISK: "Close to an existing or planned store",
+  LOCATION_UNCERTAIN: "Pin location is uncertain",
+  PAYBACK_WARNING: "Payback slower than the threshold",
+  TARGET_NOT_FEASIBLE: "Target launch date isn't realistic",
+  NOTES_TARGET_DISAGREE: "Notes and target launch disagree",
+  RENT_BURDEN_RISK: "Space far bigger than needed",
+  PROVISIONAL: "Provisional: an on-hold applicant may rank higher",
+  HUMAN_OVERRIDE: "Human override",
+  LOCKED: "Sent to partner",
+  INTEGRITY_CONCERN: "Notes tried to instruct the system",
+  EXPERIENCE_UNDER_REPORTED: "Experience under-reported",
+};

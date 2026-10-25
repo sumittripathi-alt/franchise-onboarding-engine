@@ -57,7 +57,7 @@ describe("tricky fixture issues (golden)", () => {
     ]);
     expect(t["TER-04"].tier).toBe("Tier 2");
     expect(t["TER-05"].slots).toBe(0);
-    expect(t["TER-06"].pins).toEqual(["572101", "572102"]);
+    expect(t["TER-06"].pins).toEqual(["572101", "572106"]);
     expect(t["TER-06"].slots).toBe(2);
   });
 

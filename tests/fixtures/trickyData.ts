@@ -53,7 +53,7 @@ export const TRICKY_APPLICATIONS: Row[] = [
   ["APP-017", "Imran Pasha", "Tumakuru", "Karnataka", 572101, 35, 3, "Mobile shop", "Rented", 500, "Mall", 4, "Kannada", "Unit in the city mall"],
   // Tier 3 with low investment (₹12 lakh: band 1) → APPROVED WITH CONDITIONS (proof of funds);
   // experience 0 but runs a kirana (A12).
-  ["APP-018", "Gangamma", "Tumakuru", "Karnataka", 572102, 12, 0, "Kirana store", "Owned", 400, "Ground", 3, "Kannada", "Running kirana for 12 years in the same building"],
+  ["APP-018", "Gangamma", "Tumakuru", "Karnataka", 572106, 12, 0, "Kirana store", "Owned", 400, "Ground", 3, "Kannada", "Running kirana for 12 years in the same building"],
   // Upper floor, (2,2,3) → wins TER-02's only slot → APPROVED WITH CONDITIONS (move to ground floor).
   // Provisional for 7 days: APP-035 (on hold) would win pin 560037 if clarified.
   ["APP-019", "Deepak Hegde", "Bengaluru", "Karnataka", 560037, 33, 5, "Electronics retail", "Rented", 600, "Upper", 4, "English", ""],
@@ -87,8 +87,9 @@ export const TRICKY_APPLICATIONS: Row[] = [
   // 0.8 km from ST-06 (Mysuru, inner radius 2.5 km), (3,3,3) → APPROVED WITH CONDITIONS (expansion-head sign-off).
   // (No Bengaluru pin with reliable coordinates lies within 1 km of ST-02; the nearest is 560068 at 2.0 km.)
   ["APP-033", "Shalini Gowda", "Mysuru", "Karnataka", 570005, 38, 4, "Retail fashion", "Rented", 500, "Ground", 4, "Kannada", ""],
-  // Owns space in 570009, where ST-06 already is → TER-04's one free slot → OFFERED ANOTHER LOCATION (570004);
-  // the offer explains the owned space can't host a store. 570004 is within ST-06's radius, so it also carries the risk flag.
+  // Owns space in 570009, where ST-06 already is → TER-04's one free slot → OFFERED ANOTHER LOCATION (570016);
+  // the offer explains the owned space can't host a store. 570016 is 1.4 km from ST-07, so it carries the risk flag
+  // and a sign-off condition (570004 is nearer, but 0.8 km from APP-033 and 2.2 km from APP-016).
   ["APP-034", "Prakash Hegde", "Mysuru", "Karnataka", 570009, 40, 6, "Footwear retail", "Owned", 600, "Ground", 4, "Kannada", "Own a shop in Saraswathipuram"],
   // Would win pin 560037 over APP-019 if clarified, (3,3,3); notes suggest an upper floor (A11) → ON HOLD (provisional win).
   ["APP-035", "Lokesh Reddy", "Bengaluru", "Karnataka", 560037, 60, 6, "Electronics retail", "Rented", 600, "Ground", 4, "English", "Shop on the ground floor with the first floor used for storage"],
@@ -106,9 +107,10 @@ export const TRICKY_TERRITORIES: Row[] = [
   // More slots than pin winners → two free slots for location offers.
   ["TER-03", "Bengaluru", "Karnataka", "560024; 560032; 560043; 560084; 560045; 560077", "Tier 1", 6, "Low"],
   // Tier given as Tier 1 but Mysuru is Tier 2 (T04); 570009 has ST-06 (T06). Four winners + one location offer.
-  ["TER-04", "Mysuru", "Karnataka", "570004, 570005, 570009, 570010, 570015, 570020", "Tier 1", 5, "High"],
+  // Every free Mysuru pin is inside some store's 2.5 km radius; 570016 (near ST-07) is the one clear of the new partners.
+  ["TER-04", "Mysuru", "Karnataka", "570004, 570005, 570009, 570010, 570015, 570016, 570020", "Tier 1", 5, "High"],
   // 0 slots (T05).
   ["TER-05", "Hubballi-Dharwad", "Karnataka", "580021, 580023, 580029", "Tier 2", 0, "Medium"],
-  // 577001 is a Davanagere pin (T03); 4 slots but 2 pins (T07).
-  ["TER-06", "Tumakuru", "Karnataka", "572101, 572102, 577001", "Tier 3", 4, "Medium"],
+  // 577001 is a Davanagere pin (T03); 4 slots but 2 pins (T07). 572101 and 572106 are 8 km apart (Tier 3 radius 4 km).
+  ["TER-06", "Tumakuru", "Karnataka", "572101, 572106, 577001", "Tier 3", 4, "Medium"],
 ];

@@ -35,6 +35,7 @@ const eyewear: BrandProfile = {
     "Inventory",
   ],
   defaultTargetLaunchMonths: 4,
+  conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh:
       "Fit-out, eye-test equipment and opening stock; calibrated so the template's own example (₹25 lakh, Tier 2 Mysuru) passes comfortably.",
@@ -50,6 +51,7 @@ const eyewear: BrandProfile = {
     specialHiring: "An eye test needs a certified optometrist on site.",
     baseTrainingDays: "Product, eye-test workflow and POS before launch.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
+    conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
   },
 };
 
@@ -89,6 +91,7 @@ const delivery: BrandProfile = {
     "Hub software",
   ],
   defaultTargetLaunchMonths: 3,
+  conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Racking, sorting area, deposits and working capital.",
     hardFloorPct: "Below 70% of the minimum, the hub cannot cover working capital.",
@@ -103,6 +106,7 @@ const delivery: BrandProfile = {
     specialHiring: "Riders and a shift supervisor are needed from day one.",
     baseTrainingDays: "Operations-focused training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
+    conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
   },
 };
 
@@ -131,6 +135,7 @@ const partnerPoint: BrandProfile = {
   trainingFormat: "App-based",
   trainingModules: ["Partner app", "Parcel handover and returns", "Customer service"],
   defaultTargetLaunchMonths: 1,
+  conditionDays: { confirmDetails: 7, proofOfFunds: 14, storeManager: 30, expansionSignOff: 7 },
   rationale: {
     minInvestmentLakh: "Only a shelf, scanner and signage are needed.",
     hardFloorPct: "Very low entry cost, so a looser floor.",
@@ -144,6 +149,7 @@ const partnerPoint: BrandProfile = {
     leadTimes: "No fit-out or hiring to speak of.",
     baseTrainingDays: "Self-serve app training.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
+    conditionDays: "A week to confirm details or get sign-off, two weeks for proof of funds, a month to name a store manager.",
   },
 };
 
@@ -163,3 +169,8 @@ export function defaultPolicy(profileId: BrandProfileId = DEFAULT_PROFILE_ID): P
 export function paybackMonths(investmentLakh: number, monthlyRevenueLakh: number, margin: number): number {
   return investmentLakh / (monthlyRevenueLakh * margin);
 }
+
+/** A location offer is a soft hold for this many days (SPEC §6.1). */
+export const OFFER_HOLD_DAYS = 7;
+/** A provisional win stays provisional for this many days (SPEC §15.4). */
+export const PROVISIONAL_DAYS = 7;

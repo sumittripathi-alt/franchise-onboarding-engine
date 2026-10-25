@@ -144,7 +144,7 @@ export function checkApplications(apps: Application[], signals: Record<string, S
         code: "A05",
         severity: "blocking",
         field: "Application ID",
-        message: `${name} is used by ${sameId.length} rows (${sameId.map((x) => x.row).join(", ")}).`,
+        message: `Application ID ${a.id} is used by ${sameId.length} rows (${sameId.map((x) => x.row).join(", ")}).`,
         question: `Application ID ${a.id} appears more than once. Which row is correct, or should one get a new ID?`,
       });
     }

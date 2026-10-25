@@ -23,3 +23,5 @@ The source of truth is `docs/SPEC.md`. Read it before changing behaviour. **SPEC
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run lint` — ESLint
 - `npm run build` — production build
+- `npm run fixtures` — regenerate the tricky fixture, sample workbook and blank template
+- `npm run decide <file.xlsx> -- [--today=YYYY-MM-DD] [--profile=eyewear|delivery|partner_point] [--full]` — print every decision as a table
