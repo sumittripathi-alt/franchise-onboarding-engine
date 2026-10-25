@@ -10,6 +10,7 @@ import type { Status } from "@/lib/types";
 import { todayIST } from "@/lib/planner/dates";
 import {
   computeResult,
+  effective,
   newSession,
   parseSessionFile,
   serialiseSession,
@@ -24,8 +25,11 @@ import { LAST_WORKSPACE_KEY, localCache } from "@/lib/workspace/cache";
 import { WorkspaceClient, type LoadError, type SyncStatus, type Toast } from "@/lib/workspace/client";
 import { ChangePayloadSchema, classifyChange, type BaseData, type ChangePayload } from "@/lib/workspace/schemas";
 import { httpTransport } from "@/lib/workspace/transport";
+import { answerTurn, NEW_CHAT, type ChatReply, type ChatState } from "@/lib/chat/engine";
+import { aiClient } from "@/lib/llm/clientApi";
+import { chunkSignals, hasText, readNotes } from "@/lib/llm/extractClient";
 
-export type Tab = "sheet" | "overview" | "applications" | "territories" | "policy" | "log" | "export";
+export type Tab = "sheet" | "chat" | "overview" | "applications" | "territories" | "policy" | "log" | "export";
 
 export interface Filters {
   query: string;
@@ -51,8 +55,23 @@ export interface SyncState {
   pending: number;
 }
 
+export interface ChatMsg {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+  reply?: ChatReply;
+}
+
+/** The AI's reading of the applicants' notes (SPEC §8.1). */
+export interface ReadingState {
+  status: "idle" | "running" | "done" | "failed";
+  message: string | null;
+}
+
 interface StoreState {
   hydrated: boolean;
+  reading: ReadingState;
+  chat: { messages: ChatMsg[]; state: ChatState; busy: boolean };
   persistence: Persistence;
   /** The open workspace's id, and its latest session. */
   workspaceId: string | null;
@@ -83,6 +102,10 @@ interface StoreState {
   /** Make a new workspace from a saved session file. Returns its id. */
   resume: (session: Session) => string;
   continueReview: () => void;
+  /** Ask the AI to read the notes it hasn't read yet. Changes go in the change log as "AI reading of notes". */
+  retryReading: () => Promise<void>;
+  /** Send a chat message: answered from the engine, with the AI only where the patterns don't reach. */
+  askChat: (text: string) => Promise<void>;
   commit: (spec: ChangeSpec) => CommitOutcome;
   undo: (id: string) => void;
   addFeedback: (appKey: string, appId: string, status: Status, reason: string) => void;
@@ -101,6 +124,9 @@ interface StoreState {
 
 const GUIDED_KEY = "fpe.guided.dismissed";
 const IDLE_SYNC: SyncState = { status: "loading", message: null, pending: 0 };
+const IDLE_READING: ReadingState = { status: "idle", message: null };
+const NEW_CHAT_SLICE = { messages: [] as ChatMsg[], state: NEW_CHAT, busy: false };
+let chatId = 0;
 
 function snapshotOf(session: Session): PreviousSnapshot {
   const result = computeResult(session);
@@ -150,6 +176,8 @@ export const useStore = create<StoreState>((set, get) => {
 
   return {
     hydrated: false,
+    reading: IDLE_READING,
+    chat: NEW_CHAT_SLICE,
     persistence: "unknown",
     workspaceId: null,
     session: null,
@@ -179,7 +207,7 @@ export const useStore = create<StoreState>((set, get) => {
       client?.stop();
       const c = new WorkspaceClient(make(id));
       client = c;
-      set({ workspaceId: id, session: null, loadError: null, sync: IDLE_SYNC, toasts: [], lastChangeId: null });
+      set({ workspaceId: id, session: null, loadError: null, sync: IDLE_SYNC, toasts: [], lastChangeId: null, reading: IDLE_READING, chat: NEW_CHAT_SLICE });
       await c.open();
       // A different workspace may have been opened while this one loaded.
       if (client !== c) return;
@@ -210,9 +238,19 @@ export const useStore = create<StoreState>((set, get) => {
       const parentId = get().workspaceId ?? safeGetItem(LAST_WORKSPACE_KEY);
       const previous = old ? snapshotOf(old) : null;
       const id = newId();
-      const c = WorkspaceClient.fromUpload({ ...make(id), base: baseOf(session), name: files.join(", ").slice(0, 200) || "Upload", parentId: parentId && /^[0-9a-f-]{36}$/i.test(parentId) ? parentId : null });
+      // The workspace is held back until the AI has read the notes (at most 25 seconds), so everyone starts from the same reading.
+      const c = WorkspaceClient.fromUpload({ ...make(id), base: baseOf(session), name: files.join(", ").slice(0, 200) || "Upload", parentId: parentId && /^[0-9a-f-]{36}$/i.test(parentId) ? parentId : null, holdSync: true });
       attach(c);
-      set({ previous, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      set({ previous, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS, reading: { status: "running", message: null } });
+      void (async () => {
+        const r = await readNotes(session.parsed.applications);
+        c.setSignals(r.signals);
+        if (client !== c) return;
+        const state: ReadingState = r.total === 0 || r.complete
+          ? { status: "done", message: null }
+          : { status: "failed", message: r.unavailable ? "The AI assistant isn't available right now, so the notes were read with the keyword reader." : `The AI read ${r.read} of ${r.total} applications in time; the rest were read with the keyword reader.` };
+        set({ reading: state });
+      })();
       return id;
     },
 
@@ -226,6 +264,7 @@ export const useStore = create<StoreState>((set, get) => {
           ...(e.locks?.length ? { locks: e.locks } : {}),
           ...(e.overrides?.length ? { overrides: e.overrides } : {}),
           ...(e.set && Object.keys(e.set).length ? { set: e.set } : {}),
+          ...(e.signals && Object.keys(e.signals).length ? { signals: e.signals } : {}),
         };
         const ok = ChangePayloadSchema.safeParse(payload);
         if (!ok.success) return;
@@ -250,6 +289,51 @@ export const useStore = create<StoreState>((set, get) => {
 
     continueReview() {
       client?.continueReview();
+    },
+
+    async askChat(text) {
+      const input = text.trim();
+      const s = client?.session;
+      if (!input || !s || get().chat.busy) return;
+      const user: ChatMsg = { id: ++chatId, role: "user", text: input.slice(0, 2000) };
+      set((st) => ({ chat: { ...st.chat, messages: [...st.chat.messages, user], busy: true } }));
+      try {
+        const { reply, state } = await answerTurn(input, s, get().chat.state, { commit: (spec) => get().commit(spec), now: new Date().toISOString(), ai: aiClient });
+        const bot: ChatMsg = { id: ++chatId, role: "assistant", text: reply.text, reply };
+        set((st) => ({ chat: { messages: [...st.chat.messages, bot], state, busy: false } }));
+        // After a change, the affected application's drawer opens (SPEC §15.6).
+        if (reply.kind === "commit" && reply.appKey) set({ drawerKey: reply.appKey, drawerFocus: null });
+      } catch {
+        const bot: ChatMsg = { id: ++chatId, role: "assistant", text: "Something went wrong answering that. Nothing was changed. Please try again." };
+        set((st) => ({ chat: { ...st.chat, messages: [...st.chat.messages, bot], busy: false } }));
+      }
+    },
+
+    async retryReading() {
+      const c = client;
+      const s = c?.session;
+      if (!c || !s || get().reading.status === "running") return;
+      const have = { ...s.signals, ...effective(s).signals };
+      const todo = s.parsed.applications.filter((a) => hasText(a) && !have[a.key]?.ai);
+      if (!todo.length) {
+        set({ reading: { status: "done", message: null } });
+        return;
+      }
+      set({ reading: { status: "running", message: null } });
+      const r = await readNotes(todo);
+      if (client !== c) return;
+      if (r.read === 0) {
+        set({ reading: { status: "failed", message: "The AI assistant isn't available right now. Try again in a minute." } });
+        return;
+      }
+      const groups = chunkSignals(r.signals);
+      let problem: string | null = null;
+      groups.forEach((g, i) => {
+        const n = Object.keys(g).length;
+        const out = c.commit({ source: "ai_notes", description: `AI reading of notes (${n} application${n === 1 ? "" : "s"}${groups.length > 1 ? `, part ${i + 1} of ${groups.length}` : ""})`, signals: g });
+        if (!out.ok) problem = out.message;
+      });
+      set({ reading: problem ? { status: "failed", message: problem } : r.complete ? { status: "done", message: null } : { status: "failed", message: `The AI read ${r.read} of ${r.total} applications this time. You can try again for the rest.` } });
     },
 
     commit(spec) {
@@ -279,7 +363,7 @@ export const useStore = create<StoreState>((set, get) => {
       client?.stop();
       client = null;
       safeRemoveItem(LAST_WORKSPACE_KEY);
-      set({ workspaceId: null, session: null, sync: IDLE_SYNC, toasts: [], loadError: null, previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      set({ workspaceId: null, reading: IDLE_READING, chat: NEW_CHAT_SLICE, session: null, sync: IDLE_SYNC, toasts: [], loadError: null, previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
     },
 
     exportSessionText() {

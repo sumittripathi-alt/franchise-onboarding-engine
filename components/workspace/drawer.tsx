@@ -157,7 +157,7 @@ function DrawerBody({ d }: { d: DecisionRecord }) {
         <OverrideButton d={d} />
         <DisagreeButton d={d} />
       </div>
-      {msg && <DraftMessageDialog open onOpenChange={(o) => !o && setMsg(false)} title={`Message for ${d.name}`} text={draftPartnerMessage(d)} language={language} />}
+      {msg && <DraftMessageDialog open onOpenChange={(o) => !o && setMsg(false)} title={`Message for ${d.name}`} text={draftPartnerMessage(d)} language={language} appKey={d.appKey} />}
 
       <FactForm key={`${d.appKey}-${focus}`} d={d} defaultOpen={focus === "fact"} />
 
@@ -175,6 +175,11 @@ function DrawerBody({ d }: { d: DecisionRecord }) {
               </li>
             ))}
           </ul>
+        )}
+        {d.aiReading && (
+          <p className="text-xs text-muted-foreground">
+            Notes read by {d.aiReading.model} on {formatDate(d.aiReading.at.slice(0, 10))}. Only quotes the model could point to in the applicant&apos;s own words were used.
+          </p>
         )}
       </Detail>
 

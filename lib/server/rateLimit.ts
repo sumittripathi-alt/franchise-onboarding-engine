@@ -1,9 +1,9 @@
 // Per-IP rate limit (SPEC §16.4). In memory, so each server instance counts for itself: it stops a loop or
 // a careless script, not a determined attacker. Fixed one-minute windows.
 
-export type Bucket = "read" | "write" | "create";
+export type Bucket = "read" | "write" | "create" | "ai";
 
-export const LIMITS: Record<Bucket, number> = { read: 300, write: 60, create: 20 };
+export const LIMITS: Record<Bucket, number> = { read: 300, write: 60, create: 20, ai: 60 };
 const WINDOW_MS = 60_000;
 
 const hits = new Map<string, { start: number; count: number }>();

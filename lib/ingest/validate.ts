@@ -340,6 +340,18 @@ export function checkApplications(apps: Application[], signals: Record<string, S
         question: "Who will run the store day to day? Please share their name; they will also need to complete training.",
       });
     }
+    for (const flag of s.other_flags) {
+      // The AI noticed something it couldn't back with a quote from the applicant's text (SPEC §15.3): information only.
+      const m = /^ai_possible:(.+)$/.exec(flag);
+      if (m) {
+        add(a, {
+          code: "A19",
+          severity: "info",
+          field: "Notes",
+          message: `${name}: AI noticed a possible ${m[1].replace(/_/g, " ")}. Please verify. It did not change the decision.`,
+        });
+      }
+    }
     if (s.funding_dependency) {
       add(a, {
         evidence: s.evidence.funding_dependency,

@@ -59,6 +59,9 @@ export function Landing() {
           <p className="text-center text-xs text-muted-foreground">
             Your file is saved as a shareable workspace; anyone with the link can view and change it. Don&apos;t upload real personal data.
           </p>
+          <p className="text-center text-xs text-muted-foreground">
+            The notes and business descriptions in your file are read by an AI service (Google Gemini) to pick out facts, and so are the partner messages you ask it to draft. Decisions are made by rules, not by the AI.
+          </p>
         </section>
 
         <section data-animate="landing-section" aria-labelledby="how" className="mx-auto mt-20 max-w-4xl">

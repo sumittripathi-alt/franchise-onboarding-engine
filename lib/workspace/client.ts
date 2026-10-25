@@ -6,6 +6,7 @@
 // device's copy, says so, retries with backoff and re-sends what's unsent in order. Every few seconds it asks for
 // events it hasn't seen and shows the other viewers' changes.
 
+import type { Signals } from "@/lib/types";
 import { commitChange, type ChangeSpec, type ChangeEntry, type CommitOutcome, type Feedback, type Session } from "@/lib/state/session";
 import type { CacheData, CacheStore } from "./cache";
 import { orderLog, replayEntries, sessionFrom, type LogEvent } from "./replay";
@@ -77,6 +78,8 @@ export class WorkspaceClient {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private stopped = true;
   private initialised = false;
+  /** A new upload waits for the AI's reading of its notes before it is sent, so everyone starts from the same signals. */
+  private held = false;
 
   private transport: Transport;
   private cache: CacheStore;
@@ -104,9 +107,12 @@ export class WorkspaceClient {
       seed?: { type: LogEvent["type"]; payload: ChangePayload | UndoPayload; undoOfIndex?: number }[];
       feedback?: Feedback[];
       reviewed?: boolean;
+      /** Don't send the workspace until `releaseHold` or `setSignals` (the AI is reading the notes). */
+      holdSync?: boolean;
     },
   ): WorkspaceClient {
     const c = new WorkspaceClient(o);
+    c.held = o.holdSync ?? false;
     c.base = o.base;
     c.name = o.name;
     c.parentId = o.parentId;
@@ -251,6 +257,7 @@ export class WorkspaceClient {
       ...(spec.locks?.length ? { locks: spec.locks } : {}),
       ...(spec.overrides?.length ? { overrides: spec.overrides } : {}),
       ...(spec.set && Object.keys(spec.set).length ? { set: spec.set } : {}),
+      ...(spec.signals && Object.keys(spec.signals).length ? { signals: spec.signals } : {}),
       ...(spec.directKeys?.length ? { directKeys: spec.directKeys } : {}),
     };
     const valid = ChangePayloadSchema.safeParse(payload);
@@ -279,6 +286,24 @@ export class WorkspaceClient {
   continueReview(): void {
     this.reviewed = true;
     this.settle();
+  }
+
+  /** The AI's reading arrived: it becomes part of the workspace's starting data, and sending can begin. */
+  setSignals(signals: Record<string, Signals>): void {
+    if (this.base && Object.keys(signals).length) this.base = { ...this.base, signals: { ...this.base.signals, ...signals } };
+    this.releaseHold();
+  }
+
+  /** Start sending (the reading finished, failed or timed out). */
+  releaseHold(): void {
+    const was = this.held;
+    this.held = false;
+    this.settle();
+    if (was) void this.kick();
+  }
+
+  get isHeld(): boolean {
+    return this.held;
   }
 
   dismissToast(id: number): void {
@@ -345,7 +370,7 @@ export class WorkspaceClient {
 
   /** Create the workspace if needed, then send unsent changes in order. Returns false if sending has to wait. */
   async flush(): Promise<boolean> {
-    if (!this.base) return false;
+    if (!this.base || this.held) return false;
     if (!this.createdOnServer) {
       const body: CreateWorkspace & { id: string } = {
         id: this.id,

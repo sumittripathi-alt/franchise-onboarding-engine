@@ -1,11 +1,44 @@
 "use client";
 
-import { AlertOctagon, AlertTriangle, GitCompare, HardDrive } from "lucide-react";
+import { AlertOctagon, AlertTriangle, GitCompare, HardDrive, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MEMORY_NOTICE } from "@/lib/state/storage";
+import { hasText } from "@/lib/llm/extractClient";
+import { effective } from "@/lib/state/session";
 import { useStore } from "@/lib/state/store";
 import { useWorkspace } from "./context";
 import { ExampleTerritoryWarning } from "./data-check";
+
+/** Notes the AI hasn't read: the keyword reader was used for them, and a retry is one click. */
+function ReadingBanner() {
+  const { session } = useWorkspace();
+  const reading = useStore((s) => s.reading);
+  const retry = useStore((s) => s.retryReading);
+  const have = { ...session.signals, ...effective(session).signals };
+  const unread = session.parsed.applications.filter((a) => hasText(a) && !have[a.key]?.ai).length;
+  if (reading.status === "running") {
+    return (
+      <div role="status" className="flex items-center gap-2 rounded-xl border bg-muted px-4 py-2.5 text-sm">
+        <Loader2 aria-hidden className="size-4 shrink-0 animate-spin" /> The AI is reading the applicants&apos; notes…
+      </div>
+    );
+  }
+  if (unread === 0) return null;
+  return (
+    <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-2.5 text-sm">
+      <p className="flex items-start gap-2">
+        <Sparkles aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        <span>
+          {unread} application{unread === 1 ? "'s" : "s'"} notes {unread === 1 ? "was" : "were"} read with the keyword reader only, not the AI.
+          {reading.message ? ` ${reading.message}` : ""} Decisions are fully usable either way.
+        </span>
+      </p>
+      <Button variant="outline" size="sm" onClick={() => void retry()}>
+        Retry AI reading
+      </Button>
+    </div>
+  );
+}
 
 export function Banners() {
   const { violations, insights, result } = useWorkspace();
@@ -29,6 +62,8 @@ export function Banners() {
           </ul>
         </div>
       )}
+
+      <ReadingBanner />
 
       {persistence === "memory" && (
         <div role="status" className="flex items-center gap-2 rounded-xl border bg-muted px-4 py-2.5 text-sm">

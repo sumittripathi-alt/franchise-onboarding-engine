@@ -51,7 +51,7 @@ describe("G10.4 no secret in the browser", () => {
     for (const f of files) {
       const r = rel(f);
       const text = readFileSync(f, "utf8");
-      const isServer = r.startsWith("lib/server/") || r.startsWith("app/api/");
+      const isServer = r.startsWith("lib/server/") || r.startsWith("app/api/") || r === "lib/llm/gemini.ts";
       if (!isServer && /@supabase\/supabase-js|lib\/server\/|from "server-only"/.test(text)) offenders.push(`${r}: imports server code`);
       if (!isServer && /SUPABASE_SERVICE_ROLE_KEY|GEMINI_API_KEY/.test(text)) offenders.push(`${r}: names a secret`);
       if (/NEXT_PUBLIC_[A-Z_]*(KEY|SECRET|TOKEN|SERVICE|PASSWORD)/.test(text)) offenders.push(`${r}: a secret behind NEXT_PUBLIC_`);
@@ -60,7 +60,7 @@ describe("G10.4 no secret in the browser", () => {
   });
 
   it("every file that can reach the database starts with 'server-only', so a client import fails the build", () => {
-    for (const f of ["lib/server/supabaseRepo.ts", "lib/server/getRepo.ts", "lib/server/route.ts"]) {
+    for (const f of ["lib/server/supabaseRepo.ts", "lib/server/getRepo.ts", "lib/server/route.ts", "lib/server/aiRoute.ts", "lib/llm/gemini.ts"]) {
       expect(readFileSync(join(ROOT, f), "utf8").startsWith('import "server-only";')).toBe(true);
     }
   });

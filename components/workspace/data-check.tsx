@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Panel, Pill, Section } from "@/components/app/ui-bits";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ export function ExampleTerritoryWarning() {
 
 export function DataCheckPanel({ onContinue }: { onContinue?: () => void }) {
   const { report, session } = useWorkspace();
+  const reading = useStore((st) => st.reading);
   const [showAll, setShowAll] = useState(false);
   const groups = (["blocking", "condition", "info"] as const).map((sev) => ({ sev, items: report.issues.filter((i) => i.severity === sev) }));
   const LIMIT = 60;
@@ -129,8 +130,16 @@ export function DataCheckPanel({ onContinue }: { onContinue?: () => void }) {
 
       {onContinue && (
         <div className="sticky bottom-0 -mx-4 border-t bg-background/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-          <Button size="lg" onClick={onContinue}>
-            See the decisions <ArrowRight />
+          <Button size="lg" onClick={onContinue} disabled={reading.status === "running"}>
+            {reading.status === "running" ? (
+              <>
+                <Loader2 className="animate-spin" /> Reading the notes with AI…
+              </>
+            ) : (
+              <>
+                See the decisions <ArrowRight />
+              </>
+            )}
           </Button>
         </div>
       )}

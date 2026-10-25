@@ -88,6 +88,8 @@ export interface Signals {
   other_flags: string[];
   confidence: number;
   evidence: SignalEvidence;
+  /** Set when an AI model read this text (SPEC §15.3): which model, and when. Absent for the keyword fallback. */
+  ai?: { model: string; at: string };
 }
 
 // ---------- Data checks (SPEC §4) ----------
@@ -96,7 +98,7 @@ export type IssueSeverity = "blocking" | "condition" | "info";
 
 export type ApplicationCheckCode =
   | "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09"
-  | "A10" | "A11" | "A12" | "A13" | "A14" | "A15" | "A16" | "A17" | "A18";
+  | "A10" | "A11" | "A12" | "A13" | "A14" | "A15" | "A16" | "A17" | "A18" | "A19";
 
 export type TerritoryCheckCode = "T01" | "T02" | "T03" | "T04" | "T05" | "T06" | "T07";
 
@@ -316,6 +318,8 @@ export interface DecisionRecord {
   training: TrainingPlan | null;
   /** "How they'll be prepared", one line for the decision sheet (SPEC §15.1). */
   preparation: string | null;
+  /** Which AI model read this applicant's text, and when (SPEC §15.3). Null when only the keyword reader was used. */
+  aiReading: { model: string; at: string } | null;
   version: number;
   history: HistoryEntry[];
 }

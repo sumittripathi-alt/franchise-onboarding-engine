@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { CITY_NAMES, FLOORS, LANGUAGES, PRIORITIES, SPACE_AVAILABLE } from "@/lib/policy/allowedValues";
 import { parseCity, parseFloor, parseLakh, parseLanguage, parseNumber, parsePin, parseSpaceAvailable } from "@/lib/ingest/normalise";
+import { SignalsSchema } from "@/lib/ingest/schemas";
 import { BrandProfileSchema, FactPatchSchema, HumanOverrideSchema, LockSchema, SessionSchema, SettingsSchema } from "@/lib/state/sessionSchema";
 
 export const MAX_BASE_BYTES = 2 * 1024 * 1024;
@@ -39,7 +40,7 @@ export type CreateWorkspace = z.infer<typeof CreateWorkspaceSchema>;
 // ---------- Events ----------
 
 /** A fact value must survive the same normalisers as the upload, to something the engine allows. */
-function checkFactValue(f: z.infer<typeof FactPatchSchema>): string | null {
+export function checkFactValue(f: z.infer<typeof FactPatchSchema>): string | null {
   if (f.target === "territory") {
     if (f.field === "openSlots") return Number.isInteger(f.value) && f.value >= 0 && f.value <= 50 ? null : "open slots must be a whole number from 0 to 50";
     return (PRIORITIES as readonly string[]).includes(f.value) ? null : `priority must be one of ${PRIORITIES.join(", ")}`;
@@ -84,12 +85,13 @@ export const ChangePayloadSchema = z
     locks: z.array(LockSchema).min(1).max(50).optional(),
     overrides: z.array(HumanOverrideSchema).min(1).max(50).optional(),
     set: SettingsSchema.partial().strict().optional(),
+    signals: z.record(z.string().max(100), SignalsSchema).refine((r) => Object.keys(r).length >= 1 && Object.keys(r).length <= 40, "1 to 40 applications").optional(),
     directKeys: z.array(z.string().max(100)).max(50).optional(),
   })
   .strict()
   .superRefine((p, ctx) => {
-    if (!p.facts && !p.locks && !p.overrides && !(p.set && Object.keys(p.set).length)) {
-      ctx.addIssue({ code: "custom", message: "a change must contain facts, locks, overrides or settings" });
+    if (!p.facts && !p.locks && !p.overrides && !p.signals && !(p.set && Object.keys(p.set).length)) {
+      ctx.addIssue({ code: "custom", message: "a change must contain facts, locks, overrides, signals or settings" });
     }
     for (const f of p.facts ?? []) {
       const problem = checkFactValue(f);
@@ -106,6 +108,7 @@ export function classifyChange(p: ChangePayload): Exclude<EventType, "undo"> {
   if (p.facts?.some((f) => f.field === "withdrawn")) return "withdraw";
   if (p.facts?.some((f) => f.target === "application")) return "fact";
   if (p.facts) return "territory_fact";
+  if (p.signals) return "fact";
   if (p.overrides) return "override";
   if (p.locks) return "lock";
   if (p.set?.profileId !== undefined) return "brand_switch";

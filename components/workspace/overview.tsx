@@ -130,7 +130,7 @@ export function ActionQueuePanel() {
         </Button>
       )}
       {draft && (
-        <DraftMessageDialog open onOpenChange={(o) => !o && setDraft(null)} title={draft.title} text={draft.draft ?? ""} language={draft.language} />
+        <DraftMessageDialog open onOpenChange={(o) => !o && setDraft(null)} title={draft.title} text={draft.draft ?? ""} language={draft.language} appKey={draft.appKeys[0]} />
       )}
     </Section>
   );
