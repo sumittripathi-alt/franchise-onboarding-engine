@@ -30,7 +30,7 @@ import { aiClient } from "@/lib/llm/clientApi";
 import { chunkSignals, hasText, readNotes } from "@/lib/llm/extractClient";
 import { localSignalCache } from "@/lib/llm/signalCache";
 
-export type Tab = "sheet" | "chat" | "overview" | "applications" | "territories" | "policy" | "log" | "export";
+export type Tab = "sheet" | "chat" | "overview" | "applications" | "territories" | "map" | "policy" | "log" | "export";
 
 export interface Filters {
   query: string;
