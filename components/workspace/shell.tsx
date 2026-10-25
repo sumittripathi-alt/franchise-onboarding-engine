@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Download, FileDown, History, LayoutDashboard, MapPinned, MessageSquareText, Scale, Table2, Upload } from "lucide-react";
+import { ClipboardList, Download, FileDown, History, LayoutDashboard, Map as MapIcon, MapPinned, MessageSquareText, Scale, Table2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/app/logo";
@@ -21,6 +21,7 @@ import { DecisionSheet } from "./decision-sheet";
 import { Drawer } from "./drawer";
 import { ExportPanel } from "./export-panel";
 import { LastChangeCard } from "./last-change";
+import { MapTab } from "./map-view";
 import { Overview } from "./overview";
 import { PolicyPanel } from "./policy";
 import { Territories } from "./territories";
@@ -31,6 +32,7 @@ const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "applications", label: "Applications", icon: Table2 },
   { id: "territories", label: "Territories", icon: MapPinned },
+  { id: "map", label: "Map", icon: MapIcon },
   { id: "policy", label: "Policy", icon: Scale },
   { id: "log", label: "Change log", icon: History },
   { id: "export", label: "Export", icon: FileDown },
@@ -113,6 +115,7 @@ export function Shell() {
           {tab === "overview" && <Overview />}
           {tab === "applications" && <ApplicationsTable />}
           {tab === "territories" && <Territories />}
+          {tab === "map" && <MapTab />}
           {tab === "policy" && <PolicyPanel />}
           {tab === "log" && <ChangeLog />}
           {tab === "export" && <ExportPanel />}

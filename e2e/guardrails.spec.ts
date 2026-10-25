@@ -184,7 +184,7 @@ test.describe("G8 accessibility and layout", () => {
     await page.waitForTimeout(900); // let the drawer finish sliding in: axe reads colours mid-fade otherwise
     await check("decision drawer");
     await page.keyboard.press("Escape");
-    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Policy", "Change log", "Export"]) {
+    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
       await openTab(page, tab);
       await check(`${tab} (${info.project.name})`);
     }
@@ -235,7 +235,7 @@ test.describe("G8 accessibility and layout", () => {
     await ok("landing");
     await startSample(page);
     await ok("decision sheet");
-    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Policy", "Change log", "Export"]) {
+    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
       await openTab(page, tab);
       await ok(tab);
     }

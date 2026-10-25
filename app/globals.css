@@ -229,3 +229,15 @@
     scroll-behavior: auto !important;
   }
 }
+/* Map: the "recruit here" labels, and the attribution link kept readable (WCAG AA). */
+.leaflet-tooltip.map-recruit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #075985;
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  box-shadow: none;
+}
+.leaflet-container .leaflet-control-attribution a {
+  color: #00587a;
+}
