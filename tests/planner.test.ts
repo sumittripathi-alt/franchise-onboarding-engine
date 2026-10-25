@@ -2,9 +2,10 @@
 
 import { describe, expect, it } from "vitest";
 import { EXISTING_STORES } from "@/data/existingStores";
-import { BRAND_PROFILES } from "@/lib/policy/brandProfiles";
+import { BRAND_PROFILES, defaultPolicy } from "@/lib/policy/brandProfiles";
 import { festivalDate } from "@/lib/planner/calendar";
-import { buildOnboardingPlan, criticalPathDays, scheduleMilestones, type PathInput } from "@/lib/planner/onboarding";
+import { applyCohort } from "@/lib/planner/cohortShift";
+import { SOFT_LAUNCH_MIN_GAIN_DAYS, buildOnboardingPlan, choosePhasedOption, criticalPathDays, scheduleMilestones, type PathInput } from "@/lib/planner/onboarding";
 import { KANNADA_MODULE, buildCohorts, shadowStore, trainingDays } from "@/lib/planner/training";
 import { RESERVED_STATUSES } from "@/lib/types";
 import { decision, trickyRun } from "./engineHelpers";
@@ -26,6 +27,7 @@ describe("onboarding critical path (SPEC §7.1)", () => {
       hiring: "2026-11-15→2026-12-15",
       training: "2026-12-15→2027-01-05",
       stock: "2026-12-30→2027-01-06",
+      induction: "2027-01-03→2027-01-06",
       audit: "2027-01-06→2027-01-09",
       launch: "2027-01-09→2027-01-09",
     });
@@ -78,7 +80,7 @@ describe("feasibility, phased option and festivals (SPEC §7.1, §15.7)", () => 
     expect(festivalDate("Sankranti", "2026-10-25")?.date).toBe("2027-01-14");
   });
 
-  it("an infeasible target gets the earliest realistic date and a soft-launch option", () => {
+  it("an infeasible target gets the earliest realistic date", () => {
     const plan = buildOnboardingPlan({
       today: "2026-10-25",
       profile: eyewear,
@@ -93,11 +95,31 @@ describe("feasibility, phased option and festivals (SPEC §7.1, §15.7)", () => 
     expect(plan.feasible).toBe(false);
     expect(plan.testDate).toBe("2026-11-08");
     expect(plan.summary).toBe("Target not feasible: opening before Diwali (8 Nov 2026, verify) isn't possible; earliest realistic date is 16 Feb 2027.");
-    expect(plan.phasedOption).toEqual({
-      softLaunch: "2027-02-10",
-      fullLaunch: "2027-02-16",
-      text: "Phased option: a soft launch with starter stock on 10 Feb 2027, then the full launch after the mock audit on 16 Feb 2027.",
-    });
+  });
+
+  it("a soft launch is only offered when it gains at least 14 days over the full launch", () => {
+    const base = scheduleMilestones("2026-10-25", eyewear, rented);
+    // With the standard step lengths a soft launch gains at most a week, so it is never offered.
+    expect(choosePhasedOption(base, eyewear, "2026-12-01", null)).toBeNull();
+    // A schedule where the full launch is 20 days after everything but the audit and stock are ready.
+    const long = base.map((m) => (m.id === "audit" || m.id === "launch" ? { ...m, end: "2027-01-29" } : m));
+    const o = choosePhasedOption(long, eyewear, "2027-01-15", null);
+    expect(o).toMatchObject({ softLaunch: "2027-01-11", fullLaunch: "2027-01-29", gainDays: 18 });
+    expect(o!.text).toBe(
+      "Phased option: a soft launch with starter stock on 11 Jan 2027, 18 days before the full launch on 29 Jan 2027 (after the mock audit). The soft launch meets the target.",
+    );
+    // Just under the threshold: not offered.
+    const near = base.map((m) => (m.id === "audit" || m.id === "launch" ? { ...m, end: "2027-01-24" } : m));
+    expect(choosePhasedOption(near, eyewear, null, null)).toBeNull();
+    expect(choosePhasedOption(near, eyewear, null, null, 13)).not.toBeNull();
+    // Exactly 14 days qualifies.
+    const exact = base.map((m) => (m.id === "audit" || m.id === "launch" ? { ...m, end: "2027-01-25" } : m));
+    expect(choosePhasedOption(exact, eyewear, null, null)?.gainDays).toBe(14);
+    expect(SOFT_LAUNCH_MIN_GAIN_DAYS).toBe(14);
+  });
+
+  it("no decision on the fixture offers a soft launch (none gains 14 days)", () => {
+    for (const x of trickyRun().decisions) expect(x.onboarding?.phasedOption ?? null, x.appKey).toBeNull();
   });
 
   it("a feasible target says how many days are spare", () => {
@@ -179,6 +201,24 @@ describe("training plan (SPEC §7.2)", () => {
     expect(shadowStore(null, "Davanagere", EXISTING_STORES, 3)?.storeCity).toBeTruthy();
   });
 
+  it("never shadows a store inside the new store's catchment: the next nearest is used, with a note", () => {
+    for (const k of ["APP-026", "APP-033"]) {
+      expect(t(k).shadow, k).toMatchObject({ storeId: "ST-07", storeCity: "Mysuru", skipped: ["ST-06"] });
+      expect(t(k).shadow!.note, k).toContain("Not ST-06: it's within the new store's catchment");
+    }
+    expect(t("APP-033").shadow!.km).toBeGreaterThan(2.5);
+    // Whatever the choice, the shadow store is never inside the new store's catchment when another exists.
+    for (const x of r.decisions) {
+      if (!x.training?.shadow || !x.cannibalisation) continue;
+      if (x.training.shadow.km !== null) expect(x.training.shadow.km, x.appKey).toBeGreaterThan(x.cannibalisation.radiusKm);
+    }
+    // Unit: radius 0 keeps the nearest store; a large radius skips every store inside it.
+    expect(shadowStore("570005", "Mysuru", EXISTING_STORES, 3, 0)?.storeId).toBe("ST-06");
+    expect(shadowStore("570005", "Mysuru", EXISTING_STORES, 3, 2.5)?.storeId).toBe("ST-07");
+    expect(shadowStore("570005", "Mysuru", EXISTING_STORES, 3, 5)?.skipped).toEqual(["ST-06", "ST-07"]);
+    expect(shadowStore("570005", "Mysuru", EXISTING_STORES, 3, 5)?.note).toMatch(/Not ST-06 or ST-07: they're within/);
+  });
+
   it("a named store manager trains too (absentee owner)", () => {
     expect(t("APP-027").storeManagerAttends).toBe(true);
     expect(decision(r, "APP-027").onboarding!.milestones.find((m) => m.id === "training")!.note).toBe(
@@ -192,24 +232,131 @@ describe("training plan (SPEC §7.2)", () => {
   });
 });
 
+describe("store-team induction (How your team will be prepared)", () => {
+  const r = trickyRun();
+
+  it("comes after hiring and fit-out and before the mock audit, within the last two weeks", () => {
+    for (const x of r.decisions) {
+      if (!x.onboarding) continue;
+      const m = Object.fromEntries(x.onboarding.milestones.map((y) => [y.id, y]));
+      expect(m.induction.skipped, x.appKey).toBe(false);
+      expect(m.induction.start >= m.hiring.end, `${x.appKey} hiring first`).toBe(true);
+      expect(m.induction.start >= m.fitout.end, `${x.appKey} fit-out first`).toBe(true);
+      expect(m.induction.end <= m.audit.start, `${x.appKey} before audit`).toBe(true);
+      const daysBeforeOpening = (Date.parse(x.onboarding.earliestLaunch) - Date.parse(m.induction.start)) / 86_400_000;
+      expect(daysBeforeOpening, x.appKey).toBeLessThanOrEqual(14);
+      expect(daysBeforeOpening, x.appKey).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("appears in the training plan under its own heading, and in the checklist", () => {
+    const t = decision(r, "APP-001").training!.teamPreparation!;
+    expect(t.heading).toBe("How your team will be prepared");
+    expect(t).toMatchObject({ who: "Certified optometrist and store staff", days: 3, start: "2026-12-20", end: "2026-12-23", hiringEnds: "2026-12-01" });
+    expect(t.text).toBe(
+      "Certified optometrist and store staff are inducted for 3 days (20 Dec 2026 to 23 Dec 2026), after hiring ends on 1 Dec 2026 and the store is fitted out, in the last days before the mock audit. Topics: Store walkthrough and opening routine; Eye-test workflow with the optometrist; Point of sale; Customer service.",
+    );
+    expect(decision(r, "APP-001").onboarding!.checklist.map((c) => c.item)).toContain("Store-team induction: Certified optometrist and store staff");
+    expect(decision(r, "APP-001").preparation).toContain("team induction 20 Dec 2026");
+  });
+
+  it("comes from the brand profile: delivery has its own team, partner point has none", () => {
+    const delivery = trickyRun("delivery");
+    expect(decision(delivery, "APP-001").training!.teamPreparation).toMatchObject({ who: "Supervisor and riders", days: 2 });
+    const point = trickyRun("partner_point");
+    for (const x of point.decisions) if (x.training) expect(x.training.teamPreparation, x.appKey).toBeNull();
+  });
+
+  it("is delayed when hiring ends later than the late slot would allow", () => {
+    const longHiring = { ...eyewear, leadTimes: { ...eyewear.leadTimes, hiringDays: 60 } };
+    const ms = Object.fromEntries(scheduleMilestones("2026-10-25", longHiring, rented).map((m) => [m.id, m]));
+    expect(ms.induction.start >= ms.hiring.end).toBe(true);
+  });
+});
+
 describe("cohorts (SPEC §7.2)", () => {
-  it("groups committed partners by language and city with launches within 30 days", () => {
+  it("groups committed partners by language and city whose training starts are within 10 days", () => {
     const r = trickyRun();
-    expect(r.cohorts.map((c) => c.label)).toEqual([
-      "Kannada cohort, Bengaluru, starts 1 Dec 2026: APP-001, APP-003, APP-023, APP-031",
-      "Kannada cohort, Mysuru, starts 1 Dec 2026: APP-016, APP-033",
-      "Kannada cohort, Tumakuru, starts 1 Dec 2026: APP-017, APP-018",
-    ]);
-    // APP-026 (Mysuru, Kannada) launches more than 30 days after APP-016, so it isn't in that cohort.
-    expect(decision(r, "APP-026").training!.cohortId).toBeNull();
+    expect(r.cohorts.map((c) => c.label)).toEqual(["Kannada cohort, Bengaluru, starts 1 Dec 2026: APP-001, APP-023, APP-031"]);
+    // Cohort dates are real shared start dates.
+    for (const c of r.cohorts) {
+      for (const m of c.members) expect(decision(r, m.appKey).training!.start, m.appId).toBe(c.start);
+    }
+    // APP-003 starts training 14 days later and APP-033/APP-016 are 21 days apart: not within 10 days.
+    expect(decision(r, "APP-003").training!.cohortId).toBeNull();
+    expect(decision(r, "APP-016").training!.cohortId).toBeNull();
     expect(decision(r, "APP-001").preparation).toContain("Kannada cohort, Bengaluru");
-    // Location offers aren't committed yet, so they aren't in cohorts.
     expect(r.cohorts.flatMap((c) => c.members.map((m) => m.appId))).not.toContain("APP-010");
   });
 
-  it("starts a new batch when a launch is more than 30 days after the batch's first", () => {
-    const p = (appId: string, launch: string) => ({ appId, appKey: appId, city: "Mysuru", language: "Kannada" as const, trainingStart: launch, launch });
-    const cohorts = buildCohorts([p("A", "2027-01-01"), p("B", "2027-01-20"), p("C", "2027-02-15"), p("D", "2027-03-01")]);
-    expect(cohorts.map((c) => c.members.map((m) => m.appId))).toEqual([["A", "B"], ["C", "D"]]);
+  it("a partner with slack is moved later to the cohort's start, and their opening date does not move", () => {
+    // APP-033 owned with a 4-day internal sign-off: its training can start 5 Dec; APP-016 (owned, 1 Dec) has 6 days of slack.
+    const policy = defaultPolicy("eyewear");
+    policy.profile.conditionDays.expansionSignOff = 4;
+    const base = trickyRun("eyewear", { policy });
+    const r = trickyRun("eyewear", {
+      policy,
+      facts: [{ target: "application", key: "APP-033", field: "spaceAvailable", value: "Owned" }],
+    });
+    expect(r.invariantViolations).toEqual([]);
+    const a = decision(r, "APP-016");
+    const b = decision(r, "APP-033");
+    expect(r.cohorts.map((c) => c.label)).toContain("Kannada cohort, Mysuru, starts 5 Dec 2026: APP-016, APP-033");
+    expect(a.training!.start).toBe("2026-12-05");
+    expect(b.training!.start).toBe("2026-12-05");
+    expect(a.training!.shifted).toMatchObject({ from: "2026-12-01", to: "2026-12-05" });
+    expect(b.training!.shifted).toBeNull();
+    // The opening date and everything else is unchanged for the shifted partner.
+    expect(a.onboarding!.earliestLaunch).toBe(decision(base, "APP-016").onboarding!.earliestLaunch);
+    expect(a.training!.end <= a.onboarding!.milestones.find((m) => m.id === "audit")!.start).toBe(true);
+    expect(a.onboarding!.milestones.find((m) => m.id === "training")!.start).toBe("2026-12-05");
+    expect(a.onboarding!.checklist.find((c) => c.source === "training")!.due).toBe(a.training!.end);
+    expect(a.preparation).toContain("from 5 Dec 2026");
+  });
+
+  const cand = (appId: string, earliestStart: string, latestStart: string) => ({
+    appId,
+    appKey: appId,
+    city: "Mysuru",
+    language: "Kannada" as const,
+    earliestStart,
+    latestStart,
+    launch: "2027-02-01",
+  });
+
+  it("only shifts when the slack allows it; a partner who can't reach the date is left out", () => {
+    // A can slide to 5 Dec, B can't (no slack), so B anchors the cohort date only if A can reach it.
+    const [c] = buildCohorts([cand("A", "2026-12-01", "2026-12-07"), cand("B", "2026-12-05", "2026-12-05")]);
+    expect(c.start).toBe("2026-12-05");
+    expect(c.members.map((m) => [m.appId, m.shiftedDays])).toEqual([["A", 4], ["B", 0]]);
+    // C starts 6 days after A and A has only 5 days of slack: no cohort.
+    expect(buildCohorts([cand("A", "2026-12-01", "2026-12-06"), cand("C", "2026-12-07", "2026-12-07")])).toEqual([]);
+    // More than 10 days apart: no cohort even with plenty of slack.
+    expect(buildCohorts([cand("A", "2026-12-01", "2026-12-30"), cand("D", "2026-12-12", "2026-12-12")])).toEqual([]);
+  });
+
+  it("picks the shared date that fits the most partners, then starts another cohort for the rest", () => {
+    const cohorts = buildCohorts([
+      cand("A", "2026-12-01", "2026-12-09"),
+      cand("B", "2026-12-04", "2026-12-09"),
+      cand("C", "2026-12-09", "2026-12-09"),
+      cand("D", "2027-02-01", "2027-02-05"),
+      cand("E", "2027-02-05", "2027-02-05"),
+    ]);
+    expect(cohorts.map((c) => [c.start, c.members.map((m) => m.appId)])).toEqual([
+      ["2026-12-09", ["A", "B", "C"]],
+      ["2027-02-05", ["D", "E"]],
+    ]);
+  });
+
+  it("applyCohort keeps the plan consistent", () => {
+    const r = trickyRun();
+    const d = decision(r, "APP-001");
+    const onboarding = structuredClone(d.onboarding!);
+    const training = structuredClone(d.training!);
+    applyCohort(onboarding, training, { id: "x", label: "Kannada cohort, Bengaluru, starts 5 Dec 2026: A", city: "Bengaluru", language: "Kannada", start: "2026-12-05", members: [{ appId: "A", appKey: "A", plannedStart: "2026-12-01", start: "2026-12-05", shiftedDays: 4, launch: "2026-12-26" }] }, "2026-12-05");
+    expect(training.slackDays).toBe(2);
+    expect(training.end).toBe("2026-12-21");
+    expect(onboarding.earliestLaunch).toBe(d.onboarding!.earliestLaunch);
   });
 });

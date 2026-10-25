@@ -176,6 +176,8 @@ for (const id of planIds) {
   if (t.staffingNote) console.log(`  Staffing: ${t.staffingNote}`);
   if (t.shadow) console.log(`  Shadowing: ${t.shadow.days} days at ${t.shadow.storeId}, ${t.shadow.storeCity} (pin ${t.shadow.pin}${t.shadow.km !== null ? `, ${t.shadow.km} km away` : ""}): ${t.shadow.note}.`);
   if (t.storeManagerAttends) console.log("  The named store manager attends every module.");
+  if (t.teamPreparation) console.log(`  ${t.teamPreparation.heading}: ${t.teamPreparation.text}`);
+  if (t.shifted) console.log(`  ${t.shifted.text}`);
   const cohort = result.cohorts.find((c) => c.id === t.cohortId);
   console.log(`  Cohort: ${cohort ? cohort.label : "none yet (no other partner with the same language and city launching within 30 days)"}`);
   console.log(`  Readiness check: ${t.readinessCheck.map((r) => `${r.item} by ${r.due}`).join("; ")}.`);

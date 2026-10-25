@@ -51,6 +51,11 @@ export interface BrandProfile {
   shadowDays: { "Fast-track": number; Standard: number; Extended: number };
   trainingFormat: string;
   trainingModules: string[];
+  /**
+   * Induction for the hired team, in the last week or two before opening, after hiring and fit-out.
+   * Null where the model has no staff (partner point).
+   */
+  teamInduction: { days: number; who: string; topics: string[] } | null;
 
   /** Used when target launch is blank or invalid (check A13). */
   defaultTargetLaunchMonths: number;

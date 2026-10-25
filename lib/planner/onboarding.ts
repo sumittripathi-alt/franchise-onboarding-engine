@@ -13,9 +13,12 @@ export const STEP_DAYS = {
   leasePaperwork: 14,
   stockAndPos: 7,
   mockAudit: 3,
-  /** A soft launch opens with starter stock this many days after fit-out, training and licences are done. */
+  /** A soft launch opens with starter stock this many days after fit-out, training, licences and induction are done. */
   softLaunchStock: 3,
 } as const;
+
+/** A phased (soft) launch is only worth offering if it opens at least this many days before the full launch. */
+export const SOFT_LAUNCH_MIN_GAIN_DAYS = 14;
 
 export const STEP_ASSUMPTIONS = [
   `Letter of intent and brand fee: ${STEP_DAYS.letterOfIntent} days, while any space search runs from today.`,
@@ -23,9 +26,23 @@ export const STEP_ASSUMPTIONS = [
   `Stock and point-of-sale set-up: ${STEP_DAYS.stockAndPos} days, after fit-out.`,
   `Mock audit: ${STEP_DAYS.mockAudit} days, after training, stock and licences.`,
   "Licences, fit-out and hiring run in parallel once the lease is signed; training follows hiring.",
+  "Team induction comes in the last week or two before opening, after hiring and fit-out, and before the mock audit.",
+  `A soft launch is only offered if it opens at least ${SOFT_LAUNCH_MIN_GAIN_DAYS} days before the full launch.`,
 ];
 
-export type MilestoneId = "signoff" | "loi" | "space" | "lease" | "licences" | "fitout" | "hiring" | "training" | "stock" | "audit" | "launch";
+export type MilestoneId =
+  | "signoff"
+  | "loi"
+  | "space"
+  | "lease"
+  | "licences"
+  | "fitout"
+  | "hiring"
+  | "training"
+  | "stock"
+  | "induction"
+  | "audit"
+  | "launch";
 export type Owner = "partner" | "brand" | "partner + brand";
 
 export interface Milestone {
@@ -60,7 +77,12 @@ interface StepDef {
   owner: Owner;
   dependsOn: MilestoneId[];
   days: (p: BrandProfile, i: PathInput) => number;
-  skipped?: (i: PathInput) => boolean;
+  skipped?: (p: BrandProfile, i: PathInput) => boolean;
+  /**
+   * Schedule as late as possible: end when these steps (the next step's other prerequisites) end, but never
+   * before this step's own dependencies are done.
+   */
+  asLateAsPossibleWith?: MilestoneId[];
 }
 
 const STEPS: StepDef[] = [
@@ -70,7 +92,7 @@ const STEPS: StepDef[] = [
     owner: "brand",
     dependsOn: [],
     days: (_p, i) => i.internalSignOffDays ?? 0,
-    skipped: (i) => !i.internalSignOffDays,
+    skipped: (_p, i) => !i.internalSignOffDays,
   },
   { id: "loi", name: "Sign the letter of intent and pay the brand fee", owner: "partner", dependsOn: ["signoff"], days: () => STEP_DAYS.letterOfIntent },
   {
@@ -80,7 +102,7 @@ const STEPS: StepDef[] = [
     owner: "partner",
     dependsOn: ["signoff"],
     days: (_p, i) => (i.needsSpaceSearch ? i.spaceSearchDays : 0),
-    skipped: (i) => !i.needsSpaceSearch,
+    skipped: (_p, i) => !i.needsSpaceSearch,
   },
   {
     id: "lease",
@@ -88,7 +110,7 @@ const STEPS: StepDef[] = [
     owner: "partner",
     dependsOn: ["loi", "space"],
     days: (_p, i) => (i.needsLease || i.needsSpaceSearch ? STEP_DAYS.leasePaperwork : 0),
-    skipped: (i) => !i.needsLease && !i.needsSpaceSearch,
+    skipped: (_p, i) => !i.needsLease && !i.needsSpaceSearch,
   },
   {
     id: "licences",
@@ -101,7 +123,17 @@ const STEPS: StepDef[] = [
   { id: "hiring", name: "Hiring", owner: "partner", dependsOn: ["lease"], days: (p) => p.leadTimes.hiringDays },
   { id: "training", name: "Training", owner: "brand", dependsOn: ["hiring"], days: (p, i) => trainingDays(p, i.track) },
   { id: "stock", name: "Stock and point-of-sale set-up", owner: "brand", dependsOn: ["fitout"], days: () => STEP_DAYS.stockAndPos },
-  { id: "audit", name: "Mock audit", owner: "brand", dependsOn: ["training", "stock", "licences"], days: () => STEP_DAYS.mockAudit },
+  {
+    // The hired team is inducted once hiring and fit-out are done, in the last days before the mock audit.
+    id: "induction",
+    name: "Store-team induction",
+    owner: "brand",
+    dependsOn: ["hiring", "fitout"],
+    days: (p) => p.teamInduction?.days ?? 0,
+    skipped: (p) => !p.teamInduction,
+    asLateAsPossibleWith: ["training", "stock", "licences"],
+  },
+  { id: "audit", name: "Mock audit", owner: "brand", dependsOn: ["training", "stock", "licences", "induction"], days: () => STEP_DAYS.mockAudit },
   { id: "launch", name: "Launch", owner: "partner + brand", dependsOn: ["audit"], days: () => 0 },
 ];
 
@@ -109,18 +141,28 @@ const STEPS: StepDef[] = [
 export function scheduleMilestones(today: string, profile: BrandProfile, input: PathInput): Milestone[] {
   const out = new Map<MilestoneId, Milestone>();
   for (const s of STEPS) {
-    const start = s.dependsOn.length ? s.dependsOn.map((d) => out.get(d)!.end).sort().at(-1)! : today;
+    let start = s.dependsOn.length ? s.dependsOn.map((d) => out.get(d)!.end).sort().at(-1)! : today;
     const days = s.days(profile, input);
+    if (s.asLateAsPossibleWith && days > 0) {
+      const latest = s.asLateAsPossibleWith.map((d) => out.get(d)!.end).sort().at(-1)!;
+      const late = addDays(latest, -days);
+      if (late > start) start = late;
+    }
     out.set(s.id, {
       id: s.id,
-      name: s.id === "hiring" && profile.specialHiring ? `Hiring, including: ${profile.specialHiring}` : s.name,
+      name:
+        s.id === "hiring" && profile.specialHiring
+          ? `Hiring, including: ${profile.specialHiring}`
+          : s.id === "induction" && profile.teamInduction
+            ? `Store-team induction: ${profile.teamInduction.who}`
+            : s.name,
       owner: s.owner,
       days,
       start,
       end: addDays(start, days),
       dependsOn: s.dependsOn,
       critical: false,
-      skipped: s.skipped?.(input) ?? false,
+      skipped: s.skipped?.(profile, input) ?? false,
       note: null,
     });
   }
@@ -164,11 +206,37 @@ export interface OnboardingPlan {
   /** "Target not feasible; earliest realistic date is DD MMM" or a confirmation, in plain English. */
   summary: string;
   /** Soft launch when the target can't be met. */
-  phasedOption: { softLaunch: string; fullLaunch: string; text: string } | null;
+  phasedOption: { softLaunch: string; fullLaunch: string; gainDays: number; text: string } | null;
   checklist: ChecklistItem[];
   /** For a location offer: this plan applies only if the offer is accepted. */
   ifAccepted: boolean;
   assumptions: string[];
+}
+
+/**
+ * Phased (soft) launch: open with starter stock once fit-out, training, licences, hiring and team induction are
+ * done, then complete stock set-up and the mock audit for the full launch. Only offered when it opens at least
+ * SOFT_LAUNCH_MIN_GAIN_DAYS before the full launch, so it is a real gain rather than a few days' difference.
+ */
+export function choosePhasedOption(
+  milestones: Milestone[],
+  profile: BrandProfile,
+  testDate: string | null,
+  festival: { name: string; date: string } | null,
+  minGainDays: number = SOFT_LAUNCH_MIN_GAIN_DAYS,
+): OnboardingPlan["phasedOption"] {
+  const m = Object.fromEntries(milestones.map((x) => [x.id, x])) as Record<MilestoneId, Milestone>;
+  const ready = [m.fitout.end, m.training.end, m.licences.end, m.hiring.end].sort().at(-1)!;
+  const soft = addDays(ready, (profile.teamInduction?.days ?? 0) + STEP_DAYS.softLaunchStock);
+  const gain = daysBetween(soft, m.launch.end);
+  if (gain < minGainDays) return null;
+  const meets = testDate !== null && soft <= testDate;
+  return {
+    softLaunch: soft,
+    fullLaunch: m.launch.end,
+    gainDays: gain,
+    text: `Phased option: a soft launch with starter stock on ${formatDate(soft)}, ${gain} days before the full launch on ${formatDate(m.launch.end)} (after the mock audit).${meets ? ` The soft launch meets the ${festival && testDate === festival.date ? `${festival.name} date` : "target"}.` : ""}`,
+  };
 }
 
 export function buildOnboardingPlan(args: {
@@ -197,20 +265,11 @@ export function buildOnboardingPlan(args: {
   if (m.lease.skipped) m.lease.note = "Owned space: no lease needed.";
   if (profile.specialHiring) m.hiring.note = `Special hire: ${profile.specialHiring}.`;
   if (args.storeManager) m.training.note = "The named store manager attends every module too.";
-
-  // Phased option: open with starter stock once fit-out, training and licences are done, audit after.
-  let phasedOption: OnboardingPlan["phasedOption"] = null;
-  if (!feasible) {
-    const ready = [m.fitout.end, m.training.end, m.licences.end].sort().at(-1)!;
-    const soft = addDays(ready, STEP_DAYS.softLaunchStock);
-    if (soft < launch) {
-      phasedOption = {
-        softLaunch: soft,
-        fullLaunch: launch,
-        text: `Phased option: a soft launch with starter stock on ${formatDate(soft)}, then the full launch after the mock audit on ${formatDate(launch)}.${testDate && soft <= testDate ? ` The soft launch meets the ${festival && testDate === festival.date ? `${festival.name} date` : "target"}.` : ""}`,
-      };
-    }
+  if (profile.teamInduction) {
+    m.induction.note = `${profile.teamInduction.who}: ${profile.teamInduction.days} days after hiring (ends ${formatDate(m.hiring.end)}) and fit-out, before the mock audit.`;
   }
+
+  const phasedOption = !feasible ? choosePhasedOption(milestones, profile, testDate, festival) : null;
 
   const what = festival && testDate === festival.date ? `Opening before ${festival.name} (${formatDate(festival.date)}, verify)` : target ? `Opening by ${formatDate(target)}` : "Opening";
   const summary = feasible

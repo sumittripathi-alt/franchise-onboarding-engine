@@ -14,6 +14,8 @@ Hiring, including: Certified optometrist                   partner         2026-
     ↳ Special hire: Certified optometrist.
 Training                                                   brand           2026-12-01   2026-12-17        ░░░  
 Stock and point-of-sale set-up *                           brand           2026-12-16   2026-12-23          ██ 
+Store-team induction: Certified optometrist and store staf brand           2026-12-20   2026-12-23           ░ 
+    ↳ Certified optometrist and store staff: 3 days after hiring (ends 1 Dec 2026) and fit-out, before the mock audit.
 Mock audit *                                               brand           2026-12-23   2026-12-26           █ 
 Launch *                                                   partner + brand 2026-12-26   2026-12-26           ◆ 
   * critical path   █ critical   ░ has slack   ◆ launch
@@ -25,11 +27,12 @@ Checklist:
   [ ] 2026-12-16  partner + brand Fit-out
   [ ] 2026-12-17  brand           Training
   [ ] 2026-12-23  brand           Stock and point-of-sale set-up
+  [ ] 2026-12-23  brand           Store-team induction: Certified optometrist and store staff
   [ ] 2026-12-26  brand           Mock audit
   [ ] 2026-12-26  partner + brand Launch
 
-Training: Fast-track training in Kannada, 16 days from 1 Dec 2026; shadowing 3 days at ST-05 (Bengaluru).
-  Track: Fast-track (experienced operator (8 years of relevant apparel experience)); 16 days, Classroom + in-store, 2026-12-01 → 2026-12-17; language Kannada.
+Training: Fast-track training in Kannada, 16 days from 1 Dec 2026; shadowing 3 days at ST-05 (Bengaluru); team induction 20 Dec 2026.
+  Track: Fast-track (experienced operator, 8 years of relevant apparel experience); 16 days, Classroom + in-store, 2026-12-01 → 2026-12-17; language Kannada.
   Modules:
     - Product and lens basics (Can be tested out by an experienced operator)
     - Eye-test workflow with the optometrist
@@ -38,7 +41,8 @@ Training: Fast-track training in Kannada, 16 days from 1 Dec 2026; shadowing 3 d
     - Visual merchandising
     - Inventory
   Shadowing: 3 days at ST-05, Bengaluru (pin 560076, 3.7 km away): nearest existing store.
-  Cohort: Kannada cohort, Bengaluru, starts 1 Dec 2026: APP-001, APP-003, APP-023, APP-031
+  How your team will be prepared: Certified optometrist and store staff are inducted for 3 days (20 Dec 2026 to 23 Dec 2026), after hiring ends on 1 Dec 2026 and the store is fitted out, in the last days before the mock audit. Topics: Store walkthrough and opening routine; Eye-test workflow with the optometrist; Point of sale; Customer service.
+  Cohort: Kannada cohort, Bengaluru, starts 1 Dec 2026: APP-001, APP-023, APP-031
   Readiness check: Product and process quiz by 2026-12-17; Mock audit by 2026-12-26; Trainer sign-off by 2026-12-26.
 
 ══ APP-019 · Deepak Hegde · Approved with conditions · pin 560037 ══
@@ -57,6 +61,8 @@ Hiring, including: Certified optometrist                   partner         2026-
     ↳ Special hire: Certified optometrist.
 Training                                                   brand           2027-01-22   2027-02-07               ░░░   
 Stock and point-of-sale set-up *                           brand           2027-02-06   2027-02-13                 ██  
+Store-team induction: Certified optometrist and store staf brand           2027-02-10   2027-02-13                  ░  
+    ↳ Certified optometrist and store staff: 3 days after hiring (ends 22 Jan 2027) and fit-out, before the mock audit.
 Mock audit *                                               brand           2027-02-13   2027-02-16                  ██ 
 Launch *                                                   partner + brand 2027-02-16   2027-02-16                   ◆ 
   * critical path   █ critical   ░ has slack   ◆ launch
@@ -70,11 +76,12 @@ Checklist:
   [ ] 2027-02-06  partner + brand Fit-out
   [ ] 2027-02-07  brand           Training
   [ ] 2027-02-13  brand           Stock and point-of-sale set-up
+  [ ] 2027-02-13  brand           Store-team induction: Certified optometrist and store staff
   [ ] 2027-02-16  brand           Mock audit
   [ ] 2027-02-16  partner + brand Launch
 
-Training: Fast-track training in English, 16 days from 22 Jan 2027; shadowing 3 days at ST-03 (Bengaluru); plus Kannada customer basics.
-  Track: Fast-track (experienced operator (5 years of relevant retail experience)); 16 days, Classroom + in-store, 2027-01-22 → 2027-02-07; language English.
+Training: Fast-track training in English, 16 days from 22 Jan 2027; shadowing 3 days at ST-03 (Bengaluru); plus Kannada customer basics; team induction 10 Feb 2027.
+  Track: Fast-track (experienced operator, 5 years of relevant retail experience); 16 days, Classroom + in-store, 2027-01-22 → 2027-02-07; language English.
   Modules:
     - Product and lens basics (Can be tested out by an experienced operator)
     - Eye-test workflow with the optometrist
@@ -85,13 +92,13 @@ Training: Fast-track training in English, 16 days from 22 Jan 2027; shadowing 3 
     - Local customer basics in Kannada (Preferred language is English)
   Staffing: Recommend hiring at least one Kannada-speaking staff member.
   Shadowing: 3 days at ST-03, Bengaluru (pin 560038, 5.9 km away): nearest existing store.
+  How your team will be prepared: Certified optometrist and store staff are inducted for 3 days (10 Feb 2027 to 13 Feb 2027), after hiring ends on 22 Jan 2027 and the store is fitted out, in the last days before the mock audit. Topics: Store walkthrough and opening routine; Eye-test workflow with the optometrist; Point of sale; Customer service.
   Cohort: none yet (no other partner with the same language and city launching within 30 days)
   Readiness check: Product and process quiz by 2027-02-07; Mock audit by 2027-02-16; Trainer sign-off by 2027-02-16.
 
 ══ APP-026 · Divya Prakash · Approved with conditions · pin 570020 ══
 
 Onboarding: Target not feasible: opening before Diwali (8 Nov 2026, verify) isn't possible; earliest realistic date is 16 Feb 2027.
-Phased option: a soft launch with starter stock on 10 Feb 2027, then the full launch after the mock audit on 16 Feb 2027.
 
 Milestone                                                  Owner           Start        End          Weeks from 2026-10-25
 (skipped) Expansion-head sign-off                          brand           2026-10-25   2026-10-25                     
@@ -105,6 +112,8 @@ Hiring, including: Certified optometrist                   partner         2026-
     ↳ Special hire: Certified optometrist.
 Training                                                   brand           2027-01-22   2027-02-07               ░░░   
 Stock and point-of-sale set-up *                           brand           2027-02-06   2027-02-13                 ██  
+Store-team induction: Certified optometrist and store staf brand           2027-02-10   2027-02-13                  ░  
+    ↳ Certified optometrist and store staff: 3 days after hiring (ends 22 Jan 2027) and fit-out, before the mock audit.
 Mock audit *                                               brand           2027-02-13   2027-02-16                  ██ 
 Launch *                                                   partner + brand 2027-02-16   2027-02-16                   ◆ 
   * critical path   █ critical   ░ has slack   ◆ launch
@@ -118,11 +127,12 @@ Checklist:
   [ ] 2027-02-06  partner + brand Fit-out
   [ ] 2027-02-07  brand           Training
   [ ] 2027-02-13  brand           Stock and point-of-sale set-up
+  [ ] 2027-02-13  brand           Store-team induction: Certified optometrist and store staff
   [ ] 2027-02-16  brand           Mock audit
   [ ] 2027-02-16  partner + brand Launch
 
-Training: Fast-track training in Kannada, 16 days from 22 Jan 2027; shadowing 3 days at ST-06 (Mysuru).
-  Track: Fast-track (experienced operator (3 years of relevant apparel experience)); 16 days, Classroom + in-store, 2027-01-22 → 2027-02-07; language Kannada.
+Training: Fast-track training in Kannada, 16 days from 22 Jan 2027; shadowing 3 days at ST-07 (Mysuru); team induction 10 Feb 2027.
+  Track: Fast-track (experienced operator, 3 years of relevant apparel experience); 16 days, Classroom + in-store, 2027-01-22 → 2027-02-07; language Kannada.
   Modules:
     - Product and lens basics (Can be tested out by an experienced operator)
     - Eye-test workflow with the optometrist
@@ -130,7 +140,8 @@ Training: Fast-track training in Kannada, 16 days from 22 Jan 2027; shadowing 3 
     - Customer service
     - Visual merchandising
     - Inventory
-  Shadowing: 3 days at ST-06, Mysuru (pin 570009, 2.3 km away): nearest existing store (distance approximate: the pin's location is uncertain).
+  Shadowing: 3 days at ST-07, Mysuru (pin 570017, 3.3 km away): next nearest existing store (distance approximate: the pin's location is uncertain). Not ST-06: it's within the new store's catchment.
+  How your team will be prepared: Certified optometrist and store staff are inducted for 3 days (10 Feb 2027 to 13 Feb 2027), after hiring ends on 22 Jan 2027 and the store is fitted out, in the last days before the mock audit. Topics: Store walkthrough and opening routine; Eye-test workflow with the optometrist; Point of sale; Customer service.
   Cohort: none yet (no other partner with the same language and city launching within 30 days)
   Readiness check: Product and process quiz by 2027-02-07; Mock audit by 2027-02-16; Trainer sign-off by 2027-02-16.
 
@@ -149,6 +160,8 @@ Hiring, including: Certified optometrist                   partner         2026-
     ↳ Special hire: Certified optometrist.
 Training                                                   brand           2026-12-22   2027-01-07           ░░░  
 Stock and point-of-sale set-up *                           brand           2027-01-06   2027-01-13             ██ 
+Store-team induction: Certified optometrist and store staf brand           2027-01-10   2027-01-13              ░ 
+    ↳ Certified optometrist and store staff: 3 days after hiring (ends 22 Dec 2026) and fit-out, before the mock audit.
 Mock audit *                                               brand           2027-01-13   2027-01-16              █ 
 Launch *                                                   partner + brand 2027-01-16   2027-01-16              ◆ 
   * critical path   █ critical   ░ has slack   ◆ launch
@@ -162,11 +175,12 @@ Checklist:
   [ ] 2027-01-06  partner + brand Fit-out
   [ ] 2027-01-07  brand           Training
   [ ] 2027-01-13  brand           Stock and point-of-sale set-up
+  [ ] 2027-01-13  brand           Store-team induction: Certified optometrist and store staff
   [ ] 2027-01-16  brand           Mock audit
   [ ] 2027-01-16  partner + brand Launch
 
-Training: Fast-track training in Kannada, 16 days from 22 Dec 2026; shadowing 3 days at ST-06 (Mysuru).
-  Track: Fast-track (experienced operator (4 years of relevant retail experience)); 16 days, Classroom + in-store, 2026-12-22 → 2027-01-07; language Kannada.
+Training: Fast-track training in Kannada, 16 days from 22 Dec 2026; shadowing 3 days at ST-07 (Mysuru); team induction 10 Jan 2027.
+  Track: Fast-track (experienced operator, 4 years of relevant retail experience); 16 days, Classroom + in-store, 2026-12-22 → 2027-01-07; language Kannada.
   Modules:
     - Product and lens basics (Can be tested out by an experienced operator)
     - Eye-test workflow with the optometrist
@@ -174,6 +188,7 @@ Training: Fast-track training in Kannada, 16 days from 22 Dec 2026; shadowing 3 
     - Customer service
     - Visual merchandising
     - Inventory
-  Shadowing: 3 days at ST-06, Mysuru (pin 570009, 0.8 km away): nearest existing store.
-  Cohort: Kannada cohort, Mysuru, starts 1 Dec 2026: APP-016, APP-033
+  Shadowing: 3 days at ST-07, Mysuru (pin 570017, 4.7 km away): next nearest existing store. Not ST-06: it's within the new store's catchment.
+  How your team will be prepared: Certified optometrist and store staff are inducted for 3 days (10 Jan 2027 to 13 Jan 2027), after hiring ends on 22 Dec 2026 and the store is fitted out, in the last days before the mock audit. Topics: Store walkthrough and opening routine; Eye-test workflow with the optometrist; Point of sale; Customer service.
+  Cohort: none yet (no other partner with the same language and city launching within 30 days)
   Readiness check: Product and process quiz by 2027-01-07; Mock audit by 2027-01-16; Trainer sign-off by 2027-01-16.

@@ -24,6 +24,7 @@ import { checkInvariants, fingerprint } from "./invariants";
 import { estimatePayback } from "./payback";
 import { assess, assessTimeline, type Assessment, type ConditionDraft } from "./readiness";
 import { buildOnboardingPlan, earliestLaunch } from "@/lib/planner/onboarding";
+import { applyCohort } from "@/lib/planner/cohortShift";
 import { buildCohorts, buildTrainingPlan } from "@/lib/planner/training";
 import type { EngineInput, EngineResult, HumanOverride, PendingOverride, RejectedOverride, TerritoryState } from "./types";
 
@@ -178,7 +179,9 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
   }
   const decisions: DecisionRecord[] = applications.map((app) => finalise(byKey.get(app.key)!, alloc.outcomes.get(app.key)!));
 
-  // Training cohorts across committed partners (Approved and Approved with conditions).
+  // Training cohorts across committed partners (Approved and Approved with conditions): planned starts within
+  // 10 days of each other share one real start date. A partner with slack is moved later to it, and only if their
+  // opening date doesn't move.
   const cohorts = buildCohorts(
     decisions
       .filter((d) => (d.status === "APPROVED" || d.status === "CONDITIONAL") && d.training && d.onboarding && d.city)
@@ -187,15 +190,16 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
         appKey: d.appKey,
         city: d.city!,
         language: d.training!.language,
-        trainingStart: d.training!.start,
+        earliestStart: d.training!.start,
+        latestStart: addDays(d.training!.start, d.training!.slackDays),
         launch: d.onboarding!.earliestLaunch,
       })),
   );
   for (const c of cohorts) {
     for (const m of c.members) {
       const d = decisions.find((x) => x.appKey === m.appKey)!;
-      d.training!.cohortId = c.id;
-      d.preparation = `${d.preparation} ${c.label}.`;
+      applyCohort(d.onboarding!, d.training!, c, m.start);
+      d.preparation = preparationText(d.training!.summary, d.onboarding!.ifAccepted, c.label);
     }
   }
 
@@ -309,9 +313,17 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
         pin: o.pin,
         city: a.app.city.value,
         stores,
+        // Shadow a store the new store won't compete with: never one inside its own catchment.
+        catchmentKm: slotT?.tier ? profile.cannibalisationRadiusKm[slotT.tier] : 0,
         start: tm.start,
         end: tm.end,
+        auditStart: onboarding.milestones.find((m) => m.id === "audit")!.start,
         auditEnd: onboarding.milestones.find((m) => m.id === "audit")!.end,
+        induction: (() => {
+          const im = onboarding.milestones.find((m) => m.id === "induction")!;
+          return im.skipped ? null : { start: im.start, end: im.end };
+        })(),
+        hiringEnd: onboarding.milestones.find((m) => m.id === "hiring")!.end,
       });
     }
 
@@ -386,7 +398,7 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
       override: o.override ? { status: o.override.status, reason: o.override.reason, time: o.override.time } : null,
       onboarding,
       training,
-      preparation: training ? `${training.summary}.${onboarding?.ifAccepted ? " (If the offer is accepted.)" : ""}` : null,
+      preparation: training ? preparationText(training.summary, onboarding?.ifAccepted ?? false, null) : null,
       version: 1,
       history: [],
     };
@@ -434,6 +446,10 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
   };
   result.invariantViolations = checkInvariants(result, applications, storePins, personOf);
   return { result, refused };
+}
+
+function preparationText(summary: string, ifAccepted: boolean, cohortLabel: string | null): string {
+  return `${summary}.${ifAccepted ? " (If the offer is accepted.)" : ""}${cohortLabel ? ` ${cohortLabel}.` : ""}`;
 }
 
 function dedupeFlags(flags: Flag[]): Flag[] {

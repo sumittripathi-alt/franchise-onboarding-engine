@@ -36,6 +36,11 @@ const eyewear: BrandProfile = {
     "Visual merchandising",
     "Inventory",
   ],
+  teamInduction: {
+    days: 3,
+    who: "Certified optometrist and store staff",
+    topics: ["Store walkthrough and opening routine", "Eye-test workflow with the optometrist", "Point of sale", "Customer service"],
+  },
   defaultTargetLaunchMonths: 4,
   preOnboarding: {
     topN: 2,
@@ -57,6 +62,7 @@ const eyewear: BrandProfile = {
     leadTimes: "Typical Karnataka timelines for fit-out, licences and hiring.",
     specialHiring: "An eye test needs a certified optometrist on site.",
     baseTrainingDays: "Product, eye-test workflow and POS before launch.",
+    teamInduction: "A short induction once the store is fitted out and the team is hired.",
     trainingTrackAdjustDays: "Experienced retail operators can test out of basics; first-time operators get a week of store operations and finance.",
     shadowDays: "Days working alongside an existing partner, longer for less experienced partners.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
@@ -103,6 +109,11 @@ const delivery: BrandProfile = {
     "Rider safety and compliance",
     "Hub software",
   ],
+  teamInduction: {
+    days: 2,
+    who: "Supervisor and riders",
+    topics: ["Hub walkthrough and sorting", "Dispatch app and routes", "Cash on delivery and returns", "Rider safety"],
+  },
   defaultTargetLaunchMonths: 3,
   preOnboarding: {
     topN: 2,
@@ -123,6 +134,7 @@ const delivery: BrandProfile = {
     leadTimes: "Lighter fit-out than retail.",
     specialHiring: "Riders and a shift supervisor are needed from day one.",
     baseTrainingDays: "Operations-focused training.",
+    teamInduction: "Supervisor and riders are inducted at the hub before the first dispatch.",
     trainingTrackAdjustDays: "Logistics operators can skip hub basics; newcomers get extra operations days.",
     shadowDays: "Days at a running hub, longer for newcomers.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",
@@ -158,6 +170,7 @@ const partnerPoint: BrandProfile = {
   shadowDays: { "Fast-track": 1, Standard: 1, Extended: 2 },
   trainingFormat: "App-based",
   trainingModules: ["Partner app", "Parcel handover and returns", "Customer service"],
+  teamInduction: null,
   defaultTargetLaunchMonths: 1,
   preOnboarding: {
     topN: 2,
@@ -177,6 +190,7 @@ const partnerPoint: BrandProfile = {
     paybackWarningMonths: "Tiny investment, so payback should be quick.",
     leadTimes: "No fit-out or hiring to speak of.",
     baseTrainingDays: "Self-serve app training.",
+    teamInduction: "No staff to induct: the shopkeeper runs the point.",
     trainingTrackAdjustDays: "App training is short; first-time shopkeepers get one extra day.",
     shadowDays: "A day at an existing partner point.",
     defaultTargetLaunchMonths: "Used when the applicant gives no valid target.",

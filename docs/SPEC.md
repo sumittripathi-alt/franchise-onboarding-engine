@@ -503,6 +503,8 @@ Every item has an ID. Each needs at least one automated test (or a manual check 
 - **G7.5** `/api/health` returns `{ ok, geminiConfigured }`. The UptimeRobot monitor is set up **[manual]**.
 - **G7.6** Every async action shows a loading state; every failure shows a recoverable error. There are never blank screens.
 - **G7.7** No login, and no Vercel deployment protection on the production URL **[manual]**.
+- **G7.8** Storage fallback: every `localStorage` read and write is wrapped in try/catch. If storage is unavailable (private mode, blocked or full), the session stays in memory and the app shows "Your session won't be saved if you close this tab." The app works fully either way (test with storage disabled).
+- **G7.9** Save and resume: a "Download session" button saves `{original parsed data, change log and overrides, policy, today}` as a `.json` file, and "Resume session" on the landing page loads it on any device. The file is validated with Zod and malformed files are rejected with a clear message. A resumed session gives identical decisions (test).
 
 ### G8. UI and accessibility
 - **G8.1** Status is always shown with a text label, never colour alone. Colour contrast meets WCAG AA.
@@ -588,7 +590,7 @@ Also add **chat scenario tests** with the LLM mocked:
 2. **Ingestion**: parser, header matching, normalisation, data checks, data-quality report, fixture script + fixture, tests (G1, G2).
 3. **Engine**: gates, readiness, allocation, cannibalisation, payback, invariants, templated explanations, locking, provisional wins, overrides, realistic location offers (15.4, 15.5), golden and property tests (G3, G9.2, G9.3, G9.9, G9.10). *This is the core. Get it right before any UI polish.*
 4. **Planner**: onboarding critical path, festival calendar, training plan, cohorts, tests.
-5. **Core UI**: set the visual direction (section 10.2) first. Then build the landing page, upload, the decision sheet as the default view, batch insights, sanity banner, action queue (15.1, 15.2), overview, applications table, decision drawer, territories board and safe export (G6.4, G8). Install GSAP + `@gsap/react` and add `data-animate` hooks, but don't animate yet.
+5. **Core UI** (includes G7.8 storage fallback and G7.9 save/resume, and every item in `docs/BACKLOG.md` marked for Phase 5): set the visual direction (section 10.2) first. Then build the landing page, upload, the decision sheet as the default view, batch insights, sanity banner, action queue (15.1, 15.2), overview, applications table, decision drawer, territories board and safe export (G6.4, G8). Install GSAP + `@gsap/react` and add `data-animate` hooks, but don't animate yet.
 6. **Gemini**: extraction with the evidence rule (15.3) + heuristics fallback; chat robustness (15.6); chat tools, fact patches, diff, undo, fallback router; partner messages; chat scenario tests (G4, G5).
 7. **Map**: Leaflet layers, white space, low-confidence styling, map fallback (G8.4).
 8. **Policy panel and brand switch**, with the diff summary.
