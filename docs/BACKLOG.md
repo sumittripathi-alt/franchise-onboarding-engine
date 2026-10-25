@@ -7,3 +7,7 @@ Items agreed with the user that are not yet in `docs/SPEC.md`. Build each in the
 - **Untapped demand insight.** A batch insight counting qualified applicants (not on hold or not approved) in cities with no territory, e.g. "3 qualified applicants in Belagavi, Davanagere and Mangaluru have no territory to join." Recommend which territories to open there, ranked by the number of qualified applicants and their readiness.
 
 Status: both Phase 5 insights are built (`lib/insights/batch.ts`: `citySaturation`, `untappedDemand`), shown under "What stands out" on the Overview, included in the Excel summary sheet, and covered by tests.
+
+## Phase 8 (done)
+- Editable assumptions: 16 business numbers (minimum investment, floor, payback, distances, deadlines, waitlist, training) with ranges and cross-field checks; shared policy_change events with a "Changing X changed N decisions" diff; Reset restores defaults exactly.
+- Not editable yet: floor and no-space rules, experience keywords, revenue and margin, lead times, training format and modules.
