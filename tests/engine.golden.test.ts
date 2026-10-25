@@ -111,8 +111,10 @@ describe("G3.7 golden decisions (eyewear)", () => {
     expect(t["TER-05"].slots).toBe(0);
     // Every territory is full, so there is nowhere to "recruit here" yet.
     expect(r.territories.flatMap((x) => x.whiteSpacePins)).toEqual([]);
-    const moreSlots = trickyRun("eyewear", { facts: [{ target: "territory", key: "TER-02", field: "openSlots", value: 4 }] });
-    expect(moreSlots.territories.find((x) => x.id === "TER-02")!.whiteSpacePins).toEqual(["560093", "560017"]);
+    // With 3 slots in Hubballi and one applicant, the two empty pins become "recruit here".
+    const moreSlots = trickyRun("eyewear", { facts: [{ target: "territory", key: "TER-05", field: "openSlots", value: 3 }] });
+    expect(decision(moreSlots, "APP-021").status).toBe("APPROVED");
+    expect(moreSlots.territories.find((x) => x.id === "TER-05")!.whiteSpacePins).toEqual(["580023", "580029"]);
   });
 });
 
