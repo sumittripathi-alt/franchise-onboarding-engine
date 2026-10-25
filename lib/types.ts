@@ -17,6 +17,8 @@ export interface Parsed<T> {
 }
 
 export interface Application {
+  /** Unique internal key: the ID when unique, otherwise `${id}@row${row}` (duplicates, A05) or `row${row}` (blank ID). */
+  key: string;
   id: string;
   /** Original Excel row number, cited in every issue message (G1.12). */
   row: number;
@@ -36,15 +38,36 @@ export interface Application {
 }
 
 export interface Territory {
+  /** Unique internal key, as for Application. */
+  key: string;
   id: string;
   row: number;
   city: Parsed<CityName>;
   state: Parsed<string>;
   pins: string[];
+  /** Tokens in "Pin codes covered" that are not 6-digit pins. */
+  invalidPins: string[];
   pinsRaw: string;
   tier: Parsed<Tier>;
   openSlots: Parsed<number>;
   priority: Parsed<Priority>;
+}
+
+// ---------- Free-text signals (SPEC §8.1) ----------
+
+/** Signals pulled from "Current / past business" and "Notes", by Gemini or by the heuristic fallback. */
+export interface Signals {
+  relevant_sector: string | null;
+  years_running_shop_mentioned: number | null;
+  notes_floor_claim: "Ground" | "Upper" | "Mall unit" | null;
+  notes_space_claim: "has_space" | "searching" | null;
+  festival_deadline: string | null;
+  absentee_owner: boolean;
+  competitor_conflict: boolean;
+  funding_dependency: boolean;
+  injection_attempt: boolean;
+  other_flags: string[];
+  confidence: number;
 }
 
 // ---------- Data checks (SPEC §4) ----------
