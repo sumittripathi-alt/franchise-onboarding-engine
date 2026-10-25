@@ -77,7 +77,7 @@ export function DecisionSheet() {
             </li>
           ))}
         </ul>
-        <div className="print-sheet hidden overflow-x-auto rounded-xl border bg-card md:block print:block">
+        <div className="print-sheet hidden overflow-x-auto rounded-xl border bg-card md:block print:block" tabIndex={0} role="region" aria-label="Decision sheet table. Scrolls sideways on small screens.">
           <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
             <caption className="sr-only">Decision for every application</caption>
             <thead className="bg-muted/60 text-xs uppercase tracking-wider text-muted-foreground">

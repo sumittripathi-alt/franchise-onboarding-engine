@@ -42,7 +42,7 @@ export function OnboardingTimeline({ plan, today }: { plan: OnboardingPlan; toda
         <span className="ml-3 mr-1 inline-block h-2 w-4 rounded bg-muted-foreground/40 align-middle" /> has slack · from {formatDate(today)} to {formatDate(end)}
       </p>
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border" tabIndex={0} role="region" aria-label="Timeline. Scrolls sideways on small screens.">
         <table className="w-full min-w-[28rem] text-left text-sm">
           <caption className="sr-only">Checklist</caption>
           <thead className="bg-muted/60 text-xs uppercase tracking-wider text-muted-foreground">

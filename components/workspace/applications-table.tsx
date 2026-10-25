@@ -20,7 +20,7 @@ export function ApplicationsTable() {
       {filtered.length === 0 ? (
         <EmptyState title="No applications match">Clear the filters to see every application.</EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="overflow-x-auto rounded-xl border bg-card" tabIndex={0} role="region" aria-label="Applications table. Scrolls sideways on small screens.">
           <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
             <caption className="sr-only">Applications</caption>
             <thead className="bg-muted/60 text-xs uppercase tracking-wider text-muted-foreground">
