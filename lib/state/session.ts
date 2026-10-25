@@ -131,6 +131,40 @@ export function computeResult(session: Session): EngineResult {
   return result;
 }
 
+export interface ShownResult {
+  /** The result to show. */
+  result: EngineResult;
+  /** Invariant failures of the latest run (empty when all is well). */
+  violations: string[];
+  /** Set when the engine could not produce any valid result at all. */
+  error: string | null;
+}
+
+/**
+ * The result to show (G3.6): the latest run if it passed every check, otherwise the most recent state of the
+ * change log that did (changes are dropped from the end one at a time). Pure, so it needs no memory of earlier renders.
+ */
+export function shownResult(session: Session): ShownResult {
+  let violations: string[] = [];
+  let firstError: string | null = null;
+  for (let keep = session.entries.length; keep >= 0; keep--) {
+    const candidate = keep === session.entries.length ? session : { ...session, entries: session.entries.slice(0, keep) };
+    try {
+      const result = computeResult(candidate);
+      if (result.invariantViolations.length === 0) return { result, violations, error: null };
+      if (keep === session.entries.length) violations = result.invariantViolations;
+    } catch (e) {
+      firstError ??= e instanceof Error ? e.message : "The decision engine failed.";
+    }
+  }
+  try {
+    // Even the uploaded data fails the checks: show it, with the red banner, rather than a blank screen.
+    return { result: computeResult({ ...session, entries: [] }), violations, error: null };
+  } catch (e) {
+    return { result: null as never, violations, error: firstError ?? (e instanceof Error ? e.message : "The decision engine failed.") };
+  }
+}
+
 export function computeChecks(session: Session): DataCheckResult {
   const hit = checksCache.get(session);
   if (hit) return hit;

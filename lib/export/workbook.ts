@@ -15,18 +15,7 @@ import type { Application } from "@/lib/types";
 import { STATUSES } from "@/lib/types";
 import { safeRow } from "./safe";
 
-export const EXPORT_SHEETS = [
-  "Summary",
-  "Decisions",
-  "Action queue",
-  "Conditions",
-  "Onboarding",
-  "Training cohorts",
-  "Partner messages",
-  "Data issues",
-  "Change log",
-  "Feedback",
-] as const;
+export { EXPORT_SHEETS } from "./sheets";
 
 type Cell = string | number | boolean | null;
 

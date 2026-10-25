@@ -17,7 +17,6 @@ import {
   type ChangeSpec,
   type CommitOutcome,
   type Feedback,
-  type ParsedSession,
   type Session,
 } from "./session";
 import { STORAGE_KEY, safeGetItem, safeRemoveItem, safeSetItem, storageWorks } from "./storage";
@@ -49,9 +48,15 @@ interface StoreState {
   session: Session | null;
   previous: PreviousSnapshot | null;
   compareOpen: boolean;
+  /** The change shown in the "what changed" card, with its Undo button. */
+  lastChangeId: string | null;
+  /** The "where to start" suggestions were dismissed. */
+  guidedDismissed: boolean;
 
   tab: Tab;
   drawerKey: string | null;
+  /** A section of the drawer to open straight away. */
+  drawerFocus: "fact" | null;
   filters: Filters;
 
   hydrate: () => void;
@@ -65,10 +70,14 @@ interface StoreState {
   exportSessionText: () => string | null;
 
   setTab: (t: Tab) => void;
-  openDrawer: (key: string | null) => void;
+  openDrawer: (key: string | null, focus?: "fact") => void;
   setFilters: (f: Partial<Filters>) => void;
   setCompareOpen: (open: boolean) => void;
+  dismissLastChange: () => void;
+  dismissGuided: () => void;
 }
+
+const GUIDED_KEY = "fpe.guided.dismissed";
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -108,8 +117,11 @@ export const useStore = create<StoreState>((set, get) => {
     session: null,
     previous: null,
     compareOpen: false,
+    lastChangeId: null,
+    guidedDismissed: false,
     tab: "sheet",
     drawerKey: null,
+    drawerFocus: null,
     filters: NO_FILTERS,
 
     hydrate() {
@@ -124,7 +136,7 @@ export const useStore = create<StoreState>((set, get) => {
           else safeRemoveItem(STORAGE_KEY); // a damaged saved session is dropped rather than crashing the app
         }
       }
-      set({ hydrated: true, persistence: works ? "saved" : "memory", session });
+      set({ hydrated: true, persistence: works ? "saved" : "memory", session, guidedDismissed: safeGetItem(GUIDED_KEY) === "1" });
     },
 
     startFromParse(parse, files) {
@@ -139,11 +151,11 @@ export const useStore = create<StoreState>((set, get) => {
       });
       // A second upload in the same session: keep what the first one decided, for comparison.
       const previous = old ? snapshotOf(old) : null;
-      setSession(session, { previous, compareOpen: false, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      setSession(session, { previous, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
     },
 
     resume(session) {
-      setSession(session, { previous: null, compareOpen: false, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      setSession(session, { previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
     },
 
     continueReview() {
@@ -155,13 +167,13 @@ export const useStore = create<StoreState>((set, get) => {
       const s = get().session;
       if (!s) return { ok: false, message: "No session is open." };
       const outcome = commitChange(s, spec, new Date().toISOString());
-      if (outcome.ok) setSession(outcome.session);
+      if (outcome.ok) setSession(outcome.session, { lastChangeId: outcome.entry.id });
       return outcome;
     },
 
     undo(id) {
       const s = get().session;
-      if (s) setSession(undoEntry(s, id));
+      if (s) setSession(undoEntry(s, id), get().lastChangeId === id ? { lastChangeId: null } : {});
     },
 
     addFeedback(appKey, appId, status, reason) {
@@ -174,7 +186,7 @@ export const useStore = create<StoreState>((set, get) => {
     reset() {
       if (saveTimer) clearTimeout(saveTimer);
       safeRemoveItem(STORAGE_KEY);
-      set({ session: null, previous: null, compareOpen: false, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      set({ session: null, previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
     },
 
     exportSessionText() {
@@ -183,11 +195,15 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     setTab: (tab) => set({ tab }),
-    openDrawer: (drawerKey) => set({ drawerKey }),
+    openDrawer: (drawerKey, focus) => set({ drawerKey, drawerFocus: focus ?? null }),
     setFilters: (f) => set((st) => ({ filters: { ...st.filters, ...f } })),
     setCompareOpen: (compareOpen) => set({ compareOpen }),
+    dismissLastChange: () => set({ lastChangeId: null }),
+    dismissGuided() {
+      safeSetItem(GUIDED_KEY, "1");
+      set({ guidedDismissed: true });
+    },
   };
 });
 
-export type { ParsedSession };
 export { parseSessionFile };

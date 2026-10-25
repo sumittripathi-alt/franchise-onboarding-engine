@@ -89,6 +89,7 @@ describe("G7.9 save and resume", () => {
 
   it("rejects malformed files with a clear message", () => {
     const good = JSON.parse(serialiseSession(trickySession(), NOW));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bad = (m: (x: any) => void) => {
       const x = structuredClone(good);
       m(x);
