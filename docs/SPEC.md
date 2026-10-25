@@ -44,7 +44,7 @@ Judges score how well it solves the problem and how clearly it explains its reas
 - **Vitest** for unit and golden tests, **fast-check** for property tests, and **Playwright** for one end-to-end smoke test.
 - **GSAP + `@gsap/react`** (`useGSAP` hook): install in Phase 5, animate only in Phase 10 (section 10.3). Never block content behind an animation.
 
-Skip PostGIS, a database, Temporal and any CRM. The data is small (under 500 rows) and fits in memory.
+Skip PostGIS, Temporal and any CRM. The data is small (under 500 rows) and fits in memory. **A small Postgres database (Supabase) is used for shared workspaces only; see section 16, which overrides this note.**
 
 ---
 
@@ -496,7 +496,7 @@ Every item has an ID. Each needs at least one automated test (or a manual check 
 - **G6.7** No personal data is sent to logs.
 
 ### G7. Sessions and reliability
-- **G7.1** No shared server state. Two browsers testing at once never see each other's data **[manual + e2e]**.
+- **G7.1** *(overridden by section 16)* Workspaces are shared by link on purpose. Two browsers on **different** workspaces never see each other's data, and nothing outside a workspace is shared **[manual + e2e]**.
 - **G7.2** State persists in `localStorage` across refresh and new tabs. A "Start over" button clears it.
 - **G7.3** Engine reruns are debounced, so rapid edits don't race each other.
 - **G7.4** "Today" defaults to the current date in IST (Asia/Kolkata) and can be changed in Settings.
@@ -673,3 +673,43 @@ Also available in chat as the tool `todays_actions()` ("What should the expansio
 ### 15.11 Export
 - Sheet order: Summary, Decisions, Action queue, Conditions, Onboarding, Training cohorts, Partner messages, Data issues, Change log, Feedback.
 - The Decisions sheet keeps the input's column order and adds the decision columns at the end, so the team can work from it directly.
+
+---
+
+## 16. Shared workspaces (overrides G7.1 and the "no database" note in section 1)
+
+Judges and teammates need to look at the same data at the same time, so each upload becomes a **workspace** with a link. The deterministic engine is unchanged: **state = the uploaded data plus the workspace's events, replayed in order. Decisions are never stored.**
+
+### 16.1 Storage and access
+- **Supabase Postgres**, project ref `mozchjkxxciughpsfive`, reached **only from Next.js server routes** with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the server environment (`.env.local`, and Vercel's environment). The browser never talks to Supabase. No `NEXT_PUBLIC_` variable ever holds a secret.
+- Row-level security is **on for every table, with no policies**, so the public API keys can read nothing. Only the server's service role can.
+- **Anyone with a workspace link can view and change it.** There are no accounts. The landing page says so, and says not to upload real personal data.
+
+### 16.2 Tables
+- `workspaces(id uuid, created_at, name, brand_profile, base_data jsonb, source_filename, row_counts jsonb, parent_id uuid null, next_seq int)`. `parent_id` links a re-upload back to the workspace it came from. `next_seq` is how the server hands out event numbers.
+- `events(workspace_id, seq, created_at, type, payload jsonb, client_id, client_event_id)`, primary key `(workspace_id, seq)`. `seq` is assigned by the **server**, atomically, so two clients appending at once always get different numbers. `client_event_id` makes a retry harmless: the same `(workspace_id, client_id, client_event_id)` is stored once.
+- Event types: `fact`, `territory_fact`, `withdraw`, `override`, `lock`, `policy_change`, `brand_switch`, `today_change`, `undo`. An event's type must match what its payload contains. `undo` carries `targetSeq` and **appends**; nothing is ever edited or deleted.
+- The SQL migration lives in `supabase/migrations/`.
+
+### 16.3 Behaviour
+- Every upload creates a **new** workspace at `/w/<uuid>`. Opening `/` never changes anything. Re-uploading creates a new workspace with a link back (`parent_id`) and never replaces shared data.
+- The landing page lists the **last 20** workspaces with **Join**, and **Start new** (the upload zone).
+- The change log and Undo from Phase 5 keep working on top of events: a committed change appends an event; Undo appends an `undo` event.
+- **Sync:** each client polls every **4 seconds** for events after the last one it has. An event from another client shows a toast, "Updated by another viewer: <summary>", with the diff.
+- **Failure:** `localStorage` stays the local cache. If Supabase can't be reached the app keeps working locally, shows **"Not syncing. Changes are saved on this device only"**, retries with backoff, and re-sends unsent events **in order**.
+- Replaying events gives the same decisions on every client, whatever the order they arrived in, because replay is always by `seq`.
+
+### 16.4 Routes (all validate with Zod; per-IP rate limit)
+- `POST /api/workspaces`: create (base data at most **2 MB**).
+- `GET /api/workspaces`: the 20 most recent (no base data).
+- `GET /api/workspaces/:id?since=seq`: the workspace and its events after `seq` (base data only when `since` is 0).
+- `POST /api/workspaces/:id/events`: append one event (payload at most **10 KB**).
+- `GET /api/health`: also does a light database query and reports `dbConfigured` and `dbReachable`.
+
+### 16.5 Guardrails
+- **G10.1** Two clients appending at once keep both changes and end with the same decisions.
+- **G10.2** Replaying a workspace's events gives exactly the decisions the live client showed.
+- **G10.3** If the database is down the app works locally and says so; when it returns, unsent events are re-sent in order and nothing is lost or duplicated.
+- **G10.4** No Supabase key (or any secret) appears in the client bundle.
+- **G10.5** Malformed, mismatched or oversized events and workspaces are rejected with a clear error.
+- **G10.6** Opening `/` and re-uploading never modify an existing workspace.

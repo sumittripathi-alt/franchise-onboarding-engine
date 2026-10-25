@@ -13,7 +13,8 @@ import {
   undoEntry,
   type Session,
 } from "@/lib/state/session";
-import { MEMORY_NOTICE, STORAGE_KEY, safeGetItem, safeRemoveItem, safeSetItem, storageWorks } from "@/lib/state/storage";
+import { WS_KEY_PREFIX } from "@/lib/workspace/cache";
+import { MEMORY_NOTICE, safeGetItem, safeRemoveItem, safeSetItem, storageWorks } from "@/lib/state/storage";
 import { parseOk, trickyFile } from "./helpers";
 
 const NOW = "2026-10-26T09:00:00.000Z";
@@ -206,10 +207,12 @@ describe("G7.8 storage fallback", () => {
     expect(() => safeRemoveItem("k")).not.toThrow();
   });
 
-  describe("the store keeps working in memory and says so", () => {
+  describe("the store keeps working on the device and says so", () => {
     beforeEach(() => {
       vi.resetModules();
       vi.useFakeTimers();
+      // No server in these tests: every request fails, which is what "offline" looks like.
+      vi.stubGlobal("fetch", () => Promise.reject(new Error("offline")));
     });
 
     async function freshStore() {
@@ -218,7 +221,7 @@ describe("G7.8 storage fallback", () => {
     }
     const parsed = () => parseOk([trickyFile()]);
 
-    it("blocked storage: the session works fully and the notice applies", async () => {
+    it("blocked storage: the workspace works fully and the notice applies", async () => {
       vi.stubGlobal("window", {
         get localStorage(): never {
           throw new DOMException("blocked", "SecurityError");
@@ -229,25 +232,27 @@ describe("G7.8 storage fallback", () => {
       expect(store.getState().persistence).toBe("memory");
       expect(MEMORY_NOTICE).toBe("Your session won't be saved if you close this tab.");
 
-      store.getState().startFromParse(parsed(), ["tricky.xlsx"]);
+      const id = store.getState().startFromParse(parsed(), ["tricky.xlsx"]);
+      expect(store.getState().workspaceId).toBe(id);
       expect(store.getState().session).not.toBeNull();
       const out = store.getState().commit(foundSpace);
       expect(out.ok).toBe(true);
-      vi.advanceTimersByTime(1000); // the save attempt must not throw or lose the session
+      await vi.advanceTimersByTimeAsync(1000); // saving and sending must not throw or lose the workspace
       expect(store.getState().session!.entries).toHaveLength(1);
+      expect(store.getState().persistence).toBe("memory");
       expect(computeResult(store.getState().session!).decisions.find((d) => d.appKey === "APP-012")!.status).toBe("CONDITIONAL");
-      store.getState().undo("c1");
+      store.getState().undo(store.getState().session!.entries[0].id);
       expect(store.getState().session!.entries[0].undone).toBe(true);
     });
 
-    it("storage fills up mid-session: the session stays in memory and the notice appears", async () => {
+    it("storage fills up mid-session: the workspace stays in memory and the notice appears", async () => {
       const data = new Map<string, string>();
       let full = false;
       vi.stubGlobal("window", {
         localStorage: {
           getItem: (k: string) => data.get(k) ?? null,
           setItem: (k: string, v: string) => {
-            if (full && k === STORAGE_KEY) throw new DOMException("full", "QuotaExceededError");
+            if (full && k.startsWith(WS_KEY_PREFIX)) throw new DOMException("full", "QuotaExceededError");
             data.set(k, v);
           },
           removeItem: (k: string) => void data.delete(k),
@@ -256,41 +261,42 @@ describe("G7.8 storage fallback", () => {
       const store = await freshStore();
       store.getState().hydrate();
       expect(store.getState().persistence).toBe("saved");
-      store.getState().startFromParse(parsed(), ["tricky.xlsx"]);
-      vi.advanceTimersByTime(1000);
-      expect(data.has(STORAGE_KEY)).toBe(true);
+      const id = store.getState().startFromParse(parsed(), ["tricky.xlsx"]);
+      expect(data.has(WS_KEY_PREFIX + id)).toBe(true);
 
       full = true;
       store.getState().commit(foundSpace);
-      vi.advanceTimersByTime(1000);
       expect(store.getState().persistence).toBe("memory");
       expect(store.getState().session!.entries).toHaveLength(1);
     });
 
-    it("with working storage, a refresh restores the session, and a damaged saved session is dropped", async () => {
+    it("with working storage, a refresh restores the workspace, and a damaged saved copy is dropped", async () => {
       const data = new Map<string, string>();
       vi.stubGlobal("window", {
         localStorage: { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v), removeItem: (k: string) => void data.delete(k) },
       });
       const first = await freshStore();
       first.getState().hydrate();
-      first.getState().startFromParse(parsed(), ["tricky.xlsx"]);
+      const id = first.getState().startFromParse(parsed(), ["tricky.xlsx"]);
       first.getState().commit(foundSpace);
-      vi.advanceTimersByTime(1000);
       const before = decisionsJson(first.getState().session!);
 
       vi.resetModules();
       const second = await freshStore();
       second.getState().hydrate();
+      await second.getState().open(id);
       expect(second.getState().session).not.toBeNull();
       expect(decisionsJson(second.getState().session!)).toBe(before);
+      expect(second.getState().session!.entries).toHaveLength(1);
 
-      data.set(STORAGE_KEY, "{damaged");
+      data.set(WS_KEY_PREFIX + id, "{damaged");
       vi.resetModules();
       const third = await freshStore();
       third.getState().hydrate();
-      expect(third.getState().session).toBeNull();
-      expect(data.has(STORAGE_KEY)).toBe(false);
+      await third.getState().open(id);
+      expect(third.getState().session).toBeNull(); // nothing on the device, and no server to ask
+      expect(third.getState().loadError?.kind).toBe("unreachable");
+      expect(data.has(WS_KEY_PREFIX + id)).toBe(false);
       third.getState().reset();
       expect(third.getState().session).toBeNull();
     });

@@ -8,7 +8,7 @@ import { MAX_FILE_BYTES } from "@/lib/ingest/parseWorkbook";
 import { parseSessionFile, useStore } from "@/lib/state/store";
 import { cn } from "@/lib/utils";
 
-/** Read files in the browser and open the workspace. Nothing here touches a server (G7.1). */
+/** Read files in the browser, make a shared workspace from them, and open it. The file itself is read here; the workspace is saved by the server. */
 export function useUpload() {
   const router = useRouter();
   const startFromParse = useStore((s) => s.startFromParse);
@@ -25,8 +25,8 @@ export function useUpload() {
         setErrors(result.errors);
         return false;
       }
-      startFromParse(result, files.map((f) => f.name));
-      router.push("/workspace");
+      const id = startFromParse(result, files.map((f) => f.name));
+      router.push(`/w/${id}`);
       return true;
     } catch {
       setErrors(["Something went wrong reading that file. Check it opens in Excel, then try again."]);
@@ -149,8 +149,7 @@ export function ResumeSession() {
       setError(parsed.message);
       return;
     }
-    resume(parsed.session);
-    router.push("/workspace");
+    router.push(`/w/${resume(parsed.session)}`);
   }
 
   return (
