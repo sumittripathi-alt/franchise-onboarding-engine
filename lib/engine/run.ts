@@ -151,6 +151,8 @@ function runPass(input: EngineInput, overrides: HumanOverride[]): Pass {
     nextInLineFor: (key) => tags.nextInLine.get(key) ?? [],
     preOnboard: (key) => tags.preOnboard.has(key),
     reviewDate: addDays(today, profile.waitlistReviewDays),
+    pinHolder: (pin) => [...alloc.reserved.values()].flat().find((r) => r.pin === pin)?.key ?? null,
+    pinInTerritory: (territoryId, pin) => resolved.territories.some((t) => t.id === territoryId && t.pins.includes(pin)),
   };
 
   // Two passes: the first settles every status (conditions depend on cannibalisation, not on tags);

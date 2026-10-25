@@ -6,7 +6,6 @@ import type { Assessment, SpaceType } from "./readiness";
 
 export type Factor =
   | "spaceType"
-  | "territoryPriority"
   | "space"
   | "capital"
   | "experience"
@@ -18,14 +17,11 @@ export interface Ranked {
   a: Assessment;
   /** Distance from the applicant's pin to the nearest existing store (reliable coordinates only). */
   storeKm: number | null;
-  /** Lower = higher priority. Only used when comparing across territories. */
-  territoryPriority?: number;
 }
 
 export interface RankOptions {
   /** Location offers: no space first, then Rented, then Owned (SPEC §15.5). */
   bySpaceType?: boolean;
-  byTerritoryPriority?: boolean;
 }
 
 const SPACE_TYPE_ORDER: Record<SpaceType, number> = { none: 0, Rented: 1, Owned: 2 };
@@ -56,9 +52,6 @@ export function makeComparator(group: Ranked[], opts: RankOptions = {}): Compara
   if (opts.bySpaceType) {
     steps.push({ factor: "spaceType", cmp: (x, y) => SPACE_TYPE_ORDER[x.a.spaceType] - SPACE_TYPE_ORDER[y.a.spaceType] });
   }
-  if (opts.byTerritoryPriority) {
-    steps.push({ factor: "territoryPriority", cmp: (x, y) => (x.territoryPriority ?? 9) - (y.territoryPriority ?? 9) });
-  }
   steps.push(
     { factor: "space", cmp: (x, y) => (y.a.bands?.space ?? 0) - (x.a.bands?.space ?? 0) },
     { factor: "capital", cmp: (x, y) => (y.a.bands?.capital ?? 0) - (x.a.bands?.capital ?? 0) },
@@ -85,8 +78,6 @@ export function makeComparator(group: Ranked[], opts: RankOptions = {}): Compara
     switch (factor) {
       case "spaceType":
         return `location offers go first to applicants with no space yet, then rented space, then owned space (${w.a.id}: ${w.a.spaceText}; ${l.a.id}: ${l.a.spaceText})`;
-      case "territoryPriority":
-        return `${w.a.id}'s territory has a higher priority`;
       case "space":
         return `${w.a.id} has a better space (${w.a.spaceText}, vs ${l.a.spaceText})`;
       case "capital":

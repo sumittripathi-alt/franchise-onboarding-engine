@@ -202,7 +202,7 @@ export interface Competitor {
   won: boolean;
   /** Plain-English first differing factor, from the winner's point of view. */
   firstDifferingFactor: string;
-  /** Which factor it was: space, capital, experience, distance, launch, id, spaceType, territoryPriority. */
+  /** Which factor it was: space, capital, experience, distance, launch, id, spaceType. */
   factor: string;
 }
 

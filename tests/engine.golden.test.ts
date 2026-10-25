@@ -91,9 +91,12 @@ describe("G3.7 golden decisions (eyewear)", () => {
     }
   });
 
-  it("names the first differing factor against every competitor", () => {
+  it("names the first differing factor against every competitor that still matters", () => {
+    const holder = (pin: string | null) => r.decisions.find((x) => x.pin === pin)?.appKey;
     for (const d of r.decisions) {
       for (const c of d.competitors) {
+        // A pin contest is only explained if its winner holds the pin in the final result.
+        if (c.relation === "pin" && holder(d.homePin) !== (c.won ? d.appKey : c.appKey)) continue;
         expect(c.firstDifferingFactor.length, d.appKey).toBeGreaterThan(10);
         expect(d.explanation, d.appKey).toContain(c.firstDifferingFactor);
       }
@@ -186,8 +189,8 @@ describe("decide-output review fixes", () => {
     const bengaluru = r.decisions.filter((x) => x.waitlist?.city === "Bengaluru").sort((a, b) => a.waitlist!.rank - b.waitlist!.rank);
     expect(bengaluru.map((x) => x.waitlist!.rank)).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(bengaluru.map((x) => `${x.appId}:${x.waitlist!.wantedTerritoryId}`)).toEqual([
-      "APP-005:TER-01", "APP-013:TER-01", "APP-014:TER-01", "APP-002:TER-01", "APP-029:TER-01",
-      "APP-012:TER-02", "APP-024:TER-02",
+      "APP-005:TER-01", "APP-013:TER-01", "APP-014:TER-01", "APP-002:TER-01",
+      "APP-012:TER-02", "APP-024:TER-02", "APP-029:TER-01",
     ]);
     // No per-territory "#k for TER-xx" ranks anywhere.
     for (const x of r.decisions) for (const t of [x.headline, ...x.teamSteps, ...x.partnerSteps]) expect(t).not.toMatch(/#\d+ for TER-/);
@@ -252,7 +255,7 @@ describe("decide-output review fixes", () => {
 
   it("9. passed over for a location offer: names who got it and why", () => {
     expect(d("APP-014").headline).toBe(
-      "Waitlisted #3 in Bengaluru: lost pin 560029 to APP-013 (applied earlier), and the last free location went to APP-004 (more investment).",
+      "Waitlisted #3 in Bengaluru: TER-01's 2 slots went to APP-001 and APP-003; the last free location went to APP-004 (more investment).",
     );
     expect(d("APP-014").explanation).toContain("The last free location in Bengaluru went to APP-004, who ranks higher because APP-004 has more investment capacity");
   });
@@ -294,8 +297,8 @@ describe("second review: offers, next in line, talent pool, review date", () => 
 
   it("2. next in line for at-risk slots is tagged in the why and the partner step", () => {
     expect(d("APP-012").waitlist?.nextInLineFor).toEqual(["TER-02"]); // APP-019 is approved with conditions and provisional
-    expect(d("APP-012").headline).toMatch(/^Waitlisted #6 in Bengaluru, next in line for TER-02:/);
-    expect(d("APP-012").partnerNextStep).toMatch(/you're next in line for TER-02 and #6 in Bengaluru$/);
+    expect(d("APP-012").headline).toMatch(/^Waitlisted #5 in Bengaluru, next in line for TER-02:/);
+    expect(d("APP-012").partnerNextStep).toMatch(/you're next in line for TER-02 and #5 in Bengaluru$/);
     expect(d("APP-005").waitlist?.nextInLineFor).toEqual(["TER-03"]);
     // Only territories with an at-risk slot get a next-in-line tag: TER-01's two slots are unconditional.
     expect(r.decisions.flatMap((x) => x.waitlist?.nextInLineFor ?? []).sort()).toEqual(["TER-02", "TER-03"]);
@@ -304,6 +307,7 @@ describe("second review: offers, next in line, talent pool, review date", () => 
   it("3. talent pool: no rank, labelled 'In the <city> talent pool'", () => {
     for (const [k, city] of [["APP-022", "Belagavi"], ["APP-036", "Davanagere"], ["APP-037", "Mangaluru"]]) {
       expect(d(k).headline).toBe(`In the ${city} talent pool: no territory covers ${city} in the current plan.`);
+      expect(d(k).partnerNextStep).toBe(`No commitment needed. We'll contact you if we open a territory in ${city} (next review 8 Nov 2026)`);
       expect(d(k).waitlistRank).toBeNull();
       expect(d(k).headline).not.toMatch(/#\d/);
     }
@@ -318,5 +322,46 @@ describe("second review: offers, next in line, talent pool, review date", () => 
   it("5. waitlisted partners are told to keep their space and when the waitlist is reviewed", () => {
     expect(d("APP-013").partnerNextStep).toBe("You're #2 in Bengaluru. Keep your space available if you can. We'll review the waitlist on 8 Nov 2026");
     for (const x of r.decisions) for (const s of x.partnerSteps) expect(s).not.toMatch(/No action needed/);
+  });
+});
+
+describe("third review: merit-only waitlist, honest pin contests, talent pool, moving", () => {
+  const r = trickyRun("eyewear");
+  const d = (k: string) => decision(r, k);
+
+  it("1. the city waitlist ranks on merit only; territory priority is never a reason", () => {
+    // APP-012 (no space, ₹55 lakh, 3 years relevant) outranks APP-029 (no space, ₹30 lakh, no experience),
+    // although APP-029 wanted the higher-priority territory.
+    expect(d("APP-012").waitlist!.rank).toBeLessThan(d("APP-029").waitlist!.rank);
+    for (const x of r.decisions) {
+      for (const t of [x.headline, x.explanation, x.counterfactual, ...x.partnerSteps, ...x.teamSteps]) {
+        expect(t, x.appKey).not.toMatch(/territory priority|territory has a higher priority/i);
+      }
+      for (const c of x.competitors) expect(c.factor).not.toBe("territoryPriority");
+    }
+  });
+
+  it("2. a lost pin contest is mentioned only if the winner holds that pin", () => {
+    // APP-003 holds 560068, so APP-002's loss is explained.
+    expect(d("APP-002").headline).toContain("lost pin 560068 to APP-003");
+    // APP-013 won 560029 but is waitlisted; APP-004 won 560102 but took another location.
+    for (const k of ["APP-014", "APP-005"]) {
+      expect(d(k).headline, k).not.toMatch(/lost pin/);
+      expect(d(k).explanation, k).not.toMatch(/also wanted pin/);
+    }
+  });
+
+  it("3. talent pool partners aren't asked to keep a space", () => {
+    for (const k of ["APP-022", "APP-036", "APP-037"]) {
+      expect(d(k).partnerSteps.join(" "), k).not.toMatch(/Keep your space/);
+    }
+  });
+
+  it("4. next in line for a territory outside the applicant's own pin says they'd move", () => {
+    expect(d("APP-005").partnerNextStep).toMatch(/\(this would mean moving to a TER-03 location\)$/);
+    expect(d("APP-005").teamNextStep).toMatch(/; confirm they're willing to move$/);
+    // APP-012's own pin is in TER-02, so no move.
+    expect(d("APP-012").partnerNextStep).not.toMatch(/moving/);
+    expect(d("APP-012").teamNextStep).not.toMatch(/willing to move/);
   });
 });

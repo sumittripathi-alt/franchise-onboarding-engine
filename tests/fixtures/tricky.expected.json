@@ -98,7 +98,7 @@
         "NO_SLOT",
         "TIGHT_TIMELINE"
       ],
-      "rank": 6,
+      "rank": 5,
       "wanted": "TER-02",
       "nextInLineFor": [
         "TER-02"
@@ -197,7 +197,7 @@
         "NO_SLOT",
         "TIGHT_TIMELINE"
       ],
-      "rank": 7,
+      "rank": 6,
       "wanted": "TER-02"
     },
     "APP-025": {
@@ -237,7 +237,7 @@
         "INTEGRITY_CONCERN",
         "TARGET_NOT_FEASIBLE"
       ],
-      "rank": 5,
+      "rank": 7,
       "wanted": "TER-01"
     },
     "APP-030@row33": {
@@ -344,7 +344,7 @@
         },
         "APP-019": {
           "status": "WAITLIST",
-          "rank": 6,
+          "rank": 5,
           "wanted": "TER-02"
         }
       }
@@ -398,7 +398,7 @@
         },
         "APP-024": {
           "status": "WAITLIST",
-          "rank": 6,
+          "rank": 5,
           "wanted": "TER-02"
         }
       }

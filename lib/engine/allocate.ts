@@ -7,7 +7,7 @@
 //   3. Pin contests in every territory; losers become location-offer candidates.
 //   4. Slot contests, territories by priority then ID; losers are waitlisted.
 //   5. Location offers per city, candidates in offer order (no space → Rented → Owned, then rank).
-//   6. One waitlist per city with a single rank (wanted territory's priority first, then the ranking key).
+//   6. One waitlist per city with a single rank, by merit (territory priority only orders which slots fill first).
 //   7. On-hold applicants: where they would stand once clarified; provisional wins.
 
 import { PRIORITY_RANK } from "@/lib/policy/allowedValues";
@@ -377,7 +377,7 @@ export function allocate(input: AllocationInput): Allocation {
   // ---- 5. Location offers, per city ----
   // Candidates are ALL eligible applicants without a slot in the city: first those who must move anyway
   // (their pin has an existing store or isn't in any territory), in offer order (no space → Rented → Owned,
-  // SPEC §15.5); then everyone else (pin-contest and slot-contest losers) in city-waitlist order.
+  // SPEC §15.5); then everyone else (pin-contest and slot-contest losers) in city-waitlist (merit) order.
   const holdPins = new Set(
     input.assessments.filter((a) => outcomes.get(a.key)!.status === "HOLD" && a.app.pin.value).map((a) => a.app.pin.value!),
   );
@@ -394,19 +394,16 @@ export function allocate(input: AllocationInput): Allocation {
     const city = c.a.app.city.value!;
     byCity.set(city, [...(byCity.get(city) ?? []), c]);
   }
-  const withPriority = (c: (typeof all)[number]): Ranked => ({
-    ...ranked(c.a),
-    territoryPriority: c.home ? PRIORITY_RANK[c.home.priority] : 9,
-  });
   for (const city of [...byCity.keys()].sort()) {
     const list = byCity.get(city)!;
     const mustMove = list.filter((c) => c.reason === "store" || c.reason === "notInTerritory");
     const others = list.filter((c) => c.reason === "lostPin" || c.reason === "noSlot");
     const cmpMove = makeComparator(mustMove.map((c) => ranked(c.a)), { bySpaceType: true });
-    const cmpOthers = makeComparator(others.map(withPriority), { byTerritoryPriority: true });
+    // Merit only: territory priority decides which territory's slots fill first, never who ranks higher.
+    const cmpOthers = makeComparator(others.map((c) => ranked(c.a)));
     const order: { r: Ranked; group: "move" | "other"; cmp: Comparator }[] = [
       ...sortRanked(mustMove.map((c) => ranked(c.a)), cmpMove).map((r) => ({ r, group: "move" as const, cmp: cmpMove })),
-      ...sortRanked(others.map(withPriority), cmpOthers).map((r) => ({ r, group: "other" as const, cmp: cmpOthers })),
+      ...sortRanked(others.map((c) => ranked(c.a)), cmpOthers).map((r) => ({ r, group: "other" as const, cmp: cmpOthers })),
     ];
     const homeOf = new Map(list.map((c) => [c.a.key, c]));
     const offered: string[] = [];
@@ -457,8 +454,6 @@ export function allocate(input: AllocationInput): Allocation {
   }
 
   // ---- 6. One waitlist per city, a single rank (cities with no territory keep an unranked talent pool) ----
-  // The wanted territory's priority comes first (SPEC §6.3, "when comparing across territories"); applicants
-  // whose pin is in no territory rank after those who wanted one, then the usual ranking key applies.
   const cityWaitlists = new Map<string, string[]>();
   const waiting = sorted.filter((a) => {
     const o = outcomes.get(a.key)!;
@@ -467,12 +462,9 @@ export function allocate(input: AllocationInput): Allocation {
   for (const city of [...new Set(waiting.map((a) => a.app.city.value!))].sort()) {
     const group = waiting
       .filter((a) => a.app.city.value === city)
-      .map((a): Ranked => {
-        const home = outcomes.get(a.key)!.homeTerritoryKey;
-        const t = home ? terByKey.get(home) : undefined;
-        return { ...ranked(a), territoryPriority: t ? PRIORITY_RANK[t.priority] : 9 };
-      });
-    const cmp = makeComparator(group, { byTerritoryPriority: true });
+      .map((a) => ranked(a));
+    // Merit only (the ranking key without territory priority).
+    const cmp = makeComparator(group);
     const order = sortRanked(group, cmp).map((r) => r.a.key);
     order.forEach((k, i) => (outcomes.get(k)!.waitlist = { city, rank: i + 1 }));
     cityWaitlists.set(city, order);
