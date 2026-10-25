@@ -11,6 +11,7 @@ import { formatDate, isIsoDate, todayIST } from "@/lib/planner/dates";
 import { useStore } from "@/lib/state/store";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "./context";
+import { PolicyEditor } from "./policy-editor";
 
 const ruleText = (r: SpaceRule) => (r.kind === "ok" ? "Accepted" : r.kind === "reject" ? `Rejected: ${r.text}` : `Condition: ${r.text}`);
 const t3 = (v: { "Tier 1": number; "Tier 2": number; "Tier 3": number }, unit = "") => `${v["Tier 1"]} / ${v["Tier 2"]} / ${v["Tier 3"]}${unit}`;
@@ -58,7 +59,7 @@ export function PolicyPanel() {
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold tracking-tight">Policy</h2>
-        <p className="text-sm text-muted-foreground">Every business number here is an assumption, with the reason for it. Change the brand type or the date and every decision is worked out again.</p>
+        <p className="text-sm text-muted-foreground">Every business number here is an assumption, with the reason for it. Change the brand type, the date or the numbers below and every decision is worked out again.</p>
       </div>
 
       <Section title="Brand type" hint="The same applicants, judged against a different kind of store.">
@@ -120,9 +121,11 @@ export function PolicyPanel() {
         </Section>
       </div>
 
+      <PolicyEditor />
+
       <Section
         title="Assumptions in use"
-        hint="Editing these numbers arrives in a later phase. Today you can switch the brand type above."
+        hint="Every business number in use, with the reason for it. The numbers above can be changed; the others are fixed for now."
         action={
           hasSettingsChanges ? (
             <Button
@@ -130,7 +133,7 @@ export function PolicyPanel() {
               size="sm"
               onClick={() => session.entries.filter((e) => !e.undone && e.set).forEach((e) => undo(e.id))}
             >
-              <RotateCcw /> Reset to defaults
+              <RotateCcw /> Reset brand type and date
             </Button>
           ) : undefined
         }

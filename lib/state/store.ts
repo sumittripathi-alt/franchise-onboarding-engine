@@ -265,6 +265,7 @@ export const useStore = create<StoreState>((set, get) => {
           ...(e.overrides?.length ? { overrides: e.overrides } : {}),
           ...(e.set && Object.keys(e.set).length ? { set: e.set } : {}),
           ...(e.signals && Object.keys(e.signals).length ? { signals: e.signals } : {}),
+          ...(e.policy ? { policy: e.policy } : {}),
         };
         const ok = ChangePayloadSchema.safeParse(payload);
         if (!ok.success) return;
