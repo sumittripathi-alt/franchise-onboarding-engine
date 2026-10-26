@@ -377,7 +377,8 @@ export const useStore = create<StoreState>((set, get) => {
       return s ? serialiseSession(s, new Date().toISOString()) : null;
     },
 
-    setTab: (tab) => set({ tab }),
+    // Moving to another section puts the floating "what changed" card away: it has done its job, and it would cover the page.
+    setTab: (tab) => set({ tab, lastChangeId: null }),
     openDrawer: (drawerKey, focus) => set({ drawerKey, drawerFocus: focus ?? null }),
     setFilters: (f) => set((st) => ({ filters: { ...st.filters, ...f } })),
     setCompareOpen: (compareOpen) => set({ compareOpen }),

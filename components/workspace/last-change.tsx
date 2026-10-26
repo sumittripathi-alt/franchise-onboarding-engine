@@ -42,7 +42,7 @@ export function LastChangeCard({ inline = false }: { inline?: boolean }) {
           <X />
         </Button>
       </div>
-      <div className="mt-3 max-h-64 overflow-y-auto pr-1">
+      <div className="mt-3 max-h-[22dvh] overflow-y-auto pr-1 sm:max-h-64">
         <DiffList diff={entry.diff} max={6} />
       </div>
       <div className="mt-3 flex items-center justify-between">
