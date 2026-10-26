@@ -395,7 +395,7 @@ Show reason codes as small chips. After generating, check that every APP ID, TER
 **Landing page**: product name + one line ("From application to an open, trained store, decided and explained"), upload zone, "Try with sample data" button, "Download template" link, and a 3-step "How it works".
 
 **Workspace** (single page, tabs on the left, chat docked on the right):
-1. **Overview**: status counts (clickable), data-quality report, territory slot bars (filled, reserved, open), top flags, and the active brand profile.
+1. **Overview**: a donut of decisions by status and clickable status counts, a portfolio Gantt (each partner's path to opening), data-quality report, territory slot bars (filled, reserved, open), top flags, and the active brand profile.
 2. **Applications**: a table with ID, name, city, pin, territory, status chip, key reason, and conditions count. Search and filters. Clicking a row opens the **decision drawer**: status, explanation, "what would change this", competitors, bands, cannibalisation, payback, conditions with deadlines, onboarding timeline, training plan, "Draft partner message", and history.
 3. **Territories**: a board per territory with its pins (existing store, reserved, contested, free, unavailable), winners, waitlist, and white-space pins.
 4. **Map**: layers you can toggle:
@@ -409,7 +409,7 @@ Show reason codes as small chips. After generating, check that every APP ID, TER
 6. **Change log**: entries with undo.
 7. **Export**: an Excel workbook with sheets Decisions, Conditions, Onboarding, Training cohorts, Data issues, and Change log.
 
-**Chat panel**: suggestion chips such as "Why is APP-007 on hold?", "Compare APP-003 and APP-005", "APP-012 found a ground-floor space", "Who is waitlisted in TER-02?", and "What if TER-01 gets 1 more slot?". Answers link APP IDs to their drawer.
+**Chat panel**: a round robot-with-headset button at the bottom right opens it over any tab (it is not a tab of its own). Application IDs in answers are links to that application's decision. Suggestion chips such as "Why is APP-007 on hold?", "Compare APP-003 and APP-005", "APP-012 found a ground-floor space", "Who is waitlisted in TER-02?", and "What if TER-01 gets 1 more slot?". Answers link APP IDs to their drawer.
 
 ### 10.2 Visual direction (set this before building any screen)
 - **Feel:** a calm, premium ops tool, closer to Linear or Stripe Dashboard than a generic admin template.

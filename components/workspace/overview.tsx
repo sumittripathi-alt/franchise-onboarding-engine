@@ -13,6 +13,7 @@ import { useStore } from "@/lib/state/store";
 import { STATUSES, type Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "./context";
+import { DecisionDonut, PortfolioGantt } from "./charts";
 import { DataCheckPanel } from "./data-check";
 import { DraftMessageDialog } from "./draft-message";
 
@@ -38,22 +39,27 @@ export function Overview() {
         </Button>
       </div>
 
-      <section aria-label="Decisions by outcome" className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-        {STATUSES.map((s) => (
-          <button
-            key={s}
-            className="min-w-0 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
-            onClick={() => {
-              setFilters({ status: s });
-              setTab("applications");
-            }}
-            aria-label={`${insights.statusCounts[s]} ${labelOf(s) ?? s}. Show them.`}
-          >
-            <p className="text-2xl font-semibold tabular-nums">{insights.statusCounts[s]}</p>
-            <StatusChip status={s} label={labelOf(s) ?? undefined} className="mt-1 max-w-full whitespace-normal" />
-          </button>
-        ))}
-      </section>
+      <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[24rem_minmax(0,1fr)]">
+        <DecisionDonut />
+        <section aria-label="Decisions by outcome" className="grid grid-cols-2 content-start gap-3 sm:grid-cols-3">
+          {STATUSES.map((s) => (
+            <button
+              key={s}
+              className="min-w-0 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
+              onClick={() => {
+                setFilters({ status: s });
+                setTab("applications");
+              }}
+              aria-label={`${insights.statusCounts[s]} ${labelOf(s) ?? s}. Show them.`}
+            >
+              <p className="text-2xl font-semibold tabular-nums">{insights.statusCounts[s]}</p>
+              <StatusChip status={s} label={labelOf(s) ?? undefined} className="mt-1 max-w-full whitespace-normal" />
+            </button>
+          ))}
+        </section>
+      </div>
+
+      <PortfolioGantt />
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-8">

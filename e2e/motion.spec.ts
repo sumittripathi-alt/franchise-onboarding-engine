@@ -11,10 +11,7 @@ test("G8.5 after a change the cascade plays, the page stays usable, and it finis
   page.on("pageerror", (e) => errors.push(e.message));
   await startSample(page);
   await openTab(page, "Applications");
-  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Ask" }).click();
-  const box = page.getByLabel("Your question or update");
-  await box.fill("APP-003 has withdrawn");
-  await box.press("Enter");
+  await ask(page, "APP-003 has withdrawn");
 
   // The reply is readable straight away, and Undo works while things are still moving.
   const undo = page.getByRole("log").getByRole("button", { name: "Undo" });

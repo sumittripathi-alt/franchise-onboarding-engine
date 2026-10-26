@@ -8,8 +8,9 @@ import { StatusChip } from "@/components/app/status-chip";
 import { Panel } from "@/components/app/ui-bits";
 import { CITY_CENTRES, KARNATAKA_VIEW } from "@/lib/geo/cities";
 import { haversineKm } from "@/lib/geo/distance";
+import { STATUS_COLOUR } from "@/lib/insights/charts";
 import { buildMapModel, type MapModel, type MapPoint } from "@/lib/insights/map";
-import { STATUSES, type Status } from "@/lib/types";
+import { STATUSES } from "@/lib/types";
 import { useStore } from "@/lib/state/store";
 import { useWorkspace } from "./context";
 
@@ -23,15 +24,6 @@ const LAYERS: { key: LayerKey; label: string; hint: string }[] = [
   { key: "whiteSpace", label: "Recruit here", hint: "Pins nobody applied for, in territories with free slots." },
 ];
 
-// The status colours, as the app uses them. The map always has a text legend and a text list: colour is never the only cue.
-const STATUS_COLOUR: Record<Status, string> = {
-  APPROVED: "#15803d",
-  CONDITIONAL: "#0f766e",
-  HOLD: "#b45309",
-  WAITLIST: "#475569",
-  REDIRECT: "#1d4ed8",
-  REJECT: "#b91c1c",
-};
 const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 type MapState = "loading" | "ready" | "tiles-failed" | "error";
