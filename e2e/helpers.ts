@@ -30,8 +30,24 @@ export async function openTab(page: Page, name: string) {
   await nav.getByRole("button", { name }).click();
 }
 
+/** Open the assistant (the round button at the bottom right). */
+export async function openChat(page: Page) {
+  const panel = page.getByRole("dialog", { name: "Assistant" });
+  if (!(await panel.isVisible())) await page.getByRole("button", { name: "Open the assistant" }).click();
+  await expect(panel).toBeVisible();
+}
+
+export async function closeChat(page: Page) {
+  const panel = page.getByRole("dialog", { name: "Assistant" });
+  if (await panel.isVisible()) {
+    await page.getByLabel("Your question or update").press("Escape");
+    await expect(panel).toBeHidden();
+  }
+}
+
+/** Ask the assistant. It stays open, so the answer can be read. */
 export async function ask(page: Page, text: string) {
-  await openTab(page, "Ask");
+  await openChat(page);
   const box = page.getByLabel("Your question or update");
   await box.fill(text);
   await box.press("Enter");

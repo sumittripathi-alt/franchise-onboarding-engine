@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type APIResponse } from "@playwright/test";
 import { buildTemplateWorkbook, workbookBytes } from "../lib/ingest/templateWorkbook";
 import { TRICKY_APPLICATIONS, TRICKY_TERRITORIES } from "../tests/fixtures/trickyData";
-import { ask, noHorizontalScroll, noteWorkspace, openTab, settle, startSample } from "./helpers";
+import { ask, closeChat, noHorizontalScroll, noteWorkspace, openTab, settle, startSample } from "./helpers";
 
 const STACK = /\n\s+at .+\(.+:\d+:\d+\)|node_modules|webpack-internal|TypeError:|ReferenceError:/;
 
@@ -185,10 +185,15 @@ test.describe("G8 accessibility and layout", () => {
     await page.waitForTimeout(900); // let the drawer finish sliding in: axe reads colours mid-fade otherwise
     await check("decision drawer");
     await page.keyboard.press("Escape");
-    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
+    for (const tab of ["Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
       await openTab(page, tab);
       await check(`${tab} (${info.project.name})`);
     }
+    // The assistant, open, with an answer in it.
+    await ask(page, "APP-012 has now found a ground-floor space");
+    await expect(page.getByRole("log").getByText(/You can undo this/)).toBeVisible();
+    await page.waitForTimeout(600);
+    await check(`assistant panel (${info.project.name})`);
   });
 
   test("G8.2 everything can be reached and used from the keyboard, with a visible focus ring", async ({ page }) => {
@@ -217,13 +222,26 @@ test.describe("G8 accessibility and layout", () => {
     await expect(page.getByRole("button", { name: /See the decisions/ })).toBeEnabled({ timeout: 60_000 });
     await page.getByRole("button", { name: /See the decisions/ }).focus();
     await page.keyboard.press("Enter");
-    // Move to a section with the keyboard, then ask a question and send it with Enter.
-    await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Ask" }).focus();
+    // Open the assistant with the keyboard, ask a question, send it with Enter, and close it with Escape.
+    const launcher = page.getByRole("button", { name: "Open the assistant" });
+    await launcher.focus();
     await page.keyboard.press("Enter");
-    await page.getByLabel("Your question or update").focus();
+    await expect(page.getByLabel("Your question or update")).toBeFocused();
     await page.keyboard.type("Why is APP-007 on hold?");
     await page.keyboard.press("Enter");
     await expect(page.getByRole("log").getByText(/On hold/).first()).toBeVisible();
+    // Tab reaches the application link in the answer, and Enter opens that decision.
+    const link = page.getByRole("log").getByRole("button", { name: "Open the decision for APP-007" }).first();
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog").filter({ hasText: "APP-007" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    // Escape closes the assistant and puts focus back on its button.
+    await launcher.click();
+    await page.getByLabel("Your question or update").focus();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Assistant" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Open the assistant" })).toBeFocused();
   });
 
   test("G8.3 nothing scrolls sideways on any screen at the current width", async ({ page }, info) => {
@@ -236,14 +254,21 @@ test.describe("G8 accessibility and layout", () => {
     await ok("landing");
     await startSample(page);
     await ok("decision sheet");
-    for (const tab of ["Ask", "Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
+    for (const tab of ["Overview", "Applications", "Territories", "Map", "Policy", "Change log", "Export"]) {
       await openTab(page, tab);
       await ok(tab);
     }
     await ask(page, "APP-012 has now found a ground-floor space");
     await expect(page.getByRole("log").getByText(/You can undo this/)).toBeVisible();
-    await ok("chat with a change");
-    await expect(page.getByRole("dialog")).toBeVisible(); // the affected decision opens
+    await ok("the assistant with a change in it");
+    // The assistant fits inside the screen.
+    const box = await page.getByRole("dialog", { name: "Assistant" }).boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width + 0.5);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    await page.getByRole("log").getByRole("button", { name: "Open the decision for APP-012" }).first().click();
+    await expect(page.getByRole("dialog").filter({ hasText: "APP-012" })).toBeVisible();
     await ok("decision drawer");
+    await closeChat(page);
   });
 });

@@ -2,13 +2,14 @@
 // useful when the map background can't load.
 
 import { expect, test } from "@playwright/test";
-import { ask, noHorizontalScroll, openTab, startSample } from "./helpers";
+import { ask, closeChat, noHorizontalScroll, openTab, startSample } from "./helpers";
 
 test("G8.4 the map draws stores, applicants, competitors and recruit-here pins, and every fact is also text", async ({ page }) => {
   await startSample(page);
   // Open more slots in TER-05 than there are applicants, so there are pins to recruit for.
   await ask(page, "TER-05 now has 6 slots");
   await expect(page.getByRole("log").getByText(/You can undo this/)).toBeVisible();
+  await closeChat(page);
   await openTab(page, "Map");
   await expect(page.getByRole("heading", { name: "Map", exact: true })).toBeVisible();
   const map = page.getByTestId("map");

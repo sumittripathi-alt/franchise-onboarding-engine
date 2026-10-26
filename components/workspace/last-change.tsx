@@ -27,7 +27,7 @@ export function LastChangeCard({ inline = false }: { inline?: boolean }) {
       className={
         inline
           ? "no-print rounded-xl border border-accent-brand/40 bg-card p-4"
-          : "no-print fixed bottom-4 right-4 z-40 w-[min(26rem,calc(100vw-2rem))] rounded-xl border bg-popover p-4 text-popover-foreground shadow-lg"
+          : "no-print fixed bottom-[5.25rem] right-4 z-40 w-[min(26rem,calc(100vw-2rem))] rounded-xl sm:bottom-4 sm:right-24 border bg-popover p-4 text-popover-foreground shadow-lg"
       }
     >
       <div className="flex items-start justify-between gap-2">

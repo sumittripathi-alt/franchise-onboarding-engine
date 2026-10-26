@@ -46,7 +46,14 @@ test("the full judge journey", async ({ page, browser }, info) => {
   await ask(page, "APP-012 has now found a ground-floor space");
   await expect(page.getByRole("log").getByText(/treated the space as rented/)).toBeVisible();
   await expect(page.getByRole("log").getByRole("button", { name: "Undo" })).toBeVisible();
+
+  // An application in the answer is a link: it opens that application's decision and puts the assistant away.
+  await page.getByRole("log").getByRole("button", { name: "Open the decision for APP-012" }).first().click();
+  const linked = page.getByRole("dialog").filter({ hasText: "APP-012" });
+  await expect(linked).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Assistant" })).toBeHidden();
   await page.keyboard.press("Escape");
+  await expect(linked).toBeHidden();
 
   // Switch the brand type.
   await openTab(page, "Policy");

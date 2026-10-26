@@ -30,7 +30,7 @@ import { aiClient } from "@/lib/llm/clientApi";
 import { chunkSignals, hasText, readNotes } from "@/lib/llm/extractClient";
 import { localSignalCache } from "@/lib/llm/signalCache";
 
-export type Tab = "sheet" | "chat" | "overview" | "applications" | "territories" | "map" | "policy" | "log" | "export";
+export type Tab = "sheet" | "overview" | "applications" | "territories" | "map" | "policy" | "log" | "export";
 
 export interface Filters {
   query: string;
@@ -73,6 +73,9 @@ interface StoreState {
   hydrated: boolean;
   reading: ReadingState;
   chat: { messages: ChatMsg[]; state: ChatState; busy: boolean };
+  /** The assistant panel (the round button at the bottom right) is open. */
+  chatOpen: boolean;
+  setChatOpen: (open: boolean) => void;
   persistence: Persistence;
   /** The open workspace's id, and its latest session. */
   workspaceId: string | null;
@@ -179,6 +182,8 @@ export const useStore = create<StoreState>((set, get) => {
     hydrated: false,
     reading: IDLE_READING,
     chat: NEW_CHAT_SLICE,
+    chatOpen: false,
+    setChatOpen: (chatOpen) => set({ chatOpen }),
     persistence: "unknown",
     workspaceId: null,
     session: null,
@@ -303,8 +308,7 @@ export const useStore = create<StoreState>((set, get) => {
         const { reply, state } = await answerTurn(input, s, get().chat.state, { commit: (spec) => get().commit(spec), now: new Date().toISOString(), ai: aiClient });
         const bot: ChatMsg = { id: ++chatId, role: "assistant", text: reply.text, reply };
         set((st) => ({ chat: { messages: [...st.chat.messages, bot], state, busy: false } }));
-        // After a change, the affected application's drawer opens (SPEC §15.6).
-        if (reply.kind === "commit" && reply.appKey) set({ drawerKey: reply.appKey, drawerFocus: null });
+        // The answer links to the affected application; its decision opens when you choose it, so the panel isn't covered.
       } catch {
         const bot: ChatMsg = { id: ++chatId, role: "assistant", text: "Something went wrong answering that. Nothing was changed. Please try again." };
         set((st) => ({ chat: { ...st.chat, messages: [...st.chat.messages, bot], busy: false } }));
@@ -365,7 +369,7 @@ export const useStore = create<StoreState>((set, get) => {
       client?.stop();
       client = null;
       safeRemoveItem(LAST_WORKSPACE_KEY);
-      set({ workspaceId: null, reading: IDLE_READING, chat: NEW_CHAT_SLICE, session: null, sync: IDLE_SYNC, toasts: [], loadError: null, previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
+      set({ workspaceId: null, reading: IDLE_READING, chat: NEW_CHAT_SLICE, chatOpen: false, session: null, sync: IDLE_SYNC, toasts: [], loadError: null, previous: null, compareOpen: false, lastChangeId: null, tab: "sheet", drawerKey: null, filters: NO_FILTERS });
     },
 
     exportSessionText() {
