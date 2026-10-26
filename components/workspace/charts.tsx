@@ -19,7 +19,7 @@ export function DecisionDonut() {
   const { total, segments } = donutSegments(insights.statusCounts);
 
   return (
-    <Panel className="flex flex-col gap-4 sm:flex-row sm:items-center lg:flex-col lg:items-stretch xl:flex-row xl:items-center" data-testid="donut">
+    <Panel className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8" data-testid="donut">
       <svg viewBox="0 0 120 120" role="img" aria-label={donutSummary(insights.statusCounts, label)} className="mx-auto size-40 shrink-0">
         <g transform="rotate(-90 60 60)">
           <circle cx="60" cy="60" r={DONUT_RADIUS} fill="none" strokeWidth="14" className="stroke-muted" />
@@ -36,7 +36,7 @@ export function DecisionDonut() {
           applications
         </text>
       </svg>
-      <ul className="min-w-0 flex-1 space-y-1" aria-label="Decisions, with the share of all applications">
+      <ul className="grid min-w-0 flex-1 gap-x-6 gap-y-1 sm:grid-cols-2" aria-label="Decisions, with the share of all applications">
         {segments.map((s) => (
           <li key={s.status}>
             <button
@@ -48,8 +48,8 @@ export function DecisionDonut() {
               }}
             >
               <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: STATUS_COLOUR[s.status] }} />
-              <span className="min-w-0 flex-1 truncate">{label(s.status)}</span>
-              <span className="tabular-nums text-muted-foreground">
+              <span className="min-w-0 flex-1">{label(s.status)}</span>
+              <span className="shrink-0 tabular-nums text-muted-foreground">
                 {s.count} · {s.pct}%
               </span>
             </button>

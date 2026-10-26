@@ -3,14 +3,13 @@
 import { CalendarClock, ChevronRight, FileCheck2, Flag, Lightbulb, MapPinned, TrendingUp } from "lucide-react";
 import { useRef, useState } from "react";
 import { Panel, Pill, Section } from "@/components/app/ui-bits";
-import { STATUS_DOT, StatusChip } from "@/components/app/status-chip";
+import { STATUS_DOT } from "@/components/app/status-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { KIND_LABEL, type ActionItem } from "@/lib/insights/actions";
 import { fillSlots, useMotion } from "@/lib/motion";
 import { formatDate } from "@/lib/planner/dates";
 import { useStore } from "@/lib/state/store";
-import { STATUSES, type Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "./context";
 import { DecisionDonut, PortfolioGantt } from "./charts";
@@ -18,12 +17,8 @@ import { DataCheckPanel } from "./data-check";
 import { DraftMessageDialog } from "./draft-message";
 
 export function Overview() {
-  const { insights, result, policy, settings } = useWorkspace();
-  const setFilters = useStore((s) => s.setFilters);
-  const setTab = useStore((s) => s.setTab);
+  const { insights, policy, settings } = useWorkspace();
   const [checkOpen, setCheckOpen] = useState(false);
-
-  const labelOf = (s: Status) => result.decisions.find((d) => d.status === s)?.label;
 
   return (
     <div className="space-y-8">
@@ -39,25 +34,7 @@ export function Overview() {
         </Button>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[24rem_minmax(0,1fr)]">
-        <DecisionDonut />
-        <section aria-label="Decisions by outcome" className="grid grid-cols-2 content-start gap-3 sm:grid-cols-3">
-          {STATUSES.map((s) => (
-            <button
-              key={s}
-              className="min-w-0 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
-              onClick={() => {
-                setFilters({ status: s });
-                setTab("applications");
-              }}
-              aria-label={`${insights.statusCounts[s]} ${labelOf(s) ?? s}. Show them.`}
-            >
-              <p className="text-2xl font-semibold tabular-nums">{insights.statusCounts[s]}</p>
-              <StatusChip status={s} label={labelOf(s) ?? undefined} className="mt-1 max-w-full whitespace-normal" />
-            </button>
-          ))}
-        </section>
-      </div>
+      <DecisionDonut />
 
       <PortfolioGantt />
 

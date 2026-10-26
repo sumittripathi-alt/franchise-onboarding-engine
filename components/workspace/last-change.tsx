@@ -10,6 +10,7 @@ import { useWorkspace } from "./context";
 export function LastChangeCard({ inline = false }: { inline?: boolean }) {
   const { session } = useWorkspace();
   const drawerOpen = useStore((s) => s.drawerKey !== null);
+  const assistantOpen = useStore((s) => s.chatOpen);
   const id = useStore((s) => s.lastChangeId);
   const undo = useStore((s) => s.undo);
   const dismiss = useStore((s) => s.dismissLastChange);
@@ -18,6 +19,8 @@ export function LastChangeCard({ inline = false }: { inline?: boolean }) {
   if (!entry) return null;
   // While the drawer is open the change shows inside it (a floating card would sit behind its overlay).
   if (!inline && drawerOpen) return null;
+  // The open assistant already shows the change, with its Undo.
+  if (!inline && assistantOpen) return null;
   return (
     <aside
       id={inline ? "last-change-inline" : undefined}
