@@ -188,6 +188,30 @@ export function MapTab() {
         </p>
       </div>
 
+      {state === "tiles-failed" && (
+        <p role="status" data-map-fallback className="flex items-start gap-2 rounded-xl border bg-muted px-4 py-3 text-sm">
+          <MapPinOff aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>The map background couldn&apos;t load (you may be offline, or it is blocked). The places are still drawn on a plain background, and everything on the map is written out below.</span>
+        </p>
+      )}
+      {state === "error" && (
+        <p role="status" data-map-fallback className="flex items-start gap-2 rounded-xl border bg-muted px-4 py-3 text-sm">
+          <MapPinOff aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>The map couldn&apos;t start in this browser. Everything it would show is written out below.</span>
+        </p>
+      )}
+
+      <div className={state === "error" ? "hidden" : "relative"}>
+        <div ref={host} data-testid="map" className="z-0 h-[22rem] w-full overflow-hidden rounded-xl border bg-muted sm:h-[30rem]" />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Legend">
+        {STATUSES.map((s) => (
+          <StatusChip key={s} status={s} label={model.applicants.find((a) => a.status === s)?.label ?? undefined} />
+        ))}
+        <span className="text-xs text-muted-foreground">Ring: no new store inside it. Purple line: competing applicants. Dashed: approximate location.</span>
+      </div>
+
       <Panel className="space-y-3">
         <fieldset>
           <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Show</legend>
@@ -217,30 +241,6 @@ export function MapTab() {
           </select>
         </div>
       </Panel>
-
-      {state === "tiles-failed" && (
-        <p role="status" data-map-fallback className="flex items-start gap-2 rounded-xl border bg-muted px-4 py-3 text-sm">
-          <MapPinOff aria-hidden className="mt-0.5 size-4 shrink-0" />
-          <span>The map background couldn&apos;t load (you may be offline, or it is blocked). The places are still drawn on a plain background, and everything on the map is written out below.</span>
-        </p>
-      )}
-      {state === "error" && (
-        <p role="status" data-map-fallback className="flex items-start gap-2 rounded-xl border bg-muted px-4 py-3 text-sm">
-          <MapPinOff aria-hidden className="mt-0.5 size-4 shrink-0" />
-          <span>The map couldn&apos;t start in this browser. Everything it would show is written out below.</span>
-        </p>
-      )}
-
-      <div className={state === "error" ? "hidden" : "relative"}>
-        <div ref={host} data-testid="map" className="z-0 h-[22rem] w-full overflow-hidden rounded-xl border bg-muted sm:h-[30rem]" />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Legend">
-        {STATUSES.map((s) => (
-          <StatusChip key={s} status={s} label={model.applicants.find((a) => a.status === s)?.label ?? undefined} />
-        ))}
-        <span className="text-xs text-muted-foreground">Ring: no new store inside it. Purple line: competing applicants. Dashed: approximate location.</span>
-      </div>
 
       <MapInWords model={model} open={state === "tiles-failed" || state === "error"} />
     </div>

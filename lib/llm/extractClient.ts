@@ -75,7 +75,9 @@ export async function readNotes(apps: Pick<Application, "key" | "business" | "no
   const worker = async () => {
     while (next < batches.length && !ctl.signal.aborted) {
       const batch = batches[next++];
-      const r = await extract(batch, ctl.signal);
+      let r = await extract(batch, ctl.signal);
+      // One more try for a batch that failed, if there is time: a single hiccup shouldn't cost a whole reading.
+      if (!r.ok && !ctl.signal.aborted) r = await extract(batch, ctl.signal);
       if (r.ok) {
         answered++;
         model = r.model ?? model;

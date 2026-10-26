@@ -249,7 +249,7 @@ export const useStore = create<StoreState>((set, get) => {
         if (client !== c) return;
         const state: ReadingState = r.total === 0 || r.complete
           ? { status: "done", message: null }
-          : { status: "failed", message: r.unavailable ? "The AI assistant isn't available right now, so the notes were read with the keyword reader." : `The AI read ${r.read} of ${r.total} applications in time; the rest were read with the keyword reader.` };
+          : { status: "failed", message: r.unavailable ? null : `The AI read ${r.read} of ${r.total} in time.` };
         set({ reading: state });
       })();
       return id;

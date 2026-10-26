@@ -58,6 +58,24 @@ describe("readNotes", () => {
     expect(r.unavailable).toBe(false);
   });
 
+  it("tries a failed batch once more, and a hiccup doesn't cost the reading", async () => {
+    const calls: string[] = [];
+    let failedOnce = false;
+    const r = await readNotes(apps(30), {
+      extract: async (items) => {
+        calls.push(items[0].id);
+        if (items[0].id === "APP-11" && !failedOnce) {
+          failedOnce = true;
+          return { ok: false, results: {}, model: null };
+        }
+        return ok(items);
+      },
+    });
+    expect(r.read).toBe(30);
+    expect(r.complete).toBe(true);
+    expect(calls.filter((c) => c === "APP-11")).toHaveLength(2);
+  });
+
   it("is 'unavailable' when no batch is answered (AI off or unreachable), and never throws", async () => {
     const r = await readNotes(apps(45), { extract: async () => ({ ok: false, results: {}, model: null }) });
     expect(r.unavailable).toBe(true);
@@ -68,8 +86,8 @@ describe("readNotes", () => {
   });
 
   it("keeps what finished when some batches fail", async () => {
-    let n = 0;
-    const r = await readNotes(apps(60), { extract: async (items) => (n++ === 1 ? { ok: false, results: {}, model: null } : ok(items)) });
+    // The second batch always fails, even on its retry.
+    const r = await readNotes(apps(60), { extract: async (items) => (items[0].id === "APP-11" ? { ok: false, results: {}, model: null } : ok(items)) });
     expect(r.read).toBe(50);
     expect(r.complete).toBe(false);
     expect(r.unavailable).toBe(false);
