@@ -1,9 +1,9 @@
 # Guardrails report
 
-Generated 2026-10-25 23:11 UTC by `npm run guardrails` from real test results. Nothing here is marked by hand.
+Generated 2026-10-26 07:16 UTC by `npm run guardrails` from real test results. Nothing here is marked by hand.
 
-- Unit tests: 372 passed of 372 (0 skipped).
-- Browser tests: 40 passed of 40 (2 projects against https://onboarding-engine-dun.vercel.app, results from 2026-10-25 23:11 UTC).
+- Unit tests: 373 passed of 373 (0 skipped).
+- Browser tests: 40 passed of 40 (2 projects against https://onboarding-engine-dun.vercel.app, results from 2026-10-26 07:16 UTC).
 - Secret scan of the browser bundle: G10.4 passed: scanned 24 browser files; no secret names, key shapes or secret values.
 
 **72 passed, 0 failed, 0 waiting on a later phase, 1 manual, 0 without a test**, out of 73 guardrails.
